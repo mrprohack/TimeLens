@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TimeLens Dashboard</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>TimeLens</span></div>
+      <nav class="header-nav" aria-label="Dashboard sections">
+        <a href="#overview">Overview</a>
+        <a href="#limits">Limits</a>
+        <a href="#focus">Focus</a>
+        <a href="#history">History</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-shell">
+    <section id="overview" class="overview-section">
+      <div class="section-topline">
+        <div>
+          <h1>Your browsing time, clearly.</h1>
+          <p class="muted">Only active, focused browsing counts. Everything stays on this device.</p>
+        </div>
+        <div id="range-control" class="range-control" role="group" aria-label="Usage range">
+          <button type="button" data-days="1">Today</button>
+          <button type="button" data-days="7" class="active">7 days</button>
+          <button type="button" data-days="30">30 days</button>
+        </div>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-primary">
+          <div class="eyeline" id="range-label">Last 7 days</div>
+          <div class="hero-number" id="range-total">0m</div>
+          <div class="muted" id="summary-note">Active browsing time</div>
+        </div>
+        <div class="current-activity">
+          <span class="live-dot" aria-hidden="true"></span>
+          <div>
+            <div class="muted small">Current website</div>
+            <div id="current-domain" class="current-site">No active website</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="overview-grid">
+        <section class="content-section" aria-labelledby="daily-heading">
+          <div class="section-heading-row">
+            <div>
+              <h2 id="daily-heading">Daily activity</h2>
+              <p class="muted">Compare your active browsing across days.</p>
+            </div>
+          </div>
+          <div id="daily-chart" class="daily-chart" aria-label="Daily usage chart"></div>
+        </section>
+
+        <section class="content-section" aria-labelledby="top-heading">
+          <div class="section-heading-row">
+            <div>
+              <h2 id="top-heading">Most used websites</h2>
+              <p class="muted">Where your selected range went.</p>
+            </div>
+          </div>
+          <div id="top-sites" class="usage-list"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="limits" class="feature-section">
+      <div class="feature-copy">
+        <div class="eyeline">Daily limits</div>
+        <h2>Put a boundary around distracting sites.</h2>
+        <p class="muted">Choose a website and a daily allowance. Strict mode removes the “extra time” option after the limit is reached.</p>
+      </div>
+      <div class="feature-workspace panel">
+        <form id="limit-form" class="form-grid">
+          <label class="label site-field"><span>Website</span><input id="limit-domain" class="input" name="domain" placeholder="youtube.com" autocomplete="off" required></label>
+          <label class="label"><span>Minutes / day</span><input id="limit-minutes" class="input" name="minutes" type="number" min="1" max="1440" value="60" required></label>
+          <label class="check-row"><input id="limit-strict" name="strict" type="checkbox"><span><strong>Strict</strong><small>No temporary extension after limit.</small></span></label>
+          <button class="btn btn-primary" type="submit">Save limit</button>
+        </form>
+        <div class="divider"></div>
+        <div id="limit-list" class="limit-list"></div>
+      </div>
+    </section>
+
+    <section id="focus" class="feature-section reverse">
+      <div class="feature-copy">
+        <div class="eyeline">Focus mode</div>
+        <h2>Make a distraction-free window.</h2>
+        <p class="muted">Start a focused session and TimeLens blocks only the sites you choose until the timer ends.</p>
+      </div>
+      <div class="feature-workspace panel">
+        <div id="focus-active" class="focus-active" hidden>
+          <div>
+            <div class="eyeline">Focus in progress</div>
+            <div id="focus-remaining" class="focus-time">0m</div>
+            <div id="focus-blocked-count" class="muted"></div>
+          </div>
+          <button id="stop-focus" class="btn" type="button">End focus</button>
+        </div>
+        <form id="focus-form" class="stack">
+          <label class="label"><span>Duration</span>
+            <select id="focus-minutes" class="input">
+              <option value="25">25 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+              <option value="90">90 minutes</option>
+            </select>
+          </label>
+          <label class="label"><span>Blocked websites · one per line or comma separated</span><textarea id="focus-domains" class="input textarea" rows="5">youtube.com
+reddit.com
+instagram.com
+facebook.com
+x.com</textarea></label>
+          <button class="btn btn-primary" type="submit">Start focus session</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="history" class="history-section">
+      <div class="section-heading-row">
+        <div>
+          <div class="eyeline">Recent sessions</div>
+          <h2>Usage history</h2>
+          <p class="muted">Recent active browsing sessions. Background and idle time are excluded.</p>
+        </div>
+      </div>
+      <div class="history-table-wrap panel">
+        <div class="history-head"><span>Website</span><span>Started</span><span>Active time</span></div>
+        <div id="history-list" class="history-list"></div>
+      </div>
+    </section>
+
+    <section id="settings" class="data-section">
+      <div class="feature-copy">
+        <div class="eyeline">Privacy & data</div>
+        <h2>Your browsing data stays local.</h2>
+        <p class="muted">No account, ads, cloud analytics, or remote tracking. Export a backup or erase usage data whenever you want.</p>
+      </div>
+      <div class="data-controls panel">
+        <label class="label"><span>Idle after</span>
+          <select id="idle-seconds" class="input">
+            <option value="30">30 seconds</option>
+            <option value="60">1 minute</option>
+            <option value="120">2 minutes</option>
+            <option value="300">5 minutes</option>
+          </select>
+        </label>
+        <label class="label"><span>Keep detailed sessions</span>
+          <select id="retention-days" class="input">
+            <option value="7">7 days</option>
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+            <option value="180">180 days</option>
+          </select>
+        </label>
+        <div class="data-actions">
+          <button id="save-settings" class="btn" type="button">Save preferences</button>
+          <button id="export-data" class="btn" type="button">Export JSON</button>
+          <button id="clear-data" class="btn btn-danger" type="button">Clear usage data</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
