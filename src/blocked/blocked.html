@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TimeLens · Time boundary reached</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <main class="blocked-shell" aria-live="polite">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>TimeLens</span></div>
+    <section class="blocked-message">
+      <div class="site-letter" id="site-letter" aria-hidden="true">T</div>
+      <div class="eyeline" id="reason-label">Daily limit reached</div>
+      <h1 id="blocked-title">Your time on this site is up for today.</h1>
+      <p id="blocked-copy" class="muted">Close this tab or choose a small extension if your limit allows it.</p>
+      <div class="usage-line" id="usage-line"></div>
+    </section>
+
+    <div class="primary-actions">
+      <button id="close-tab" class="btn btn-primary" type="button">Close tab</button>
+      <button id="open-dashboard" class="btn" type="button">Open dashboard</button>
+    </div>
+
+    <section id="allowance-actions" class="allowance-actions" hidden>
+      <div class="divider"></div>
+      <p class="muted">Need a little more time?</p>
+      <div class="allowance-buttons">
+        <button class="btn allowance" data-minutes="5" type="button">+5 minutes</button>
+        <button class="btn allowance" data-minutes="15" type="button">+15 minutes</button>
+      </div>
+    </section>
+
+    <div id="error-message" class="error-message" role="status" hidden></div>
+  </main>
+  <script type="module" src="blocked.js"></script>
+</body>
+</html>

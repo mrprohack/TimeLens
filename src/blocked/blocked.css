@@ -1,0 +1,13 @@
+body { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.blocked-shell { width: min(100%, 520px); display: grid; gap: 34px; }
+.blocked-message { display: grid; gap: 12px; }
+.site-letter { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+h1 { margin: 0; font-size: clamp(34px, 7vw, 50px); line-height: 1.03; letter-spacing: -0.045em; }
+.blocked-copy { font-size: 16px; line-height: 1.6; max-width: 480px; }
+.usage-line { font-weight: 700; margin-top: 4px; }
+.primary-actions, .allowance-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+.primary-actions .btn { min-width: 135px; }
+.allowance-actions { display: grid; gap: 14px; }
+.allowance-actions p { margin: 0; }
+.error-message { padding: 10px 12px; border-radius: 10px; color: var(--danger); background: var(--danger-soft); }
+@media (max-width: 480px) { .primary-actions .btn, .allowance-buttons .btn { width: 100%; } }
