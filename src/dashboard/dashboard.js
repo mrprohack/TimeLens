@@ -4,6 +4,17 @@ let rangeDays = 7;
 let snapshot = null;
 let toastTimer = null;
 
+const PERIOD_WORD = Object.freeze({ daily: 'day', weekly: 'week', monthly: 'month' });
+const PERIOD_TITLE = Object.freeze({ daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' });
+
+function periodWord(period) {
+  return PERIOD_WORD[period] || 'day';
+}
+
+function periodTitle(period) {
+  return PERIOD_TITLE[period] || 'Daily';
+}
+
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
   toast.hidden = false;
@@ -52,10 +63,13 @@ function renderLimits() {
     return;
   }
   node.innerHTML = snapshot.limits.map((limit) => {
-    const percent = Math.min(100, Math.round(limit.ratio * 100));
+    const percent = Math.min(100, Math.max(0, Math.round(limit.ratio * 100)));
+    const amount = formatDuration(limit.minutes * 60_000, true);
+    const used = formatDuration(limit.usedMs, true);
+    const remaining = limit.reached ? 'Time up' : `${formatDuration(limit.remainingMs, true)} left`;
     return `<div class="limit-item">
-      <div><div class="limit-domain">${escapeHtml(limit.domain)}</div><div class="limit-meta">${limit.minutes} min/day · ${limit.strict ? 'Strict' : 'Extra time allowed'}</div></div>
-      <div class="limit-progress"><small>${percent}% used</small><div class="progress"><span style="width:${percent}%"></span></div></div>
+      <div><div class="limit-domain">${escapeHtml(limit.domain)}</div><div class="limit-meta">${escapeHtml(amount)} / ${escapeHtml(periodWord(limit.period))} · ${limit.strict ? 'Strict' : 'Extra time allowed'}</div></div>
+      <div class="limit-progress"><small>${escapeHtml(used)} used · ${escapeHtml(remaining)}</small><div class="progress" aria-hidden="true"><span style="width:${percent}%"></span></div></div>
       <button class="icon-button delete-limit" type="button" data-domain="${escapeHtml(limit.domain)}" aria-label="Delete limit for ${escapeHtml(limit.domain)}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -127,16 +141,22 @@ document.getElementById('limit-form').addEventListener('submit', async (event) =
   const submit = event.submitter;
   submit.disabled = true;
   try {
+    const value = Number(document.getElementById('limit-value').value);
+    const unit = document.getElementById('limit-unit').value;
+    const period = document.getElementById('limit-period').value;
+    const minutes = unit === 'hours' ? value * 60 : value;
+
     await send('SAVE_LIMIT', {
       limit: {
         domain: document.getElementById('limit-domain').value.trim(),
-        minutes: Number(document.getElementById('limit-minutes').value),
+        minutes,
+        period,
         strict: document.getElementById('limit-strict').checked,
         enabled: true
       }
     });
     document.getElementById('limit-domain').value = '';
-    showToast('Daily limit saved.');
+    showToast(`${periodTitle(period)} limit saved.`);
     await refresh();
   } catch (error) { showToast(error.message, true); }
   finally { submit.disabled = false; }
