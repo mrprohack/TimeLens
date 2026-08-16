@@ -1,20 +1,34 @@
 import { createActivityState } from '../core/activity.js';
 import { normalizeDomain } from '../core/domain.js';
 import { limitPeriodKey, normalizeLimitPeriod } from '../core/limits.js';
+import { normalizeSchedule } from '../core/schedule.js';
 
-export const CURRENT_DATA_VERSION = 3;
+export const CURRENT_DATA_VERSION = 4;
 export const DEFAULT_ALERTS = Object.freeze({
   fiveMinutes: true,
   oneMinute: true,
   timeout: true
 });
+export const DEFAULT_TOTAL_BUDGET = Object.freeze({
+  enabled: false,
+  minutes: 300,
+  mode: 'warn'
+});
+export const DEFAULT_FOCUS_PRESETS = Object.freeze([
+  Object.freeze({ id: 'work', name: 'Work', minutes: 60, mode: 'block', domains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'] }),
+  Object.freeze({ id: 'study', name: 'Study', minutes: 45, mode: 'block', domains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'] }),
+  Object.freeze({ id: 'deep-work', name: 'Deep Work', minutes: 90, mode: 'block', domains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'] })
+]);
 
 export const DEFAULT_SETTINGS = Object.freeze({
   idleSeconds: 60,
   retentionDays: 30,
   aggregateRetentionDays: 365,
   limits: [],
-  alerts: DEFAULT_ALERTS
+  alerts: DEFAULT_ALERTS,
+  totalBudget: DEFAULT_TOTAL_BUDGET,
+  categories: [],
+  focusPresets: DEFAULT_FOCUS_PRESETS
 });
 
 function clampNumber(value, min, max, fallback) {
@@ -27,6 +41,25 @@ function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+function slug(value) {
+  return String(value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64);
+}
+
+function normalizeDomains(value) {
+  if (!Array.isArray(value)) return [];
+  const domains = [];
+  for (const raw of value) {
+    const domain = normalizeDomain(raw || '');
+    if (domain && !domains.includes(domain)) domains.push(domain);
+  }
+  return domains;
+}
+
 function normalizeLimit(limit) {
   if (!isPlainObject(limit)) return null;
   const domain = normalizeDomain(limit.domain || '');
@@ -37,7 +70,8 @@ function normalizeLimit(limit) {
     minutes: Math.max(1, Math.min(44_640, Math.round(minutes))),
     period: normalizeLimitPeriod(limit.period),
     enabled: limit.enabled !== false,
-    strict: Boolean(limit.strict)
+    strict: Boolean(limit.strict),
+    schedule: normalizeSchedule(limit.schedule)
   };
 }
 
@@ -60,6 +94,75 @@ function normalizeAlerts(value) {
   };
 }
 
+function normalizeTotalBudget(value) {
+  const source = isPlainObject(value) ? value : {};
+  return {
+    enabled: source.enabled === true,
+    minutes: clampNumber(source.minutes, 15, 1440, DEFAULT_TOTAL_BUDGET.minutes),
+    mode: source.mode === 'block' ? 'block' : 'warn'
+  };
+}
+
+function normalizeCategory(category) {
+  if (!isPlainObject(category)) return null;
+  const id = slug(category.id || category.name);
+  const name = String(category.name || '').trim().slice(0, 80);
+  const domains = normalizeDomains(category.domains);
+  const minutes = Number(category.minutes);
+  if (!id || !name || !domains.length || !Number.isFinite(minutes) || minutes <= 0) return null;
+  return {
+    id,
+    name,
+    domains,
+    minutes: Math.max(1, Math.min(44_640, Math.round(minutes))),
+    period: normalizeLimitPeriod(category.period),
+    enabled: category.enabled !== false,
+    strict: Boolean(category.strict),
+    schedule: normalizeSchedule(category.schedule)
+  };
+}
+
+function normalizeCategories(value) {
+  if (!Array.isArray(value)) return [];
+  const byId = new Map();
+  for (const item of value) {
+    const category = normalizeCategory(item);
+    if (category) byId.set(category.id, category);
+  }
+  return [...byId.values()];
+}
+
+function normalizeFocusPreset(preset) {
+  if (!isPlainObject(preset)) return null;
+  const id = slug(preset.id || preset.name);
+  const name = String(preset.name || '').trim().slice(0, 80);
+  const minutes = Number(preset.minutes);
+  const domains = normalizeDomains(preset.domains || preset.blockedDomains);
+  if (!id || !name || !Number.isFinite(minutes) || minutes <= 0) return null;
+  return {
+    id,
+    name,
+    minutes: Math.max(1, Math.min(480, Math.round(minutes))),
+    mode: preset.mode === 'allow' ? 'allow' : 'block',
+    domains
+  };
+}
+
+function cloneDefaultFocusPresets() {
+  return DEFAULT_FOCUS_PRESETS.map((preset) => ({ ...preset, domains: [...preset.domains] }));
+}
+
+function normalizeFocusPresets(value) {
+  if (value === undefined) return cloneDefaultFocusPresets();
+  if (!Array.isArray(value)) return cloneDefaultFocusPresets();
+  const byId = new Map();
+  for (const item of value) {
+    const preset = normalizeFocusPreset(item);
+    if (preset) byId.set(preset.id, preset);
+  }
+  return [...byId.values()];
+}
+
 function normalizeSettings(value) {
   const source = isPlainObject(value) ? value : {};
   const retentionDays = clampNumber(source.retentionDays, 7, 180, DEFAULT_SETTINGS.retentionDays);
@@ -73,7 +176,10 @@ function normalizeSettings(value) {
       Math.max(DEFAULT_SETTINGS.aggregateRetentionDays, retentionDays)
     ),
     limits: normalizeLimits(source.limits),
-    alerts: normalizeAlerts(source.alerts)
+    alerts: normalizeAlerts(source.alerts),
+    totalBudget: normalizeTotalBudget(source.totalBudget),
+    categories: normalizeCategories(source.categories),
+    focusPresets: normalizeFocusPresets(source.focusPresets)
   };
 }
 
@@ -159,9 +265,14 @@ export function createDefaultData() {
   return {
     version: CURRENT_DATA_VERSION,
     settings: {
-      ...DEFAULT_SETTINGS,
+      idleSeconds: DEFAULT_SETTINGS.idleSeconds,
+      retentionDays: DEFAULT_SETTINGS.retentionDays,
+      aggregateRetentionDays: DEFAULT_SETTINGS.aggregateRetentionDays,
       limits: [],
-      alerts: { ...DEFAULT_ALERTS }
+      alerts: { ...DEFAULT_ALERTS },
+      totalBudget: { ...DEFAULT_TOTAL_BUDGET },
+      categories: [],
+      focusPresets: cloneDefaultFocusPresets()
     },
     dailyUsage: {},
     sessions: [],
