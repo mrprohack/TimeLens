@@ -28,6 +28,7 @@ import {
 
 const RECONCILE_ALARM = 'timelens-reconcile';
 const ONBOARDING_PATH = 'src/onboarding/onboarding.html';
+const RETURN_URL_PREFIX = 'timelensReturnUrl:';
 const MAX_LIMIT_MINUTES = Object.freeze({
   daily: 24 * 60,
   weekly: 7 * 24 * 60,
@@ -131,14 +132,29 @@ async function maybeAlertBoundary(data, alertKey, label, rule, status, now, kind
   return alert;
 }
 
+async function rememberReturnUrl(data, tab, domain, reason) {
+  if (!tab?.id || !chrome.storage?.session) return;
+  const key = `${RETURN_URL_PREFIX}${tab.id}`;
+  try {
+    await chrome.storage.session.remove(key);
+    const limit = findLimit(data, domain, { enabledOnly: false });
+    if (reason === 'limit' && !limit?.strict && tab.url) {
+      await chrome.storage.session.set({ [key]: tab.url });
+    }
+  } catch (error) {
+    // The return URL is convenience-only. Never let session-storage failure bypass enforcement.
+    recordDiagnostic(data, 'RETURN_URL_SESSION_FAILED', error);
+  }
+}
+
 async function navigateToBlocked(data, domain, reason) {
   try {
     const tab = await activeTab();
     if (!tab?.id || normalizeDomain(tab.url || '') !== domain) return false;
+    await rememberReturnUrl(data, tab, domain, reason);
     const url = new URL(chrome.runtime.getURL('src/blocked/blocked.html'));
     url.searchParams.set('domain', domain);
     url.searchParams.set('reason', reason);
-    if (tab.url) url.searchParams.set('returnUrl', tab.url);
     await chrome.tabs.update(tab.id, { url: url.toString() });
     return true;
   } catch (error) {
