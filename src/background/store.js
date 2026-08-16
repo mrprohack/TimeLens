@@ -12,13 +12,14 @@ export const DEFAULT_SETTINGS = Object.freeze({
 
 export function defaultData() {
   return {
-    version: 1,
+    version: 2,
     settings: { ...DEFAULT_SETTINGS, limits: [] },
     dailyUsage: {},
     sessions: [],
     activityState: createActivityState(),
     focus: null,
-    allowances: {}
+    allowances: {},
+    limitAlerts: {}
   };
 }
 
@@ -28,6 +29,7 @@ function normalizeData(value) {
   return {
     ...base,
     ...value,
+    version: 2,
     settings: {
       ...base.settings,
       ...(value.settings || {}),
@@ -36,7 +38,8 @@ function normalizeData(value) {
     dailyUsage: value.dailyUsage && typeof value.dailyUsage === 'object' ? value.dailyUsage : {},
     sessions: Array.isArray(value.sessions) ? value.sessions : [],
     activityState: createActivityState(value.activityState || {}),
-    allowances: value.allowances && typeof value.allowances === 'object' ? value.allowances : {}
+    allowances: value.allowances && typeof value.allowances === 'object' ? value.allowances : {},
+    limitAlerts: value.limitAlerts && typeof value.limitAlerts === 'object' ? value.limitAlerts : {}
   };
 }
 
@@ -71,6 +74,23 @@ export function addAllowance(data, domain, minutes, now = Date.now()) {
   const key = dayKey(now);
   data.allowances[key] ||= {};
   data.allowances[key][domain] = (data.allowances[key][domain] || 0) + Math.max(0, Number(minutes) || 0) * 60_000;
+}
+
+export function getLimitAlertState(data, domain, periodKey) {
+  const stored = data.limitAlerts?.[domain];
+  if (!stored || stored.periodKey !== periodKey) return { periodKey, sent: [] };
+  return {
+    periodKey,
+    sent: Array.isArray(stored.sent) ? [...new Set(stored.sent)] : []
+  };
+}
+
+export function markLimitAlertSent(data, domain, periodKey, alert) {
+  data.limitAlerts ||= {};
+  const state = getLimitAlertState(data, domain, periodKey);
+  if (!state.sent.includes(alert)) state.sent.push(alert);
+  data.limitAlerts[domain] = state;
+  return state;
 }
 
 export function pruneData(data, now = Date.now()) {
