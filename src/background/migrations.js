@@ -98,7 +98,7 @@ function normalizeTotalBudget(value) {
   const source = isPlainObject(value) ? value : {};
   return {
     enabled: source.enabled === true,
-    minutes: clampNumber(source.minutes, 15, 1440, DEFAULT_TOTAL_BUDGET.minutes),
+    minutes: clampNumber(source.minutes, 1, 1440, DEFAULT_TOTAL_BUDGET.minutes),
     mode: source.mode === 'block' ? 'block' : 'warn'
   };
 }
