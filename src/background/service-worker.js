@@ -10,19 +10,22 @@ import {
   usageForLimit
 } from '../core/limits.js';
 import { createFocusSession, isDomainFocusBlocked, isFocusActive } from '../core/focus.js';
-import { dayKey, recentDayKeys } from '../core/time.js';
+import { recentDayKeys } from '../core/time.js';
 import {
   addAllowance,
   addCompletedSessions,
+  backupAndReplaceData,
   getAllowanceMs,
   getLimitAlertState,
   markLimitAlertSent,
   pruneData,
   readData,
+  recordDiagnostic,
   saveData
 } from './store.js';
 
 const RECONCILE_ALARM = 'timelens-reconcile';
+const ONBOARDING_PATH = 'src/onboarding/onboarding.html';
 const MAX_LIMIT_MINUTES = Object.freeze({
   daily: 24 * 60,
   weekly: 7 * 24 * 60,
@@ -36,6 +39,20 @@ function enqueue(task) {
   return run;
 }
 
+async function recordBackgroundFailure(code, error) {
+  try {
+    const data = await readData();
+    recordDiagnostic(data, code, error);
+    await saveData(data);
+  } catch {
+    // Storage failures cannot be journaled safely. Keep the worker alive.
+  }
+}
+
+function enqueueEvent(task, code) {
+  enqueue(task).catch((error) => recordBackgroundFailure(code, error));
+}
+
 async function activeTab() {
   const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   return tabs[0] || null;
@@ -46,13 +63,22 @@ async function activeDomain() {
   return normalizeDomain(tab?.url || null);
 }
 
-function findLimit(data, domain) {
-  return data.settings.limits.find((item) => item.domain === domain && item.enabled);
+function findLimit(data, domain, { enabledOnly = true } = {}) {
+  return data.settings.limits.find((item) => item.domain === domain && (!enabledOnly || item.enabled));
 }
 
 function periodName(period) {
-  const normalized = normalizeLimitPeriod(period);
-  return normalized === 'daily' ? 'daily' : normalized === 'weekly' ? 'weekly' : 'monthly';
+  return normalizeLimitPeriod(period);
+}
+
+function alertPreferenceKey(alert) {
+  if (alert === '5m') return 'fiveMinutes';
+  if (alert === '1m') return 'oneMinute';
+  return 'timeout';
+}
+
+function alertEnabled(data, alert) {
+  return data.settings.alerts?.[alertPreferenceKey(alert)] !== false;
 }
 
 async function showLimitNotification(domain, limit, alert) {
@@ -79,39 +105,55 @@ async function maybeAlertLimit(data, domain, limit, status, now) {
   const alert = nextLimitAlert(status, alertState.sent);
   if (!alert) return null;
 
-  await showLimitNotification(domain, limit, alert);
+  if (alertEnabled(data, alert)) {
+    try {
+      await showLimitNotification(domain, limit, alert);
+    } catch (error) {
+      recordDiagnostic(data, 'LIMIT_NOTIFICATION_FAILED', error, now);
+    }
+  }
+
+  // Mark attempts as handled even if notifications are disabled/unavailable so
+  // the 30-second reconcile loop never spams the user or diagnostics journal.
   markLimitAlertSent(data, domain, periodKey, alert);
   await saveData(data);
   return alert;
 }
 
-async function navigateToBlocked(domain, reason) {
-  const tab = await activeTab();
-  if (!tab?.id || normalizeDomain(tab.url || '') !== domain) return;
-  const url = new URL(chrome.runtime.getURL('src/blocked/blocked.html'));
-  url.searchParams.set('domain', domain);
-  url.searchParams.set('reason', reason);
-  if (tab.url) url.searchParams.set('returnUrl', tab.url);
-  await chrome.tabs.update(tab.id, { url: url.toString() });
+async function navigateToBlocked(data, domain, reason) {
+  try {
+    const tab = await activeTab();
+    if (!tab?.id || normalizeDomain(tab.url || '') !== domain) return false;
+    const url = new URL(chrome.runtime.getURL('src/blocked/blocked.html'));
+    url.searchParams.set('domain', domain);
+    url.searchParams.set('reason', reason);
+    if (tab.url) url.searchParams.set('returnUrl', tab.url);
+    await chrome.tabs.update(tab.id, { url: url.toString() });
+    return true;
+  } catch (error) {
+    recordDiagnostic(data, 'BLOCK_NAVIGATION_FAILED', error);
+    await saveData(data);
+    return false;
+  }
 }
 
 async function enforceDomain(data, domain, now = Date.now()) {
   if (!domain) return;
 
   if (isDomainFocusBlocked(data.focus, domain, now)) {
-    await navigateToBlocked(domain, 'focus');
+    await navigateToBlocked(data, domain, 'focus');
     return;
   }
 
   const limit = findLimit(data, domain);
   if (!limit) return;
   const usedMs = usageForLimit(data.dailyUsage, domain, limit, now);
-  const allowanceMs = getAllowanceMs(data, domain, now);
+  const allowanceMs = getAllowanceMs(data, domain, limit, now);
   const status = getLimitStatus(limit, usedMs, allowanceMs);
 
   await maybeAlertLimit(data, domain, limit, status, now);
   if (shouldBlockDomain(limit, usedMs, allowanceMs)) {
-    await navigateToBlocked(domain, 'limit');
+    await navigateToBlocked(data, domain, 'limit');
   }
 }
 
@@ -154,11 +196,11 @@ async function flushAndRead() {
 }
 
 function limitView(data, domain, now = Date.now()) {
-  const limit = findLimit(data, domain);
+  const limit = findLimit(data, domain, { enabledOnly: false });
   if (!limit) return null;
   const period = normalizeLimitPeriod(limit.period);
   const usedMs = usageForLimit(data.dailyUsage, domain, limit, now);
-  const allowanceMs = getAllowanceMs(data, domain, now);
+  const allowanceMs = getAllowanceMs(data, domain, limit, now);
   return {
     ...limit,
     period,
@@ -177,7 +219,7 @@ function snapshotFromData(data, rangeDays = 7, now = Date.now()) {
   const limits = data.settings.limits.map((limit) => {
     const period = normalizeLimitPeriod(limit.period);
     const usedMs = usageForLimit(data.dailyUsage, limit.domain, limit, now);
-    const allowanceMs = getAllowanceMs(data, limit.domain, now);
+    const allowanceMs = getAllowanceMs(data, limit.domain, limit, now);
     return {
       ...limit,
       period,
@@ -186,6 +228,7 @@ function snapshotFromData(data, rangeDays = 7, now = Date.now()) {
       allowanceMs
     };
   });
+  const diagnostics = Array.isArray(data.diagnostics) ? data.diagnostics : [];
 
   return {
     now,
@@ -205,7 +248,13 @@ function snapshotFromData(data, rangeDays = 7, now = Date.now()) {
     focus: isFocusActive(data.focus, now) ? data.focus : null,
     limits,
     sessions: [...data.sessions].sort((a, b) => b.end - a.end).slice(0, 80),
-    settings: data.settings
+    settings: data.settings,
+    health: {
+      status: diagnostics.length ? 'attention' : 'healthy',
+      diagnosticCount: diagnostics.length,
+      lastDiagnostic: diagnostics.at(-1) || null,
+      storageBytesApprox: new TextEncoder().encode(JSON.stringify(data)).length
+    }
   };
 }
 
@@ -239,6 +288,18 @@ async function handleMessage(message) {
       await enforceDomain(data, data.activityState.domain);
       return { ok: true, limit };
     }
+    case 'TOGGLE_LIMIT': {
+      const domain = normalizeDomain(message.domain || '');
+      if (!domain) throw new Error('Invalid website.');
+      const data = await readData();
+      const limit = findLimit(data, domain, { enabledOnly: false });
+      if (!limit) throw new Error('Limit not found.');
+      limit.enabled = Boolean(message.enabled);
+      delete data.limitAlerts?.[domain];
+      await saveData(data);
+      if (limit.enabled) await enforceDomain(data, data.activityState.domain);
+      return { ok: true, limit };
+    }
     case 'DELETE_LIMIT': {
       const domain = normalizeDomain(message.domain || '');
       const data = await readData();
@@ -267,9 +328,9 @@ async function handleMessage(message) {
       const minutes = Math.max(1, Math.min(60, Number(message.minutes) || 5));
       if (!domain) throw new Error('Invalid website.');
       const data = await readData();
-      const limit = findLimit(data, domain);
+      const limit = findLimit(data, domain, { enabledOnly: false });
       if (!limit || limit.strict) throw new Error('Extra time is disabled for this limit.');
-      addAllowance(data, domain, minutes);
+      addAllowance(data, domain, limit, minutes);
       await saveData(data);
       return { ok: true };
     }
@@ -288,16 +349,38 @@ async function handleMessage(message) {
     }
     case 'SAVE_SETTINGS': {
       const data = await readData();
-      if (message.settings?.idleSeconds) data.settings.idleSeconds = Math.max(15, Math.min(600, Number(message.settings.idleSeconds)));
-      if (message.settings?.retentionDays) data.settings.retentionDays = Math.max(7, Math.min(180, Number(message.settings.retentionDays)));
+      if (message.settings?.idleSeconds !== undefined) {
+        data.settings.idleSeconds = Math.max(15, Math.min(600, Number(message.settings.idleSeconds) || 60));
+      }
+      if (message.settings?.retentionDays !== undefined) {
+        data.settings.retentionDays = Math.max(7, Math.min(180, Number(message.settings.retentionDays) || 30));
+      }
+      if (message.settings?.alerts && typeof message.settings.alerts === 'object') {
+        data.settings.alerts ||= { fiveMinutes: true, oneMinute: true, timeout: true };
+        for (const key of ['fiveMinutes', 'oneMinute', 'timeout']) {
+          if (message.settings.alerts[key] !== undefined) data.settings.alerts[key] = Boolean(message.settings.alerts[key]);
+        }
+      }
       chrome.idle.setDetectionInterval(data.settings.idleSeconds);
       pruneData(data);
-      await saveData(data);
-      return { ok: true, settings: data.settings };
+      const settings = (await saveData(data)).settings;
+      return { ok: true, settings };
     }
     case 'EXPORT_DATA': {
       const data = await flushAndRead();
       return { ok: true, data };
+    }
+    case 'IMPORT_DATA': {
+      const imported = await backupAndReplaceData(message.data);
+      chrome.idle.setDetectionInterval(imported.settings.idleSeconds || 60);
+      await reconcile({ resetTimer: true });
+      return { ok: true, data: imported };
+    }
+    case 'CLEAR_DIAGNOSTICS': {
+      const data = await readData();
+      data.diagnostics = [];
+      await saveData(data);
+      return { ok: true };
     }
     case 'CLEAR_DATA': {
       const data = await readData();
@@ -315,60 +398,71 @@ async function handleMessage(message) {
   }
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  enqueue(async () => {
+chrome.runtime.onInstalled.addListener((details) => {
+  enqueueEvent(async () => {
     const data = await readData();
     chrome.idle.setDetectionInterval(data.settings.idleSeconds || 60);
     await chrome.alarms.create(RECONCILE_ALARM, { periodInMinutes: 0.5 });
+    if (details?.reason === 'install') {
+      try {
+        await chrome.tabs.create({ url: chrome.runtime.getURL(ONBOARDING_PATH) });
+      } catch (error) {
+        recordDiagnostic(data, 'ONBOARDING_OPEN_FAILED', error);
+        await saveData(data);
+      }
+    }
     await reconcile({ resetTimer: true });
-  });
+  }, 'INSTALL_HANDLER_FAILED');
 });
 
 chrome.runtime.onStartup.addListener(() => {
-  enqueue(async () => {
+  enqueueEvent(async () => {
     const data = await readData();
     chrome.idle.setDetectionInterval(data.settings.idleSeconds || 60);
     await chrome.alarms.create(RECONCILE_ALARM, { periodInMinutes: 0.5 });
     await reconcile({ resetTimer: true });
-  });
+  }, 'STARTUP_HANDLER_FAILED');
 });
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
-  enqueue(async () => {
+  enqueueEvent(async () => {
     const tab = await chrome.tabs.get(tabId);
     await processActivityEvent({ type: 'ACTIVE_DOMAIN', at: Date.now(), domain: normalizeDomain(tab.url || '') });
-  });
+  }, 'TAB_ACTIVATION_FAILED');
 });
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
   if (!tab.active || (!changeInfo.url && changeInfo.status !== 'complete')) return;
-  enqueue(() => processActivityEvent({ type: 'ACTIVE_DOMAIN', at: Date.now(), domain: normalizeDomain(tab.url || '') }));
+  enqueueEvent(
+    () => processActivityEvent({ type: 'ACTIVE_DOMAIN', at: Date.now(), domain: normalizeDomain(tab.url || '') }),
+    'TAB_UPDATE_FAILED'
+  );
 });
 
 chrome.windows.onFocusChanged.addListener((windowId) => {
-  enqueue(async () => {
+  enqueueEvent(async () => {
     const focused = windowId !== chrome.windows.WINDOW_ID_NONE;
     await processActivityEvent({ type: 'FOCUS', at: Date.now(), focused });
     if (focused) {
       await processActivityEvent({ type: 'ACTIVE_DOMAIN', at: Date.now(), domain: await activeDomain() });
     }
-  });
+  }, 'WINDOW_FOCUS_FAILED');
 });
 
 chrome.idle.onStateChanged.addListener((state) => {
-  enqueue(() => processActivityEvent({ type: 'IDLE', at: Date.now(), idle: state !== 'active' }));
+  enqueueEvent(
+    () => processActivityEvent({ type: 'IDLE', at: Date.now(), idle: state !== 'active' }),
+    'IDLE_STATE_FAILED'
+  );
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== RECONCILE_ALARM) return;
-  enqueue(async () => {
+  enqueueEvent(async () => {
     const now = Date.now();
     const scheduledTime = Number.isFinite(alarm.scheduledTime) ? alarm.scheduledTime : now;
     const delayedBy = Math.max(0, now - scheduledTime);
 
-    // A repeating alarm that fires very late usually means the device slept.
-    // Count only up to the missed alarm boundary, discard the sleep gap, then
-    // rebuild focus/idle/tab state at the current time.
     if (delayedBy > 90_000) {
       await processActivityEvent({ type: 'FLUSH', at: scheduledTime }, { enforce: false });
       await reconcile({ resetTimer: true });
@@ -376,7 +470,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     }
 
     await processActivityEvent({ type: 'FLUSH', at: now });
-  });
+  }, 'ALARM_RECONCILE_FAILED');
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -386,9 +480,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   return true;
 });
 
-enqueue(async () => {
+enqueueEvent(async () => {
   const data = await readData();
   chrome.idle.setDetectionInterval(data.settings.idleSeconds || 60);
   await chrome.alarms.create(RECONCILE_ALARM, { periodInMinutes: 0.5 });
   await reconcile();
-});
+}, 'INITIALIZE_FAILED');
