@@ -17,6 +17,10 @@ function safeReturnUrl() {
   } catch { return null; }
 }
 
+function hideAllowance() {
+  document.getElementById('allowance-actions').hidden = true;
+}
+
 async function load() {
   setText('site-letter', domain ? domain[0].toUpperCase() : 'T');
   blockStatus = await send('GET_BLOCK_STATUS', { domain });
@@ -25,9 +29,38 @@ async function load() {
     setText('reason-label', 'Focus mode');
     setText('blocked-title', `${domain || 'This site'} is paused while you focus.`);
     const remaining = blockStatus.focus ? Math.max(0, blockStatus.focus.endsAt - Date.now()) : 0;
-    setText('blocked-copy', `Your focus session has ${formatDuration(remaining, true)} remaining.`);
+    const modeCopy = blockStatus.focus?.mode === 'allow' ? 'You chose an allow-only Focus session.' : 'You chose to block this distraction during Focus.';
+    setText('blocked-copy', `Your focus session has ${formatDuration(remaining, true)} remaining. ${modeCopy}`);
     setText('usage-line', 'Stay with the task you chose.');
-    document.getElementById('allowance-actions').hidden = true;
+    hideAllowance();
+    return;
+  }
+
+  if (reason === 'budget') {
+    const budget = blockStatus.totalBudget;
+    setText('reason-label', 'Browsing budget reached');
+    setText('blocked-title', 'Time’s up — don’t waste your time.');
+    setText('blocked-copy', 'You reached your total active-browsing budget for today. Browsing stays paused until the daily budget resets.');
+    setText('usage-line', budget
+      ? `${formatDuration(budget.usedMs, true)} used · ${formatDuration(budget.minutes * 60_000, true)} / day`
+      : 'Your daily browsing boundary is active.');
+    hideAllowance();
+    return;
+  }
+
+  if (reason === 'category') {
+    const category = blockStatus.categories?.find((item) => item.reached && item.scheduleActive !== false) || blockStatus.categories?.[0];
+    const period = category?.period || 'daily';
+    const periodWord = PERIOD_WORD[period] || 'day';
+    setText('reason-label', `${PERIOD_TITLE[period] || 'Daily'} category limit reached`);
+    setText('blocked-title', 'Time’s up — don’t waste your time.');
+    setText('blocked-copy', category
+      ? `${category.name} reached its ${periodWord} category limit. This website is part of that shared boundary.`
+      : 'This website belongs to a category that has reached its configured limit.');
+    setText('usage-line', category
+      ? `${formatDuration(category.usedMs, true)} used · ${formatDuration(category.minutes * 60_000, true)} / ${periodWord}`
+      : 'Open the dashboard to review your category limits.');
+    hideAllowance();
     return;
   }
 
@@ -42,6 +75,8 @@ async function load() {
       : `${domain || 'This site'} reached its ${periodWord} limit. Close the tab, or take a small extension only if you truly need it.`);
     setText('usage-line', `${formatDuration(limit.usedMs, true)} used · ${formatDuration(limit.minutes * 60_000, true)} / ${periodWord}`);
     document.getElementById('allowance-actions').hidden = limit.strict;
+  } else {
+    hideAllowance();
   }
 }
 
