@@ -98,9 +98,9 @@ document.getElementById('focus-toggle').addEventListener('click', async () => {
 document.getElementById('open-side-panel').addEventListener('click', async () => {
   const node = document.getElementById('error-message');
   try {
-    const window = await chrome.windows.getCurrent();
-    await chrome.sidePanel.open({ windowId: window.id });
-    window.close?.();
+    const currentWindow = await chrome.windows.getCurrent();
+    await chrome.sidePanel.open({ windowId: currentWindow.id });
+    globalThis.close();
   } catch (error) {
     node.hidden = false;
     node.textContent = error?.message || 'Could not open the focus assistant.';
