@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TimeLens Focus Assistant</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <main class="side-shell">
+    <header class="side-header">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>TimeLens</span></div>
+      <button id="side-open-dashboard" class="btn btn-quiet" type="button">Dashboard</button>
+    </header>
+
+    <section class="hero panel" aria-labelledby="side-current-domain">
+      <div class="eyeline">Active website</div>
+      <h1 id="side-current-domain">No active website</h1>
+      <div class="hero-metric"><strong id="side-today-total">0m</strong><span class="muted">active browsing today</span></div>
+    </section>
+
+    <section id="side-budget" class="panel side-card" aria-labelledby="side-budget-title">
+      <div class="row"><h2 id="side-budget-title">Daily budget</h2><span id="side-budget-copy" class="muted">Not enabled</span></div>
+      <div class="progress" role="progressbar" aria-label="Daily browsing budget" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="side-budget-bar" style="width:0%"></span></div>
+    </section>
+
+    <section class="panel side-card" aria-labelledby="side-boundaries-title">
+      <div class="row"><h2 id="side-boundaries-title">Current boundaries</h2><span class="muted">Live</span></div>
+      <div id="side-boundaries" class="boundary-list"><p class="muted">No active limits for this website.</p></div>
+      <div class="quick-limit">
+        <label class="label" for="side-limit-minutes"><span>Quick site limit</span>
+          <select id="side-limit-minutes" class="input">
+            <option value="15">15 min/day</option>
+            <option value="30" selected>30 min/day</option>
+            <option value="45">45 min/day</option>
+            <option value="60">60 min/day</option>
+          </select>
+        </label>
+        <button id="side-limit-site" class="btn" type="button">Limit this site</button>
+      </div>
+    </section>
+
+    <section class="panel side-card" aria-labelledby="side-focus-title">
+      <div class="row"><h2 id="side-focus-title">Focus presets</h2><span id="side-focus-state" class="muted">Ready</span></div>
+      <div id="side-focus-presets" class="preset-grid"></div>
+      <button id="side-stop-focus" class="btn btn-danger" type="button" hidden>End current focus</button>
+    </section>
+
+    <p id="side-status" class="status-line muted" role="status" aria-live="polite"></p>
+  </main>
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
