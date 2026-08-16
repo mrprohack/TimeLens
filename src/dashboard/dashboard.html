@@ -13,7 +13,8 @@
       <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>TimeLens</span></div>
       <nav class="header-nav" aria-label="Dashboard sections">
         <a href="#overview">Overview</a>
-        <a href="#limits">Limits</a>
+        <a href="#guardrails">Guardrails</a>
+        <a href="#limits">Sites</a>
         <a href="#focus">Focus</a>
         <a href="#history">History</a>
         <a href="#settings">Privacy</a>
@@ -59,20 +60,73 @@
       </div>
     </section>
 
-    <section id="limits" class="feature-section">
+    <section id="guardrails" class="feature-section">
+      <div class="feature-copy">
+        <div class="eyeline">Guardrails</div>
+        <h2>Control the whole day, not just one website.</h2>
+        <p class="muted">Set a total active-browsing budget and group distracting websites into categories. Category limits can run all day or only during a local schedule.</p>
+      </div>
+      <div class="guardrail-stack">
+        <div class="feature-workspace panel">
+          <div class="workspace-heading"><div><h3>Daily browsing budget</h3><p class="muted small">Warn when you reach the boundary or block browsing until tomorrow.</p></div><strong id="total-budget-progress">Not enabled</strong></div>
+          <form id="total-budget-form" class="compact-form">
+            <label class="check-row"><input id="total-budget-enabled" type="checkbox"><span><strong>Enable budget</strong><small>Counts active browsing across every website.</small></span></label>
+            <label class="label"><span>Minutes per day</span><input id="total-budget-minutes" class="input" type="number" min="1" max="1440" value="300" required></label>
+            <label class="label"><span>At the boundary</span><select id="total-budget-mode" class="input"><option value="warn">Warn only</option><option value="block">Block browsing</option></select></label>
+            <button class="btn btn-primary" type="submit">Save daily budget</button>
+          </form>
+        </div>
+
+        <div class="feature-workspace panel">
+          <div class="workspace-heading"><div><h3>Category limits</h3><p class="muted small">One boundary shared across multiple websites.</p></div></div>
+          <form id="category-form" class="stack">
+            <div class="form-grid category-grid">
+              <label class="label site-field"><span>Category name</span><input id="category-name" class="input" placeholder="Social" maxlength="80" required></label>
+              <label class="label site-field"><span>Websites · one per line or comma separated</span><textarea id="category-domains" class="input textarea compact-textarea" rows="3" placeholder="instagram.com, reddit.com" required></textarea></label>
+              <label class="label"><span>Minutes</span><input id="category-value" class="input" type="number" min="1" value="60" required></label>
+              <label class="label"><span>Reset</span><select id="category-period" class="input"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
+              <label class="check-row"><input id="category-strict" type="checkbox"><span><strong>Strict</strong><small>Treat this as a firm category boundary.</small></span></label>
+            </div>
+            <fieldset class="schedule-box">
+              <legend>Smart schedule</legend>
+              <label class="check-row"><input id="category-schedule-enabled" type="checkbox"><span><strong>Use a schedule</strong><small>Otherwise this category applies all day.</small></span></label>
+              <div id="category-schedule-days" class="weekday-grid" aria-label="Category schedule days">
+                <label><input type="checkbox" value="1" checked>Mon</label><label><input type="checkbox" value="2" checked>Tue</label><label><input type="checkbox" value="3" checked>Wed</label><label><input type="checkbox" value="4" checked>Thu</label><label><input type="checkbox" value="5" checked>Fri</label><label><input type="checkbox" value="6">Sat</label><label><input type="checkbox" value="0">Sun</label>
+              </div>
+              <div class="time-grid"><label class="label"><span>Start</span><input id="category-schedule-start" class="input" type="time" value="09:00"></label><label class="label"><span>End</span><input id="category-schedule-end" class="input" type="time" value="17:00"></label></div>
+            </fieldset>
+            <button class="btn btn-primary" type="submit">Save category</button>
+          </form>
+          <div class="divider"></div>
+          <div id="category-list" class="limit-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="limits" class="feature-section reverse">
       <div class="feature-copy">
         <div class="eyeline">Site limits</div>
         <h2>Set boundaries you can actually manage.</h2>
-        <p class="muted">Create a daily, weekly, or monthly limit. Pause it when needed, edit it without recreating it, or use Strict mode when you do not want extra time.</p>
+        <p class="muted">Create a daily, weekly, or monthly limit, optionally only during work or study hours. Pause it when needed or use Strict mode when you do not want extra time.</p>
       </div>
       <div class="feature-workspace panel">
         <div id="limit-editing-note" class="editing-note" hidden><strong>Editing limit</strong><span id="limit-editing-domain"></span></div>
-        <form id="limit-form" class="form-grid">
-          <label class="label site-field"><span>Website</span><input id="limit-domain" class="input" name="domain" placeholder="youtube.com" autocomplete="off" required></label>
-          <label class="label"><span>Limit</span><input id="limit-value" class="input" name="value" type="number" min="0.25" step="0.25" value="60" required></label>
-          <label class="label"><span>Unit</span><select id="limit-unit" class="input" name="unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></label>
-          <label class="label"><span>Reset</span><select id="limit-period" class="input" name="period"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
-          <label class="check-row"><input id="limit-strict" name="strict" type="checkbox"><span><strong>Strict</strong><small>No temporary extension after time runs out.</small></span></label>
+        <form id="limit-form" class="stack">
+          <div class="form-grid">
+            <label class="label site-field"><span>Website</span><input id="limit-domain" class="input" name="domain" placeholder="youtube.com" autocomplete="off" required></label>
+            <label class="label"><span>Limit</span><input id="limit-value" class="input" name="value" type="number" min="0.25" step="0.25" value="60" required></label>
+            <label class="label"><span>Unit</span><select id="limit-unit" class="input" name="unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></label>
+            <label class="label"><span>Reset</span><select id="limit-period" class="input" name="period"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
+            <label class="check-row"><input id="limit-strict" name="strict" type="checkbox"><span><strong>Strict</strong><small>No temporary extension after time runs out.</small></span></label>
+          </div>
+          <fieldset class="schedule-box">
+            <legend>Smart schedule</legend>
+            <label class="check-row"><input id="limit-schedule-enabled" type="checkbox"><span><strong>Use a schedule</strong><small>Otherwise this site limit applies all day.</small></span></label>
+            <div id="limit-schedule-days" class="weekday-grid" aria-label="Site limit schedule days">
+              <label><input type="checkbox" value="1" checked>Mon</label><label><input type="checkbox" value="2" checked>Tue</label><label><input type="checkbox" value="3" checked>Wed</label><label><input type="checkbox" value="4" checked>Thu</label><label><input type="checkbox" value="5" checked>Fri</label><label><input type="checkbox" value="6">Sat</label><label><input type="checkbox" value="0">Sun</label>
+            </div>
+            <div class="time-grid"><label class="label"><span>Start</span><input id="limit-schedule-start" class="input" type="time" value="09:00"></label><label class="label"><span>End</span><input id="limit-schedule-end" class="input" type="time" value="17:00"></label></div>
+          </fieldset>
           <div class="form-actions"><button id="limit-cancel-edit" class="btn" type="button" hidden>Cancel</button><button id="limit-submit" class="btn btn-primary" type="submit">Save limit</button></div>
         </form>
         <div class="divider"></div>
@@ -80,19 +134,36 @@
       </div>
     </section>
 
-    <section id="focus" class="feature-section reverse">
-      <div class="feature-copy"><div class="eyeline">Focus mode</div><h2>Make a distraction-free window.</h2><p class="muted">Start a focused session and TimeLens blocks only the sites you choose until the timer ends.</p></div>
+    <section id="focus" class="feature-section">
+      <div class="feature-copy"><div class="eyeline">Focus mode</div><h2>Make a distraction-free window.</h2><p class="muted">Block a distraction list, or switch to Allow only and make every other website unavailable until the session ends. Save the setups you reuse.</p></div>
       <div class="feature-workspace panel">
         <div id="focus-active" class="focus-active" hidden><div><div class="eyeline">Focus in progress</div><div id="focus-remaining" class="focus-time">0m</div><div id="focus-blocked-count" class="muted"></div></div><button id="stop-focus" class="btn" type="button">End focus</button></div>
         <form id="focus-form" class="stack">
-          <label class="label"><span>Duration</span><select id="focus-minutes" class="input"><option value="25">25 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option></select></label>
-          <label class="label"><span>Blocked websites · one per line or comma separated</span><textarea id="focus-domains" class="input textarea" rows="5">youtube.com
+          <div class="form-grid focus-grid">
+            <label class="label"><span>Preset</span><select id="focus-presets" class="input"><option value="">Custom</option></select></label>
+            <label class="label"><span>Duration</span><select id="focus-minutes" class="input"><option value="25">25 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option></select></label>
+            <label class="label"><span>Mode</span><select id="focus-mode" class="input"><option value="block">Block these sites</option><option value="allow">Allow only these sites</option></select></label>
+            <label class="label site-field"><span id="focus-domains-label">Websites · one per line or comma separated</span><textarea id="focus-domains" class="input textarea" rows="5">youtube.com
 reddit.com
 instagram.com
 facebook.com
 x.com</textarea></label>
+          </div>
           <button class="btn btn-primary" type="submit">Start focus session</button>
         </form>
+
+        <div class="divider"></div>
+        <section aria-labelledby="preset-heading" class="preset-manager">
+          <div class="workspace-heading"><div><h3 id="preset-heading">Saved focus presets</h3><p class="muted small">Keep repeatable Work, Study, or custom sessions one click away.</p></div></div>
+          <form id="preset-form" class="form-grid preset-grid-form">
+            <label class="label site-field"><span>Name</span><input id="preset-name" class="input" maxlength="80" placeholder="Writing sprint" required></label>
+            <label class="label"><span>Minutes</span><input id="preset-duration" class="input" type="number" min="1" max="480" value="45" required></label>
+            <label class="label"><span>Mode</span><select id="preset-mode" class="input"><option value="block">Block list</option><option value="allow">Allow only</option></select></label>
+            <label class="label site-field"><span>Websites</span><textarea id="preset-domains" class="input textarea compact-textarea" rows="3" placeholder="youtube.com, reddit.com"></textarea></label>
+            <div class="form-actions"><button class="btn" type="submit">Save preset</button></div>
+          </form>
+          <div id="preset-list" class="preset-list"></div>
+        </section>
       </div>
     </section>
 
