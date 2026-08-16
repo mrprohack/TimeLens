@@ -7,6 +7,7 @@ let editingDomain = null;
 
 const PERIOD_WORD = Object.freeze({ daily: 'day', weekly: 'week', monthly: 'month' });
 const PERIOD_TITLE = Object.freeze({ daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' });
+const DEFAULT_SCHEDULE = Object.freeze({ enabled: false, days: [1, 2, 3, 4, 5], startMinute: 540, endMinute: 1020 });
 
 function periodWord(period) { return PERIOD_WORD[period] || 'day'; }
 function periodTitle(period) { return PERIOD_TITLE[period] || 'Daily'; }
@@ -30,6 +31,64 @@ function formatBytes(bytes = 0) {
   if (value < 1024) return `${value} B`;
   if (value < 1024 ** 2) return `${(value / 1024).toFixed(1)} KB`;
   return `${(value / (1024 ** 2)).toFixed(1)} MB`;
+}
+
+function splitDomains(value = '') {
+  return String(value).split(/[\n,]+/).map((item) => item.trim()).filter(Boolean);
+}
+
+function timeToMinute(value, fallback) {
+  const match = /^(\d{2}):(\d{2})$/.exec(String(value || ''));
+  if (!match) return fallback;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour > 23 || minute > 59) return fallback;
+  return hour * 60 + minute;
+}
+
+function minuteToTime(value, fallback = '09:00') {
+  const minute = Number(value);
+  if (!Number.isFinite(minute) || minute < 0 || minute > 1439) return fallback;
+  const hour = Math.floor(minute / 60);
+  return `${String(hour).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`;
+}
+
+function selectedDays(containerId) {
+  return [...document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)].map((input) => Number(input.value));
+}
+
+function setSelectedDays(containerId, days) {
+  const selected = new Set(Array.isArray(days) ? days.map(Number) : DEFAULT_SCHEDULE.days);
+  document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach((input) => {
+    input.checked = selected.has(Number(input.value));
+  });
+}
+
+function readSchedule(prefix) {
+  return {
+    enabled: document.getElementById(`${prefix}-schedule-enabled`).checked,
+    days: selectedDays(`${prefix}-schedule-days`),
+    startMinute: timeToMinute(document.getElementById(`${prefix}-schedule-start`).value, DEFAULT_SCHEDULE.startMinute),
+    endMinute: timeToMinute(document.getElementById(`${prefix}-schedule-end`).value, DEFAULT_SCHEDULE.endMinute)
+  };
+}
+
+function setSchedule(prefix, value = DEFAULT_SCHEDULE) {
+  const schedule = value || DEFAULT_SCHEDULE;
+  document.getElementById(`${prefix}-schedule-enabled`).checked = Boolean(schedule.enabled);
+  setSelectedDays(`${prefix}-schedule-days`, schedule.days);
+  document.getElementById(`${prefix}-schedule-start`).value = minuteToTime(schedule.startMinute, '09:00');
+  document.getElementById(`${prefix}-schedule-end`).value = minuteToTime(schedule.endMinute, '17:00');
+}
+
+function scheduleCopy(schedule) {
+  if (!schedule?.enabled) return 'All day';
+  const days = Array.isArray(schedule.days) ? schedule.days : [];
+  let dayCopy = `${days.length} days/week`;
+  if (days.length === 7) dayCopy = 'Every day';
+  else if (days.length === 5 && [1, 2, 3, 4, 5].every((day) => days.includes(day))) dayCopy = 'Weekdays';
+  else if (days.length === 2 && days.includes(0) && days.includes(6)) dayCopy = 'Weekends';
+  return `${dayCopy} · ${minuteToTime(schedule.startMinute, '00:00')}–${minuteToTime(schedule.endMinute, '23:59')}`;
 }
 
 function renderChart() {
@@ -61,6 +120,7 @@ function renderTopSites() {
 
 function limitStatus(limit) {
   if (!limit.enabled) return { label: 'Paused', tone: 'paused' };
+  if (limit.schedule?.enabled && limit.scheduleActive === false) return { label: 'Scheduled off', tone: 'paused' };
   if (limit.reached) return { label: 'Time up', tone: 'reached' };
   if (limit.remainingMs <= 60_000) return { label: '1 min left', tone: 'critical' };
   if (limit.remainingMs <= 5 * 60_000) return { label: '5 min left', tone: 'warning' };
@@ -83,7 +143,7 @@ function renderLimits() {
     return `<div class="limit-item ${limit.enabled ? '' : 'is-paused'}">
       <div class="limit-main">
         <div class="limit-title-row"><div class="limit-domain">${escapeHtml(limit.domain)}</div><span class="status-chip ${status.tone}">${escapeHtml(status.label)}</span></div>
-        <div class="limit-meta">${escapeHtml(amount)} / ${escapeHtml(periodWord(limit.period))} · ${limit.strict ? 'Strict' : 'Extra time allowed'}</div>
+        <div class="limit-meta">${escapeHtml(amount)} / ${escapeHtml(periodWord(limit.period))} · ${limit.strict ? 'Strict' : 'Extra time allowed'} · ${escapeHtml(scheduleCopy(limit.schedule))}</div>
       </div>
       <div class="limit-progress"><small>${escapeHtml(used)} used · ${escapeHtml(remaining)}</small><div class="progress" aria-label="${percent}% of limit used"><span style="width:${percent}%"></span></div></div>
       <div class="limit-actions">
@@ -130,6 +190,7 @@ function startEditing(domain) {
   document.getElementById('limit-unit').value = useHours ? 'hours' : 'minutes';
   document.getElementById('limit-period').value = limit.period;
   document.getElementById('limit-strict').checked = Boolean(limit.strict);
+  setSchedule('limit', limit.schedule || DEFAULT_SCHEDULE);
   document.getElementById('limit-cancel-edit').hidden = false;
   document.getElementById('limit-editing-note').hidden = false;
   setText('limit-editing-domain', limit.domain);
@@ -142,18 +203,132 @@ function stopEditing() {
   document.getElementById('limit-form').reset();
   document.getElementById('limit-domain').readOnly = false;
   document.getElementById('limit-value').value = '60';
+  setSchedule('limit', DEFAULT_SCHEDULE);
   document.getElementById('limit-cancel-edit').hidden = true;
   document.getElementById('limit-editing-note').hidden = true;
   setText('limit-submit', 'Save limit');
 }
 
+function renderTotalBudget() {
+  const budget = snapshot.totalBudget || snapshot.settings.totalBudget;
+  document.getElementById('total-budget-enabled').checked = Boolean(budget.enabled);
+  document.getElementById('total-budget-minutes').value = String(budget.minutes || 300);
+  document.getElementById('total-budget-mode').value = budget.mode === 'block' ? 'block' : 'warn';
+  if (!budget.enabled) {
+    setText('total-budget-progress', 'Not enabled');
+    return;
+  }
+  setText('total-budget-progress', `${formatDuration(budget.usedMs || 0, true)} / ${formatDuration((budget.minutes || 0) * 60_000, true)}`);
+}
+
+function categoryStatusLabel(category) {
+  if (!category.enabled) return { label: 'Paused', tone: 'paused' };
+  if (category.schedule?.enabled && category.scheduleActive === false) return { label: 'Scheduled off', tone: 'paused' };
+  if (category.reached) return { label: 'Time up', tone: 'reached' };
+  return { label: 'Active', tone: 'active' };
+}
+
+function renderCategories() {
+  const node = document.getElementById('category-list');
+  const categories = snapshot.categories || [];
+  if (!categories.length) {
+    node.innerHTML = '<div class="empty">No category limits yet.</div>';
+    return;
+  }
+  node.innerHTML = categories.map((category) => {
+    const percent = Math.min(100, Math.max(0, Math.round(category.ratio * 100)));
+    const status = categoryStatusLabel(category);
+    return `<div class="limit-item ${category.enabled ? '' : 'is-paused'}">
+      <div class="limit-main">
+        <div class="limit-title-row"><div class="limit-domain">${escapeHtml(category.name)}</div><span class="status-chip ${status.tone}">${escapeHtml(status.label)}</span></div>
+        <div class="limit-meta">${escapeHtml(category.domains.join(', '))}<br>${escapeHtml(formatDuration(category.minutes * 60_000, true))} / ${escapeHtml(periodWord(category.period))} · ${escapeHtml(scheduleCopy(category.schedule))}</div>
+      </div>
+      <div class="limit-progress"><small>${escapeHtml(formatDuration(category.usedMs, true))} used · ${escapeHtml(formatDuration(category.remainingMs, true))} left</small><div class="progress" aria-label="${percent}% of category limit used"><span style="width:${percent}%"></span></div></div>
+      <div class="limit-actions"><button class="btn btn-small delete-category" type="button" data-id="${escapeHtml(category.id)}">Delete</button></div>
+    </div>`;
+  }).join('');
+
+  node.querySelectorAll('.delete-category').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const category = categories.find((item) => item.id === button.dataset.id);
+      if (!category || !confirm(`Delete the ${category.name} category limit?`)) return;
+      try {
+        await send('DELETE_CATEGORY', { id: category.id });
+        showToast('Category removed.');
+        await refresh();
+      } catch (error) { showToast(error.message, true); }
+    });
+  });
+}
+
+function renderFocusPresets() {
+  const select = document.getElementById('focus-presets');
+  const current = select.value;
+  select.replaceChildren(new Option('Custom', ''));
+  for (const preset of snapshot.settings.focusPresets || []) {
+    select.add(new Option(`${preset.name} · ${formatDuration(preset.minutes * 60_000, true)}`, preset.id));
+  }
+  if ([...select.options].some((option) => option.value === current)) select.value = current;
+}
+
+function renderPresetList() {
+  const node = document.getElementById('preset-list');
+  const presets = snapshot.settings.focusPresets || [];
+  if (!presets.length) {
+    node.innerHTML = '<div class="empty">No saved Focus presets.</div>';
+    return;
+  }
+  node.innerHTML = presets.map((preset) => `
+    <div class="preset-item">
+      <div class="preset-copy"><strong>${escapeHtml(preset.name)}</strong><small>${escapeHtml(formatDuration(preset.minutes * 60_000, true))} · ${preset.mode === 'allow' ? 'Allow only' : 'Block list'} · ${escapeHtml(preset.domains.join(', ') || 'No websites')}</small></div>
+      <div class="limit-actions"><button class="btn btn-small use-preset" type="button" data-id="${escapeHtml(preset.id)}">Use</button><button class="btn btn-small delete-preset" type="button" data-id="${escapeHtml(preset.id)}">Delete</button></div>
+    </div>`).join('');
+
+  node.querySelectorAll('.use-preset').forEach((button) => button.addEventListener('click', () => loadPreset(button.dataset.id)));
+  node.querySelectorAll('.delete-preset').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const preset = presets.find((item) => item.id === button.dataset.id);
+      if (!preset || !confirm(`Delete the ${preset.name} Focus preset?`)) return;
+      try {
+        await send('DELETE_FOCUS_PRESET', { id: preset.id });
+        showToast('Focus preset removed.');
+        await refresh();
+      } catch (error) { showToast(error.message, true); }
+    });
+  });
+}
+
+function updateFocusModeLabel() {
+  const allow = document.getElementById('focus-mode').value === 'allow';
+  setText('focus-domains-label', allow ? 'Allowed websites · every other website is blocked' : 'Blocked websites · one per line or comma separated');
+}
+
+function loadPreset(id) {
+  const preset = snapshot.settings.focusPresets?.find((item) => item.id === id);
+  if (!preset) return;
+  document.getElementById('focus-presets').value = preset.id;
+  document.getElementById('focus-minutes').value = String(preset.minutes);
+  document.getElementById('focus-mode').value = preset.mode;
+  document.getElementById('focus-domains').value = preset.domains.join('\n');
+  updateFocusModeLabel();
+  document.getElementById('focus-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 function renderFocus() {
+  renderFocusPresets();
+  renderPresetList();
   const active = Boolean(snapshot.focus);
   document.getElementById('focus-active').hidden = !active;
   document.getElementById('focus-form').hidden = active;
-  if (!active) return;
+  if (!active) {
+    updateFocusModeLabel();
+    return;
+  }
+  const domains = snapshot.focus.domains || snapshot.focus.blockedDomains || [];
   setText('focus-remaining', formatDuration(Math.max(0, snapshot.focus.endsAt - Date.now()), true));
-  setText('focus-blocked-count', `${snapshot.focus.blockedDomains.length} websites blocked`);
+  setText('focus-blocked-count', snapshot.focus.mode === 'allow'
+    ? `${domains.length} websites allowed · everything else blocked`
+    : `${domains.length} websites blocked`);
 }
 
 function renderHistory() {
@@ -178,10 +353,7 @@ function renderSettings() {
   setText('health-status', healthy ? 'Healthy' : 'Needs attention');
   setText('storage-usage', formatBytes(health.storageBytesApprox));
   setText('diagnostic-count', String(health.diagnosticCount || 0));
-  const detail = health.lastDiagnostic
-    ? `${health.lastDiagnostic.code}: ${health.lastDiagnostic.message}`
-    : 'No runtime problems recorded.';
-  setText('health-detail', detail);
+  setText('health-detail', health.lastDiagnostic ? `${health.lastDiagnostic.code}: ${health.lastDiagnostic.message}` : 'No runtime problems recorded.');
   document.getElementById('clear-diagnostics').disabled = !health.diagnosticCount;
 }
 
@@ -192,6 +364,8 @@ function render() {
   setText('current-domain', snapshot.currentDomain || 'No active website');
   renderChart();
   renderTopSites();
+  renderTotalBudget();
+  renderCategories();
   renderLimits();
   renderFocus();
   renderHistory();
@@ -208,6 +382,49 @@ document.getElementById('range-control').addEventListener('click', async (event)
   if (!button) return;
   rangeDays = Number(button.dataset.days);
   try { await refresh(); } catch (error) { showToast(error.message, true); }
+});
+
+document.getElementById('total-budget-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const submit = event.submitter;
+  submit.disabled = true;
+  try {
+    await send('SAVE_TOTAL_BUDGET', {
+      budget: {
+        enabled: document.getElementById('total-budget-enabled').checked,
+        minutes: Number(document.getElementById('total-budget-minutes').value),
+        mode: document.getElementById('total-budget-mode').value
+      }
+    });
+    showToast('Daily browsing budget saved.');
+    await refresh();
+  } catch (error) { showToast(error.message, true); }
+  finally { submit.disabled = false; }
+});
+
+document.getElementById('category-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const submit = event.submitter;
+  submit.disabled = true;
+  try {
+    await send('SAVE_CATEGORY', {
+      category: {
+        name: document.getElementById('category-name').value.trim(),
+        domains: splitDomains(document.getElementById('category-domains').value),
+        minutes: Number(document.getElementById('category-value').value),
+        period: document.getElementById('category-period').value,
+        enabled: true,
+        strict: document.getElementById('category-strict').checked,
+        schedule: readSchedule('category')
+      }
+    });
+    event.currentTarget.reset();
+    document.getElementById('category-value').value = '60';
+    setSchedule('category', DEFAULT_SCHEDULE);
+    showToast('Category limit saved.');
+    await refresh();
+  } catch (error) { showToast(error.message, true); }
+  finally { submit.disabled = false; }
 });
 
 document.getElementById('limit-cancel-edit').addEventListener('click', stopEditing);
@@ -229,7 +446,8 @@ document.getElementById('limit-form').addEventListener('submit', async (event) =
         minutes,
         period,
         strict: document.getElementById('limit-strict').checked,
-        enabled: editingDomain ? snapshot.limits.find((item) => item.domain === editingDomain)?.enabled !== false : true
+        enabled: editingDomain ? snapshot.limits.find((item) => item.domain === editingDomain)?.enabled !== false : true,
+        schedule: readSchedule('limit')
       }
     });
     stopEditing();
@@ -239,14 +457,45 @@ document.getElementById('limit-form').addEventListener('submit', async (event) =
   finally { submit.disabled = false; }
 });
 
+document.getElementById('focus-presets').addEventListener('change', (event) => {
+  if (event.target.value) loadPreset(event.target.value);
+});
+document.getElementById('focus-mode').addEventListener('change', updateFocusModeLabel);
+
 document.getElementById('focus-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = event.submitter;
   submit.disabled = true;
   try {
-    const blockedDomains = document.getElementById('focus-domains').value.split(/[\n,]+/).map((value) => value.trim()).filter(Boolean);
-    await send('START_FOCUS', { minutes: Number(document.getElementById('focus-minutes').value), blockedDomains });
+    const preset = snapshot.settings.focusPresets?.find((item) => item.id === document.getElementById('focus-presets').value);
+    await send('START_FOCUS', {
+      minutes: Number(document.getElementById('focus-minutes').value),
+      domains: splitDomains(document.getElementById('focus-domains').value),
+      mode: document.getElementById('focus-mode').value,
+      name: preset?.name || 'Focus'
+    });
     showToast('Focus session started.');
+    await refresh();
+  } catch (error) { showToast(error.message, true); }
+  finally { submit.disabled = false; }
+});
+
+document.getElementById('preset-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const submit = event.submitter;
+  submit.disabled = true;
+  try {
+    await send('SAVE_FOCUS_PRESET', {
+      preset: {
+        name: document.getElementById('preset-name').value.trim(),
+        minutes: Number(document.getElementById('preset-duration').value),
+        mode: document.getElementById('preset-mode').value,
+        domains: splitDomains(document.getElementById('preset-domains').value)
+      }
+    });
+    event.currentTarget.reset();
+    document.getElementById('preset-duration').value = '45';
+    showToast('Focus preset saved.');
     await refresh();
   } catch (error) { showToast(error.message, true); }
   finally { submit.disabled = false; }
@@ -290,7 +539,6 @@ document.getElementById('export-data').addEventListener('click', async () => {
 });
 
 document.getElementById('import-data').addEventListener('click', () => document.getElementById('import-file').click());
-
 document.getElementById('import-file').addEventListener('change', async (event) => {
   const file = event.target.files?.[0];
   event.target.value = '';
@@ -318,5 +566,8 @@ document.getElementById('clear-data').addEventListener('click', async () => {
   catch (error) { showToast(error.message, true); }
 });
 
+setSchedule('limit', DEFAULT_SCHEDULE);
+setSchedule('category', DEFAULT_SCHEDULE);
+updateFocusModeLabel();
 refresh().catch((error) => showToast(error.message, true));
 setInterval(() => { if (snapshot?.focus) renderFocus(); }, 30_000);
