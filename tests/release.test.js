@@ -31,12 +31,12 @@ test('production release includes onboarding side panel and release documentatio
   }
 });
 
-test('CI uses current Node-native GitHub actions and uploads the 1.3 Web Store zip', async () => {
+test('CI uses pinned GitHub actions and uploads the 1.3 Web Store zip', async () => {
   const workflow = await text('.github/workflows/ci.yml');
-  assert.match(workflow, /actions\/checkout@v7/);
-  assert.match(workflow, /actions\/setup-node@v7/);
+  assert.match(workflow, /actions\/checkout@[a-f0-9]{40}/);
+  assert.match(workflow, /actions\/setup-node@[a-f0-9]{40}/);
   assert.match(workflow, /npm run package/);
-  assert.match(workflow, /actions\/upload-artifact@v7/);
+  assert.match(workflow, /actions\/upload-artifact@[a-f0-9]{40}/);
   assert.match(workflow, /timelens-1\.3\.0\.zip/);
 });
 
