@@ -11,6 +11,8 @@ function createChrome() {
   const storage = {};
   const tab = { id: 1, active: true, windowId: 1, url: 'about:blank' };
   const updates = [];
+  const notifications = [];
+  const sequence = [];
 
   const chrome = {
     storage: {
@@ -27,6 +29,7 @@ function createChrome() {
       async update(id, patch) {
         Object.assign(tab, patch);
         updates.push({ id, patch: structuredClone(patch) });
+        if (patch.url?.includes('/src/blocked/blocked.html')) sequence.push('block');
         if (patch.url) this.onUpdated.emit(id, { url: patch.url }, structuredClone(tab));
         return structuredClone(tab);
       },
@@ -49,6 +52,13 @@ function createChrome() {
       created: [],
       async create(name, options) { this.created.push({ name, options }); }
     },
+    notifications: {
+      async create(id, options) {
+        notifications.push({ id, options: structuredClone(options) });
+        if (String(id).includes('timeout')) sequence.push('notify-timeout');
+        return id;
+      }
+    },
     runtime: {
       onInstalled: new ChromeEvent(),
       onStartup: new ChromeEvent(),
@@ -57,7 +67,7 @@ function createChrome() {
     }
   };
 
-  return { chrome, tab, updates, storage };
+  return { chrome, tab, updates, notifications, sequence, storage };
 }
 
 const originalNow = Date.now;
@@ -91,6 +101,12 @@ async function activate(url) {
   await snapshot();
 }
 
+async function flush(minutes) {
+  clock += minutes * 60_000;
+  fake.chrome.alarms.onAlarm.emit({ name: 'timelens-reconcile', scheduledTime: clock });
+  return snapshot();
+}
+
 test('service worker initializes and returns an empty local snapshot', async () => {
   const data = await snapshot();
   assert.equal(data.todayTotalMs, 0);
@@ -117,9 +133,7 @@ test('daily limit blocks a site and temporary allowance lets it continue', async
 
   await activate('https://youtube.com/watch?v=test');
   const started = clock;
-  clock += 60_000;
-  fake.chrome.alarms.onAlarm.emit({ name: 'timelens-reconcile', scheduledTime: clock });
-  await snapshot();
+  await flush(1);
 
   assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
 
@@ -151,11 +165,6 @@ test('strict limits reject temporary allowance', async () => {
   assert.match(response.error, /disabled/i);
 });
 
-test.after(() => {
-  Date.now = originalNow;
-  delete globalThis.chrome;
-});
-
 test('clearing usage history keeps limits and preferences', async () => {
   await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'news.example.com', minutes: 20, strict: false, enabled: true } });
   await sendMessage({ type: 'SAVE_SETTINGS', settings: { idleSeconds: 120, retentionDays: 90 } });
@@ -165,4 +174,56 @@ test('clearing usage history keeps limits and preferences', async () => {
   assert.equal(data.settings.idleSeconds, 120);
   assert.equal(data.settings.retentionDays, 90);
   assert.equal(data.todayTotalMs, 0);
+});
+
+test('snapshot calculates weekly and monthly limit usage from daily aggregates', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  const data = fake.storage.timelensData;
+  data.dailyUsage = {
+    '2026-08-01': { 'monthly.example.com': 25 * 60_000 },
+    '2026-08-10': { 'weekly.example.com': 30 * 60_000, 'monthly.example.com': 35 * 60_000 },
+    '2026-08-15': { 'weekly.example.com': 40 * 60_000, 'monthly.example.com': 45 * 60_000 }
+  };
+
+  await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'weekly.example.com', minutes: 120, period: 'weekly', strict: true, enabled: true } });
+  await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'monthly.example.com', minutes: 240, period: 'monthly', strict: true, enabled: true } });
+
+  const view = await snapshot();
+  const weekly = view.limits.find((item) => item.domain === 'weekly.example.com');
+  const monthly = view.limits.find((item) => item.domain === 'monthly.example.com');
+
+  assert.equal(weekly.period, 'weekly');
+  assert.equal(weekly.usedMs, 70 * 60_000);
+  assert.equal(monthly.period, 'monthly');
+  assert.equal(monthly.usedMs, 105 * 60_000);
+});
+
+test('limit alerts fire once at five minutes, one minute, then timeout', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  fake.notifications.length = 0;
+  fake.sequence.length = 0;
+  await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'youtube.com', minutes: 10, period: 'daily', strict: true, enabled: true } });
+  await activate('https://youtube.com/watch?v=alerts');
+
+  await flush(5);
+  assert.equal(fake.notifications.length, 1);
+  assert.match(fake.notifications[0].options.message, /5 minutes/i);
+
+  await flush(0.5);
+  assert.equal(fake.notifications.length, 1, '5-minute warning should not repeat');
+
+  await flush(3.5);
+  assert.equal(fake.notifications.length, 2);
+  assert.match(fake.notifications[1].options.message, /1 minute/i);
+
+  await flush(1);
+  assert.equal(fake.notifications.length, 3);
+  assert.match(fake.notifications[2].options.message, /don.t waste your time/i);
+  assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
+  assert.ok(fake.sequence.indexOf('notify-timeout') < fake.sequence.indexOf('block'), 'timeout notification must be created before blocking');
+});
+
+test.after(() => {
+  Date.now = originalNow;
+  delete globalThis.chrome;
 });
