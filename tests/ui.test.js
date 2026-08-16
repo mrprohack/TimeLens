@@ -20,6 +20,23 @@ test('dashboard exposes overview, limits, focus, history, and privacy controls',
   }
 });
 
+test('limit form exposes simple value, unit, and daily weekly monthly period controls', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  for (const id of ['limit-value', 'limit-unit', 'limit-period', 'limit-strict']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(html, /value=["']daily["'][^>]*>Daily</i);
+  assert.match(html, /value=["']weekly["'][^>]*>Weekly</i);
+  assert.match(html, /value=["']monthly["'][^>]*>Monthly</i);
+});
+
+test('dashboard and popup render period-aware limit copy', async () => {
+  const dashboardJs = await read('src/dashboard/dashboard.js');
+  const popupJs = await read('src/popup/popup.js');
+  assert.match(dashboardJs, /limit\.period/);
+  assert.match(popupJs, /limit\.period/);
+});
+
 test('blocked page has a safe exit and conditional allowance controls', async () => {
   const html = await read('src/blocked/blocked.html');
   assert.match(html, /id=["']close-tab["']/);
