@@ -1,55 +1,46 @@
-import { createActivityState } from '../core/activity.js';
-import { dayKey, splitSessionByDay } from '../core/time.js';
+import { splitSessionByDay } from '../core/time.js';
+import { limitPeriodKey } from '../core/limits.js';
+import {
+  DEFAULT_SETTINGS,
+  createDefaultData,
+  migrateData,
+  validateImport
+} from './migrations.js';
+
+export { DEFAULT_SETTINGS };
 
 const STORAGE_KEY = 'timelensData';
-
-export const DEFAULT_SETTINGS = Object.freeze({
-  idleSeconds: 60,
-  retentionDays: 30,
-  aggregateRetentionDays: 365,
-  limits: []
-});
+const BACKUP_KEY = 'timelensBackup';
+const MAX_DIAGNOSTICS = 50;
 
 export function defaultData() {
-  return {
-    version: 2,
-    settings: { ...DEFAULT_SETTINGS, limits: [] },
-    dailyUsage: {},
-    sessions: [],
-    activityState: createActivityState(),
-    focus: null,
-    allowances: {},
-    limitAlerts: {}
-  };
-}
-
-function normalizeData(value) {
-  const base = defaultData();
-  if (!value || typeof value !== 'object') return base;
-  return {
-    ...base,
-    ...value,
-    version: 2,
-    settings: {
-      ...base.settings,
-      ...(value.settings || {}),
-      limits: Array.isArray(value.settings?.limits) ? value.settings.limits : []
-    },
-    dailyUsage: value.dailyUsage && typeof value.dailyUsage === 'object' ? value.dailyUsage : {},
-    sessions: Array.isArray(value.sessions) ? value.sessions : [],
-    activityState: createActivityState(value.activityState || {}),
-    allowances: value.allowances && typeof value.allowances === 'object' ? value.allowances : {},
-    limitAlerts: value.limitAlerts && typeof value.limitAlerts === 'object' ? value.limitAlerts : {}
-  };
+  return createDefaultData();
 }
 
 export async function readData() {
   const result = await chrome.storage.local.get(STORAGE_KEY);
-  return normalizeData(result[STORAGE_KEY]);
+  return migrateData(result[STORAGE_KEY]);
 }
 
 export async function saveData(data) {
-  await chrome.storage.local.set({ [STORAGE_KEY]: data });
+  const normalized = migrateData(data);
+  await chrome.storage.local.set({ [STORAGE_KEY]: normalized });
+  return normalized;
+}
+
+export async function backupAndReplaceData(imported) {
+  const replacement = validateImport(imported);
+  const current = await readData();
+  await chrome.storage.local.set({
+    [BACKUP_KEY]: current,
+    [STORAGE_KEY]: replacement
+  });
+  return replacement;
+}
+
+export async function readBackup() {
+  const result = await chrome.storage.local.get(BACKUP_KEY);
+  return result[BACKUP_KEY] ? migrateData(result[BACKUP_KEY]) : null;
 }
 
 export function addCompletedSessions(data, completed) {
@@ -61,19 +52,46 @@ export function addCompletedSessions(data, completed) {
     }
     data.sessions.push({
       ...session,
-      id: `${session.start}:${session.end}:${session.domain}`
+      id: session.id || `${session.start}:${session.end}:${session.domain}`
     });
   }
 }
 
-export function getAllowanceMs(data, domain, now = Date.now()) {
-  return data.allowances?.[dayKey(now)]?.[domain] || 0;
+export function allowancePeriodKey(limit, now = Date.now()) {
+  return limitPeriodKey(limit?.period || 'daily', now);
 }
 
-export function addAllowance(data, domain, minutes, now = Date.now()) {
-  const key = dayKey(now);
+export function getAllowanceMs(data, domain, limitOrNow, maybeNow) {
+  const legacyCall = typeof limitOrNow === 'number' || limitOrNow === undefined;
+  const limit = legacyCall ? { period: 'daily' } : limitOrNow;
+  const now = legacyCall ? (limitOrNow ?? Date.now()) : (maybeNow ?? Date.now());
+  const key = allowancePeriodKey(limit, now);
+  return Math.max(0, Number(data.allowances?.[key]?.[domain]) || 0);
+}
+
+export function addAllowance(data, domain, limitOrMinutes, minutesOrNow, maybeNow) {
+  const legacyCall = typeof limitOrMinutes === 'number';
+  const limit = legacyCall ? { period: 'daily' } : limitOrMinutes;
+  const minutes = legacyCall ? limitOrMinutes : minutesOrNow;
+  const now = legacyCall ? (minutesOrNow ?? Date.now()) : (maybeNow ?? Date.now());
+  const key = allowancePeriodKey(limit, now);
   data.allowances[key] ||= {};
   data.allowances[key][domain] = (data.allowances[key][domain] || 0) + Math.max(0, Number(minutes) || 0) * 60_000;
+  return data.allowances[key][domain];
+}
+
+export function recordDiagnostic(data, code, error, now = Date.now()) {
+  data.diagnostics ||= [];
+  const message = error instanceof Error ? error.message : String(error || 'Unknown error');
+  data.diagnostics.push({
+    at: Number.isFinite(Number(now)) ? Number(now) : Date.now(),
+    code: String(code || 'UNKNOWN').slice(0, 80),
+    message: message.slice(0, 300)
+  });
+  if (data.diagnostics.length > MAX_DIAGNOSTICS) {
+    data.diagnostics.splice(0, data.diagnostics.length - MAX_DIAGNOSTICS);
+  }
+  return data.diagnostics.at(-1);
 }
 
 export function getLimitAlertState(data, domain, periodKey) {
@@ -93,6 +111,14 @@ export function markLimitAlertSent(data, domain, periodKey, alert) {
   return state;
 }
 
+function allowanceDateKey(key) {
+  if (/^daily:\d{4}-\d{2}-\d{2}$/.test(key)) return key.slice(6);
+  if (/^weekly:\d{4}-\d{2}-\d{2}$/.test(key)) return key.slice(7);
+  if (/^monthly:\d{4}-\d{2}$/.test(key)) return `${key.slice(8)}-01`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(key)) return key;
+  return null;
+}
+
 export function pruneData(data, now = Date.now()) {
   const retentionMs = Math.max(1, data.settings.retentionDays || 30) * 86_400_000;
   data.sessions = data.sessions.filter((session) => Number.isFinite(session.end) && now - session.end <= retentionMs);
@@ -101,12 +127,16 @@ export function pruneData(data, now = Date.now()) {
   const oldest = new Date(now);
   oldest.setHours(0, 0, 0, 0);
   oldest.setDate(oldest.getDate() - aggregateDays);
-  const oldestKey = dayKey(oldest.getTime());
+  const year = oldest.getFullYear();
+  const month = String(oldest.getMonth() + 1).padStart(2, '0');
+  const day = String(oldest.getDate()).padStart(2, '0');
+  const oldestKey = `${year}-${month}-${day}`;
 
-  for (const key of Object.keys(data.dailyUsage)) {
+  for (const key of Object.keys(data.dailyUsage || {})) {
     if (key < oldestKey) delete data.dailyUsage[key];
   }
-  for (const key of Object.keys(data.allowances)) {
-    if (key < oldestKey) delete data.allowances[key];
+  for (const key of Object.keys(data.allowances || {})) {
+    const dateKey = allowanceDateKey(key);
+    if (!dateKey || dateKey < oldestKey) delete data.allowances[key];
   }
 }
