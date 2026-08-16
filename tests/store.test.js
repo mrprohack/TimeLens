@@ -15,6 +15,14 @@ function limit(period = 'daily') {
   return { domain: 'youtube.com', minutes: 60, period, enabled: true, strict: false };
 }
 
+test('default store starts with schema v4 focus assistant settings', () => {
+  const data = defaultData();
+  assert.equal(data.version, 4);
+  assert.deepEqual(data.settings.totalBudget, { enabled: false, minutes: 300, mode: 'warn' });
+  assert.deepEqual(data.settings.categories, []);
+  assert.equal(data.settings.focusPresets.length, 3);
+});
+
 test('completed sessions update daily totals and keep one raw session record', () => {
   const data = defaultData();
   const start = new Date(2026, 7, 15, 23, 59, 30).getTime();
@@ -68,10 +76,14 @@ test('backupAndReplaceData saves current live data before a validated import', a
     storage.timelensData = current;
 
     const imported = defaultData();
+    imported.settings.totalBudget = { enabled: true, minutes: 240, mode: 'block' };
+    imported.settings.categories = [{ id: 'social', name: 'Social', domains: ['reddit.com'], minutes: 60, period: 'daily', enabled: true, strict: false, schedule: { enabled: false, days: [0,1,2,3,4,5,6], startMinute: 0, endMinute: 1439 } }];
     imported.dailyUsage['2026-08-16'] = { 'reddit.com': 2000 };
     const saved = await backupAndReplaceData(imported);
 
     assert.equal(saved.dailyUsage['2026-08-16']['reddit.com'], 2000);
+    assert.equal(saved.settings.totalBudget.mode, 'block');
+    assert.equal(saved.settings.categories[0].id, 'social');
     assert.equal(storage.timelensBackup.dailyUsage['2026-08-15']['youtube.com'], 1000);
     assert.equal(storage.timelensData.dailyUsage['2026-08-16']['reddit.com'], 2000);
   } finally {
