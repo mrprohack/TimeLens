@@ -11,7 +11,7 @@ async function text(path) {
 test('manifest is MV3 and requests only the approved permissions', async () => {
   const manifest = JSON.parse(await text('manifest.json'));
   assert.equal(manifest.manifest_version, 3);
-  assert.deepEqual([...manifest.permissions].sort(), ['alarms', 'idle', 'storage', 'tabs']);
+  assert.deepEqual([...manifest.permissions].sort(), ['alarms', 'idle', 'notifications', 'storage', 'tabs']);
   assert.equal(manifest.host_permissions, undefined);
   assert.equal(manifest.background.type, 'module');
   assert.equal(manifest.action.default_popup, 'src/popup/popup.html');
