@@ -118,6 +118,10 @@ async function flush(minutes) {
   return snapshot();
 }
 
+async function enableAlerts() {
+  await sendMessage({ type: 'SAVE_SETTINGS', settings: { alerts: { fiveMinutes: true, oneMinute: true, timeout: true } } });
+}
+
 test('service worker initializes and returns an empty local snapshot', async () => {
   const data = await snapshot();
   assert.equal(data.todayTotalMs, 0);
@@ -213,6 +217,7 @@ test('snapshot calculates weekly and monthly limit usage from daily aggregates',
 
 test('limit alerts fire once at five minutes, one minute, then timeout', async () => {
   await sendMessage({ type: 'CLEAR_DATA' });
+  await enableAlerts();
   fake.notifications.length = 0;
   fake.sequence.length = 0;
   await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'youtube.com', minutes: 10, period: 'daily', strict: true, enabled: true } });
@@ -238,6 +243,7 @@ test('limit alerts fire once at five minutes, one minute, then timeout', async (
 
 test('notification failure never prevents timeout blocking and records a diagnostic', async () => {
   await sendMessage({ type: 'CLEAR_DATA' });
+  await enableAlerts();
   await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'failure.example.com', minutes: 1, period: 'daily', strict: true, enabled: true } });
   fake.chrome.notifications.fail = true;
   await activate('https://failure.example.com/page');
@@ -316,6 +322,106 @@ test('fresh install opens onboarding while extension updates do not', async () =
   fake.chrome.runtime.onInstalled.emit({ reason: 'update' });
   await snapshot();
   assert.equal(fake.createdTabs.length, 1);
+});
+
+test('total daily budget can block all browsing after the configured boundary', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await enableAlerts();
+  const saved = await sendMessage({ type: 'SAVE_TOTAL_BUDGET', budget: { enabled: true, minutes: 1, mode: 'block' } });
+  assert.equal(saved.ok, true, saved.error);
+  await activate('https://example.com/work');
+  const data = await flush(1);
+  assert.equal(data.totalBudget.reached, true);
+  assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
+});
+
+test('warn-only total budget notifies at timeout without blocking the active site', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await enableAlerts();
+  fake.notifications.length = 0;
+  const saved = await sendMessage({ type: 'SAVE_TOTAL_BUDGET', budget: { enabled: true, minutes: 1, mode: 'warn' } });
+  assert.equal(saved.ok, true, saved.error);
+  await activate('https://warn.example.com');
+  const data = await flush(1);
+  assert.equal(data.totalBudget.reached, true);
+  assert.equal(fake.tab.url, 'https://warn.example.com');
+  assert.ok(fake.notifications.some((item) => /browsing budget/i.test(item.options.message)));
+});
+
+test('category limit aggregates matching domains and blocks the active category site', async () => {
+  clock = new Date(2026, 7, 18, 10).getTime();
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await sendMessage({ type: 'SAVE_TOTAL_BUDGET', budget: { enabled: false, minutes: 300, mode: 'warn' } });
+  const saved = await sendMessage({
+    type: 'SAVE_CATEGORY',
+    category: { id: 'social', name: 'Social', domains: ['reddit.com', 'instagram.com'], minutes: 60, period: 'daily', enabled: true, strict: true }
+  });
+  assert.equal(saved.ok, true, saved.error);
+  fake.storage.timelensData.dailyUsage['2026-08-18'] = { 'reddit.com': 40 * 60_000, 'instagram.com': 25 * 60_000 };
+  await activate('https://reddit.com/r/productivity');
+  const data = await snapshot();
+  assert.equal(data.categories.find((item) => item.id === 'social').reached, true);
+  assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
+});
+
+test('site limit outside its configured schedule does not block', async () => {
+  clock = new Date(2026, 7, 17, 18).getTime(); // Monday 18:00
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await sendMessage({ type: 'SAVE_TOTAL_BUDGET', budget: { enabled: false, minutes: 300, mode: 'warn' } });
+  const saved = await sendMessage({
+    type: 'SAVE_LIMIT',
+    limit: {
+      domain: 'scheduled.example.com', minutes: 1, period: 'daily', enabled: true, strict: true,
+      schedule: { enabled: true, days: [1], startMinute: 9 * 60, endMinute: 17 * 60 }
+    }
+  });
+  assert.equal(saved.ok, true, saved.error);
+  fake.storage.timelensData.dailyUsage['2026-08-17'] = { 'scheduled.example.com': 5 * 60_000 };
+  await activate('https://scheduled.example.com');
+  assert.equal(fake.tab.url, 'https://scheduled.example.com');
+  const data = await snapshot();
+  assert.equal(data.limits.find((item) => item.domain === 'scheduled.example.com').scheduleActive, false);
+});
+
+test('overnight scheduled category remains active after midnight', async () => {
+  clock = new Date(2026, 7, 15, 1).getTime(); // Saturday 01:00, Friday schedule carry-over
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await sendMessage({ type: 'SAVE_TOTAL_BUDGET', budget: { enabled: false, minutes: 300, mode: 'warn' } });
+  const saved = await sendMessage({
+    type: 'SAVE_CATEGORY',
+    category: {
+      id: 'late-video', name: 'Late Video', domains: ['youtube.com'], minutes: 1, period: 'daily', enabled: true, strict: true,
+      schedule: { enabled: true, days: [5], startMinute: 22 * 60, endMinute: 2 * 60 }
+    }
+  });
+  assert.equal(saved.ok, true, saved.error);
+  fake.storage.timelensData.dailyUsage['2026-08-15'] = { 'youtube.com': 2 * 60_000 };
+  await activate('https://youtube.com/watch?v=late');
+  assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
+});
+
+test('notification failure never bypasses total-budget blocking', async () => {
+  clock = new Date(2026, 7, 19, 10).getTime();
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await enableAlerts();
+  await sendMessage({ type: 'SAVE_TOTAL_BUDGET', budget: { enabled: true, minutes: 1, mode: 'block' } });
+  fake.chrome.notifications.fail = true;
+  await activate('https://budget-failure.example.com');
+  await flush(1);
+  fake.chrome.notifications.fail = false;
+  assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
+});
+
+test('allow-only focus blocks a domain that is not on the allowed list', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await sendMessage({ type: 'SAVE_TOTAL_BUDGET', budget: { enabled: false, minutes: 300, mode: 'warn' } });
+  const response = await sendMessage({ type: 'START_FOCUS', minutes: 25, domains: ['github.com'], mode: 'allow', name: 'Code' });
+  assert.equal(response.ok, true, response.error);
+  await activate('https://youtube.com/watch?v=focus');
+  assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
+  const data = await snapshot();
+  assert.equal(data.focus.mode, 'allow');
+  assert.equal(data.focus.name, 'Code');
 });
 
 test.after(() => {
