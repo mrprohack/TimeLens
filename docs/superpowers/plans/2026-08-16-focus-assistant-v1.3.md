@@ -41,10 +41,10 @@
 - `createFocusSession(startedAt, minutes, domains, mode='block', name='Focus')`
 - `isDomainFocusBlocked(focus, domain, now)` handles both block-list and allow-only modes.
 
-- [ ] Write failing tests for weekday windows, overnight schedules, disabled schedules, subdomain/category matching, multi-domain category aggregation, period-aware category totals, block-mode focus, and allow-only focus.
-- [ ] Run CI and confirm RED.
-- [ ] Implement the pure modules and upgraded focus model without Chrome APIs.
-- [ ] Run CI and confirm GREEN.
+- [x] Write failing tests for weekday windows, overnight schedules, disabled schedules, subdomain/category matching, multi-domain category aggregation, period-aware category totals, block-mode focus, and allow-only focus.
+- [x] Run CI and confirm RED.
+- [x] Implement the pure modules and upgraded focus model without Chrome APIs.
+- [x] Run CI and confirm GREEN.
 
 ### Task 2: Schema v4 and normalized settings
 
@@ -61,11 +61,11 @@
 - Site limits gain optional `schedule`.
 - Store alert state may use reserved keys `__total__` and `category:<id>` with existing period-key dedupe behavior.
 
-- [ ] Add failing migration tests proving v3 data upgrades to v4 with safe defaults and malformed categories/schedules/presets are normalized or discarded.
-- [ ] Add store tests proving schema-v4 settings survive save/import/export and alert state remains local/bounded.
-- [ ] Run CI and confirm RED.
-- [ ] Implement v4 migration/normalization while preserving every existing field.
-- [ ] Run CI and confirm GREEN.
+- [x] Add failing migration tests proving v3 data upgrades to v4 with safe defaults and malformed categories/schedules/presets are normalized or discarded.
+- [x] Add store tests proving schema-v4 settings survive save/import/export and alert state remains local/bounded.
+- [x] Run CI and confirm RED.
+- [x] Implement v4 migration/normalization while preserving every existing field.
+- [x] Run CI and confirm GREEN.
 
 ### Task 3: Service-worker enforcement and snapshot API
 
@@ -85,10 +85,10 @@
 3. active category limits,
 4. active per-site limit.
 
-- [ ] Add failing integration tests for total-budget warning/block behavior, category aggregate blocking, inactive scheduled rules not blocking, overnight scheduled rules blocking, notification failure isolation, focus allow-only blocking, and backward-compatible `blockedDomains` messages.
-- [ ] Run CI and confirm RED.
-- [ ] Implement message handlers, snapshots, alert dedupe, and enforcement order with best-effort notification calls.
-- [ ] Run CI and confirm GREEN.
+- [x] Add failing integration tests for total-budget warning/block behavior, category aggregate blocking, inactive scheduled rules not blocking, overnight scheduled rules blocking, notification failure isolation, focus allow-only blocking, and backward-compatible `blockedDomains` messages.
+- [x] Run CI and confirm RED.
+- [x] Implement message handlers, snapshots, alert dedupe, and enforcement order with best-effort notification calls.
+- [x] Run CI and confirm GREEN.
 
 ### Task 4: Side Panel and production UX
 
@@ -109,10 +109,10 @@
 
 **Dashboard additions:** total-budget editor, category manager, schedule editor on site/category rules, Focus preset manager, allow-only Focus mode.
 
-- [ ] Add failing UI/manifest tests for `side_panel.default_path`, `sidePanel` permission, side-panel controls, total-budget/category forms, schedule inputs, focus mode/presets, accessible labels, and responsive hooks.
-- [ ] Run CI and confirm RED.
-- [ ] Implement side panel and dashboard/popup controls using escaped domain/name output and the existing runtime message helper.
-- [ ] Run CI and confirm GREEN.
+- [x] Add failing UI/manifest tests for `side_panel.default_path`, `sidePanel` permission, side-panel controls, total-budget/category forms, schedule inputs, focus mode/presets, accessible labels, and responsive hooks.
+- [x] Run CI and confirm RED.
+- [x] Implement side panel and dashboard/popup controls using escaped domain/name output and the existing runtime message helper.
+- [x] Run CI and confirm GREEN.
 
 ### Task 5: Release, regression, and security gate
 
@@ -126,8 +126,16 @@
 - Modify: `PRIVACY.md`
 - Modify: `docs/superpowers/plans/2026-08-16-focus-assistant-v1.3.md`
 
-- [ ] Bump manifest/package to `1.3.0`, require the side-panel files in validation/package output, and keep the exact approved permission set `alarms,idle,notifications,sidePanel,storage,tabs`.
-- [ ] Run the full `npm run check` and `npm run package` pipeline on the exact feature head.
-- [ ] Review the branch diff for unrelated changes, new remote code, unsafe HTML interpolation, unvalidated imported settings, over-broad permissions, and enforcement bypasses.
-- [ ] Invoke Codex Security diff-scan guidance against `main...feat/focus-assistant-v1.3`; fix every confirmed finding, rerun tests/security review until clean or explicitly document deferred risk.
-- [ ] Open a PR to `main` with CI evidence, security coverage, permission review, and release-artifact details.
+- [x] Bump manifest/package to `1.3.0`, require the side-panel files in validation/package output, and keep the exact approved permission set `alarms,idle,notifications,sidePanel,storage,tabs`.
+- [x] Run the full `npm run check` and `npm run package` pipeline on the exact feature head.
+- [x] Review the branch diff for unrelated changes, new remote code, unsafe HTML interpolation, unvalidated imported settings, over-broad permissions, and enforcement bypasses.
+- [x] Invoke Codex Security diff-scan guidance against `main...feat/focus-assistant-v1.3`; fix every confirmed finding, rerun tests/security review until clean or explicitly document deferred risk.
+- [x] Open a PR to `main` with CI evidence, security coverage, permission review, and release-artifact details.
+
+## Verification notes
+
+- TDD was run as explicit RED → GREEN cycles for pure rules, schema migration, service-worker enforcement, UI/manifest contracts, release contracts, and security hardening.
+- Codex Security diff-review guidance covered every changed runtime/build source file in PR #4. Two confirmed issues were fixed: mutable GitHub Action tags were replaced with immutable commit pins, and temporary non-strict return URLs were moved from blocked-page query parameters to `chrome.storage.session` with consume-and-remove behavior.
+- Static security review found no remote runtime scripts/styles, dynamic code execution, external messaging surface, host permissions, content scripts, or unescaped user-controlled HTML sinks in the reviewed changes.
+- Real Chromium static rendering QA covered desktop dashboard, 390px mobile dashboard, light Side Panel, and dark Side Panel with no horizontal overflow.
+- Installed-extension E2E could not run in this environment because managed Chromium policy contains `ExtensionInstallBlocklist: ["*"]`; service-worker Chrome API integration tests remain the executable browser-behavior substitute in CI.
