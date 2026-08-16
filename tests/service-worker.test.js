@@ -13,12 +13,17 @@ function createChrome() {
   const updates = [];
   const notifications = [];
   const sequence = [];
+  const createdTabs = [];
 
   const chrome = {
     storage: {
       local: {
-        async get(key) { return { [key]: storage[key] }; },
-        async set(value) { Object.assign(storage, structuredClone(value)); }
+        async get(key) {
+          if (Array.isArray(key)) return Object.fromEntries(key.map((item) => [item, storage[item]]));
+          return { [key]: storage[key] };
+        },
+        async set(value) { Object.assign(storage, structuredClone(value)); },
+        async getBytesInUse() { return JSON.stringify(storage).length; }
       }
     },
     tabs: {
@@ -33,7 +38,11 @@ function createChrome() {
         if (patch.url) this.onUpdated.emit(id, { url: patch.url }, structuredClone(tab));
         return structuredClone(tab);
       },
-      async create() { return null; }
+      async create(options) {
+        createdTabs.push(structuredClone(options));
+        return { id: createdTabs.length + 1, ...options };
+      },
+      created: createdTabs
     },
     windows: {
       WINDOW_ID_NONE: -1,
@@ -53,7 +62,9 @@ function createChrome() {
       async create(name, options) { this.created.push({ name, options }); }
     },
     notifications: {
+      fail: false,
       async create(id, options) {
+        if (this.fail) throw new Error('notifications unavailable');
         notifications.push({ id, options: structuredClone(options) });
         if (String(id).includes('timeout')) sequence.push('notify-timeout');
         return id;
@@ -67,7 +78,7 @@ function createChrome() {
     }
   };
 
-  return { chrome, tab, updates, notifications, sequence, storage };
+  return { chrome, tab, updates, notifications, sequence, storage, createdTabs };
 }
 
 const originalNow = Date.now;
@@ -112,6 +123,8 @@ test('service worker initializes and returns an empty local snapshot', async () 
   assert.equal(data.todayTotalMs, 0);
   assert.equal(data.focus, null);
   assert.deepEqual(data.limits, []);
+  assert.deepEqual(data.settings.alerts, { fiveMinutes: true, oneMinute: true, timeout: true });
+  assert.equal(data.health.status, 'healthy');
 });
 
 test('delayed alarm after a sleep-like gap does not count the whole gap', async () => {
@@ -221,6 +234,88 @@ test('limit alerts fire once at five minutes, one minute, then timeout', async (
   assert.match(fake.notifications[2].options.message, /don.t waste your time/i);
   assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
   assert.ok(fake.sequence.indexOf('notify-timeout') < fake.sequence.indexOf('block'), 'timeout notification must be created before blocking');
+});
+
+test('notification failure never prevents timeout blocking and records a diagnostic', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'failure.example.com', minutes: 1, period: 'daily', strict: true, enabled: true } });
+  fake.chrome.notifications.fail = true;
+  await activate('https://failure.example.com/page');
+  await flush(1);
+  fake.chrome.notifications.fail = false;
+
+  assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
+  const data = await snapshot();
+  assert.ok(data.health.diagnosticCount >= 1);
+});
+
+test('alert preferences suppress warnings without disabling enforcement', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  fake.notifications.length = 0;
+  await sendMessage({ type: 'SAVE_SETTINGS', settings: { alerts: { fiveMinutes: false, oneMinute: false, timeout: false } } });
+  await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'quiet.example.com', minutes: 1, period: 'daily', strict: true, enabled: true } });
+  await activate('https://quiet.example.com');
+  await flush(1);
+
+  assert.equal(fake.notifications.length, 0);
+  assert.match(fake.tab.url, /^chrome-extension:\/\/test-extension\/src\/blocked\/blocked\.html/);
+});
+
+test('weekly extra time is shared inside a week and resets on Monday', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  clock = new Date(2026, 7, 14, 12).getTime();
+  await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'weekly-allowance.example.com', minutes: 1, period: 'weekly', strict: false, enabled: true } });
+  const added = await sendMessage({ type: 'ADD_ALLOWANCE', domain: 'weekly-allowance.example.com', minutes: 5 });
+  assert.equal(added.ok, true);
+  let data = await snapshot();
+  let limit = data.limits.find((item) => item.domain === 'weekly-allowance.example.com');
+  assert.equal(limit.allowanceMs, 5 * 60_000);
+
+  clock = new Date(2026, 7, 17, 12).getTime();
+  data = await snapshot();
+  limit = data.limits.find((item) => item.domain === 'weekly-allowance.example.com');
+  assert.equal(limit.allowanceMs, 0);
+});
+
+test('import replaces data only after saving a local backup', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'before.example.com', minutes: 20, enabled: true } });
+  const imported = {
+    version: 2,
+    settings: { limits: [{ domain: 'after.example.com', minutes: 30, period: 'daily', enabled: true, strict: false }] },
+    dailyUsage: {},
+    sessions: []
+  };
+  const response = await sendMessage({ type: 'IMPORT_DATA', data: imported });
+  assert.equal(response.ok, true, response.error);
+  const data = await snapshot();
+  assert.ok(data.limits.some((item) => item.domain === 'after.example.com'));
+  assert.ok(fake.storage.timelensBackup.settings.limits.some((item) => item.domain === 'before.example.com'));
+});
+
+test('limits can be paused and resumed without deleting them', async () => {
+  await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'toggle.example.com', minutes: 30, enabled: true } });
+  let response = await sendMessage({ type: 'TOGGLE_LIMIT', domain: 'toggle.example.com', enabled: false });
+  assert.equal(response.ok, true, response.error);
+  let data = await snapshot();
+  assert.equal(data.limits.find((item) => item.domain === 'toggle.example.com').enabled, false);
+
+  response = await sendMessage({ type: 'TOGGLE_LIMIT', domain: 'toggle.example.com', enabled: true });
+  assert.equal(response.ok, true, response.error);
+  data = await snapshot();
+  assert.equal(data.limits.find((item) => item.domain === 'toggle.example.com').enabled, true);
+});
+
+test('fresh install opens onboarding while extension updates do not', async () => {
+  fake.createdTabs.length = 0;
+  fake.chrome.runtime.onInstalled.emit({ reason: 'install' });
+  await snapshot();
+  assert.equal(fake.createdTabs.length, 1);
+  assert.match(fake.createdTabs[0].url, /src\/onboarding\/onboarding\.html$/);
+
+  fake.chrome.runtime.onInstalled.emit({ reason: 'update' });
+  await snapshot();
+  assert.equal(fake.createdTabs.length, 1);
 });
 
 test.after(() => {
