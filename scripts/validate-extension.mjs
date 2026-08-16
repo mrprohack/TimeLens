@@ -12,15 +12,21 @@ if (manifest.version !== pkg.version) {
 if (manifest.manifest_version !== 3) throw new Error('TimeLens must use Manifest V3');
 if (manifest.host_permissions) throw new Error('TimeLens must not request broad host permissions');
 
-const approvedPermissions = ['alarms', 'idle', 'notifications', 'storage', 'tabs'];
+const approvedPermissions = ['alarms', 'idle', 'notifications', 'sidePanel', 'storage', 'tabs'];
 if (JSON.stringify([...manifest.permissions].sort()) !== JSON.stringify(approvedPermissions)) {
   throw new Error(`Unexpected permissions: ${manifest.permissions.join(', ')}`);
+}
+if (manifest.side_panel?.default_path !== 'src/sidepanel/sidepanel.html') {
+  throw new Error('TimeLens must register the approved side panel entry point');
 }
 
 const required = [
   manifest.background.service_worker,
   manifest.action.default_popup,
   manifest.options_page,
+  manifest.side_panel.default_path,
+  'src/sidepanel/sidepanel.css',
+  'src/sidepanel/sidepanel.js',
   'src/dashboard/dashboard.html',
   'src/blocked/blocked.html',
   'src/onboarding/onboarding.html',
