@@ -74,15 +74,28 @@
 
     <section id="limits" class="feature-section">
       <div class="feature-copy">
-        <div class="eyeline">Daily limits</div>
-        <h2>Put a boundary around distracting sites.</h2>
-        <p class="muted">Choose a website and a daily allowance. Strict mode removes the “extra time” option after the limit is reached.</p>
+        <div class="eyeline">Site limits</div>
+        <h2>Set a boundary that fits your day, week, or month.</h2>
+        <p class="muted">Choose the time and reset period. TimeLens warns you with 5 minutes left, again with 1 minute left, then blocks the site when time runs out.</p>
       </div>
       <div class="feature-workspace panel">
         <form id="limit-form" class="form-grid">
           <label class="label site-field"><span>Website</span><input id="limit-domain" class="input" name="domain" placeholder="youtube.com" autocomplete="off" required></label>
-          <label class="label"><span>Minutes / day</span><input id="limit-minutes" class="input" name="minutes" type="number" min="1" max="1440" value="60" required></label>
-          <label class="check-row"><input id="limit-strict" name="strict" type="checkbox"><span><strong>Strict</strong><small>No temporary extension after limit.</small></span></label>
+          <label class="label"><span>Limit</span><input id="limit-value" class="input" name="value" type="number" min="0.25" step="0.25" value="60" required></label>
+          <label class="label"><span>Unit</span>
+            <select id="limit-unit" class="input" name="unit">
+              <option value="minutes">Minutes</option>
+              <option value="hours">Hours</option>
+            </select>
+          </label>
+          <label class="label"><span>Reset</span>
+            <select id="limit-period" class="input" name="period">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </label>
+          <label class="check-row"><input id="limit-strict" name="strict" type="checkbox"><span><strong>Strict</strong><small>No temporary extension after time runs out.</small></span></label>
           <button class="btn btn-primary" type="submit">Save limit</button>
         </form>
         <div class="divider"></div>
