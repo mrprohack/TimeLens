@@ -5,12 +5,30 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
-test('popup exposes the essential fast actions', async () => {
+test('popup exposes the essential fast actions and side panel launcher', async () => {
   const html = await read('src/popup/popup.html');
-  for (const id of ['today-total', 'current-domain', 'top-sites', 'focus-toggle', 'open-dashboard']) {
+  for (const id of ['today-total', 'current-domain', 'top-sites', 'focus-toggle', 'open-side-panel', 'open-dashboard']) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
   assert.match(html, /aria-live=/);
+  const js = await read('src/popup/popup.js');
+  assert.match(js, /sidePanel\.open/);
+});
+
+test('side panel exposes live usage boundaries and quick focus actions', async () => {
+  const html = await read('src/sidepanel/sidepanel.html');
+  const js = await read('src/sidepanel/sidepanel.js');
+  for (const id of [
+    'side-current-domain', 'side-today-total', 'side-budget', 'side-boundaries',
+    'side-focus-presets', 'side-limit-site', 'side-open-dashboard', 'side-status'
+  ]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(html, /aria-live=["']polite["']/);
+  assert.match(js, /GET_SNAPSHOT/);
+  assert.match(js, /SAVE_LIMIT/);
+  assert.match(js, /START_FOCUS/);
+  assert.match(js, /escapeHtml/);
 });
 
 test('dashboard exposes overview, limits, focus, history, and privacy controls', async () => {
@@ -20,14 +38,36 @@ test('dashboard exposes overview, limits, focus, history, and privacy controls',
   }
 });
 
-test('limit form exposes simple value, unit, and daily weekly monthly period controls', async () => {
+test('limit form exposes value period strict mode and smart schedule controls', async () => {
   const html = await read('src/dashboard/dashboard.html');
-  for (const id of ['limit-value', 'limit-unit', 'limit-period', 'limit-strict']) {
+  for (const id of [
+    'limit-value', 'limit-unit', 'limit-period', 'limit-strict',
+    'limit-schedule-enabled', 'limit-schedule-days', 'limit-schedule-start', 'limit-schedule-end'
+  ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
   assert.match(html, /value=["']daily["'][^>]*>Daily</i);
   assert.match(html, /value=["']weekly["'][^>]*>Weekly</i);
   assert.match(html, /value=["']monthly["'][^>]*>Monthly</i);
+  const js = await read('src/dashboard/dashboard.js');
+  assert.match(js, /schedule/);
+  assert.match(js, /SAVE_LIMIT/);
+});
+
+test('dashboard manages total browsing budget and category limits', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  for (const id of [
+    'total-budget-form', 'total-budget-enabled', 'total-budget-minutes', 'total-budget-mode', 'total-budget-progress',
+    'category-form', 'category-name', 'category-domains', 'category-value', 'category-period',
+    'category-schedule-enabled', 'category-schedule-days', 'category-schedule-start', 'category-schedule-end', 'category-list'
+  ]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  const js = await read('src/dashboard/dashboard.js');
+  assert.match(js, /SAVE_TOTAL_BUDGET/);
+  assert.match(js, /SAVE_CATEGORY/);
+  assert.match(js, /DELETE_CATEGORY/);
+  assert.match(js, /escapeHtml/);
 });
 
 test('production limit UX supports edit pause resume and delete', async () => {
@@ -38,6 +78,21 @@ test('production limit UX supports edit pause resume and delete', async () => {
   assert.match(js, /class=["']?[^`"']*toggle-limit/);
   assert.match(js, /TOGGLE_LIMIT/);
   assert.match(js, /Editing/);
+});
+
+test('focus workspace supports block and allow-only modes with saved presets', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  for (const id of [
+    'focus-mode', 'focus-presets', 'preset-form', 'preset-name', 'preset-duration',
+    'preset-mode', 'preset-domains', 'preset-list'
+  ]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(html, /value=["']allow["']/);
+  const js = await read('src/dashboard/dashboard.js');
+  assert.match(js, /SAVE_FOCUS_PRESET/);
+  assert.match(js, /DELETE_FOCUS_PRESET/);
+  assert.match(js, /START_FOCUS/);
 });
 
 test('dashboard provides alert preferences restore and extension health controls', async () => {
@@ -74,11 +129,13 @@ test('first-run onboarding explains privacy and can create a first limit', async
   assert.match(js, /SAVE_SETTINGS/);
 });
 
-test('dashboard and popup render period-aware limit copy', async () => {
+test('dashboard popup and side panel render period-aware boundary copy', async () => {
   const dashboardJs = await read('src/dashboard/dashboard.js');
   const popupJs = await read('src/popup/popup.js');
+  const sideJs = await read('src/sidepanel/sidepanel.js');
   assert.match(dashboardJs, /limit\.period/);
   assert.match(popupJs, /limit\.period/);
+  assert.match(sideJs, /period/);
 });
 
 test('blocked page has a safe exit and conditional allowance controls', async () => {
