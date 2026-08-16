@@ -51,10 +51,12 @@ function render() {
   const toggle = document.getElementById('focus-toggle');
   toggle.textContent = focusActive ? 'End focus' : 'Start focus';
   toggle.classList.toggle('btn-primary', !focusActive);
-  setText('focus-title', focusActive ? 'Focus is active' : 'Focus mode');
+  setText('focus-title', focusActive ? (snapshot.focus.name || 'Focus is active') : 'Focus mode');
   if (focusActive) {
     const remaining = Math.max(0, snapshot.focus.endsAt - Date.now());
-    setText('focus-subtitle', `${formatDuration(remaining, true)} remaining · ${snapshot.focus.blockedDomains.length} sites blocked`);
+    const domains = snapshot.focus.domains || snapshot.focus.blockedDomains || [];
+    const modeCopy = snapshot.focus.mode === 'allow' ? `${domains.length} sites allowed` : `${domains.length} sites blocked`;
+    setText('focus-subtitle', `${formatDuration(remaining, true)} remaining · ${modeCopy}`);
   } else {
     setText('focus-subtitle', 'Block common distractions for 25 minutes.');
   }
@@ -82,12 +84,26 @@ document.getElementById('focus-toggle').addEventListener('click', async () => {
     } else {
       await send('START_FOCUS', {
         minutes: 25,
-        blockedDomains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com']
+        domains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'],
+        mode: 'block',
+        name: 'Focus'
       });
     }
     await refresh();
   } finally {
     button.disabled = false;
+  }
+});
+
+document.getElementById('open-side-panel').addEventListener('click', async () => {
+  const node = document.getElementById('error-message');
+  try {
+    const window = await chrome.windows.getCurrent();
+    await chrome.sidePanel.open({ windowId: window.id });
+    window.close?.();
+  } catch (error) {
+    node.hidden = false;
+    node.textContent = error?.message || 'Could not open the focus assistant.';
   }
 });
 
