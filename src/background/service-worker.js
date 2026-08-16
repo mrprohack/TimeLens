@@ -1,19 +1,33 @@
 import { normalizeDomain } from '../core/domain.js';
 import { transitionActivity, createActivityState } from '../core/activity.js';
 import { rangeTotal, sortedUsage } from '../core/analytics.js';
-import { getLimitStatus, shouldBlockDomain } from '../core/limits.js';
+import {
+  getLimitStatus,
+  limitPeriodKey,
+  nextLimitAlert,
+  normalizeLimitPeriod,
+  shouldBlockDomain,
+  usageForLimit
+} from '../core/limits.js';
 import { createFocusSession, isDomainFocusBlocked, isFocusActive } from '../core/focus.js';
 import { dayKey, recentDayKeys } from '../core/time.js';
 import {
   addAllowance,
   addCompletedSessions,
   getAllowanceMs,
+  getLimitAlertState,
+  markLimitAlertSent,
   pruneData,
   readData,
   saveData
 } from './store.js';
 
 const RECONCILE_ALARM = 'timelens-reconcile';
+const MAX_LIMIT_MINUTES = Object.freeze({
+  daily: 24 * 60,
+  weekly: 7 * 24 * 60,
+  monthly: 31 * 24 * 60
+});
 let queue = Promise.resolve();
 
 function enqueue(task) {
@@ -36,6 +50,41 @@ function findLimit(data, domain) {
   return data.settings.limits.find((item) => item.domain === domain && item.enabled);
 }
 
+function periodName(period) {
+  const normalized = normalizeLimitPeriod(period);
+  return normalized === 'daily' ? 'daily' : normalized === 'weekly' ? 'weekly' : 'monthly';
+}
+
+async function showLimitNotification(domain, limit, alert) {
+  const period = periodName(limit.period);
+  const content = alert === '5m'
+    ? { title: '5 minutes left', message: `${domain} has 5 minutes left on its ${period} limit.`, requireInteraction: false }
+    : alert === '1m'
+      ? { title: '1 minute left', message: `${domain} has 1 minute left on its ${period} limit. Finish up now.`, requireInteraction: false }
+      : { title: 'TimeLens · Time’s up', message: `Time’s up — don’t waste your time. ${domain} reached its ${period} limit.`, requireInteraction: true };
+
+  await chrome.notifications.create(`timelens-limit-${alert}-${domain}`, {
+    type: 'basic',
+    iconUrl: chrome.runtime.getURL('icons/icon128.png'),
+    title: content.title,
+    message: content.message,
+    priority: alert === 'timeout' ? 2 : 1,
+    requireInteraction: content.requireInteraction
+  });
+}
+
+async function maybeAlertLimit(data, domain, limit, status, now) {
+  const periodKey = limitPeriodKey(limit.period, now);
+  const alertState = getLimitAlertState(data, domain, periodKey);
+  const alert = nextLimitAlert(status, alertState.sent);
+  if (!alert) return null;
+
+  await showLimitNotification(domain, limit, alert);
+  markLimitAlertSent(data, domain, periodKey, alert);
+  await saveData(data);
+  return alert;
+}
+
 async function navigateToBlocked(domain, reason) {
   const tab = await activeTab();
   if (!tab?.id || normalizeDomain(tab.url || '') !== domain) return;
@@ -56,8 +105,11 @@ async function enforceDomain(data, domain, now = Date.now()) {
 
   const limit = findLimit(data, domain);
   if (!limit) return;
-  const usedMs = data.dailyUsage?.[dayKey(now)]?.[domain] || 0;
+  const usedMs = usageForLimit(data.dailyUsage, domain, limit, now);
   const allowanceMs = getAllowanceMs(data, domain, now);
+  const status = getLimitStatus(limit, usedMs, allowanceMs);
+
+  await maybeAlertLimit(data, domain, limit, status, now);
   if (shouldBlockDomain(limit, usedMs, allowanceMs)) {
     await navigateToBlocked(domain, 'limit');
   }
@@ -104,9 +156,16 @@ async function flushAndRead() {
 function limitView(data, domain, now = Date.now()) {
   const limit = findLimit(data, domain);
   if (!limit) return null;
-  const usedMs = data.dailyUsage?.[dayKey(now)]?.[domain] || 0;
+  const period = normalizeLimitPeriod(limit.period);
+  const usedMs = usageForLimit(data.dailyUsage, domain, limit, now);
   const allowanceMs = getAllowanceMs(data, domain, now);
-  return { ...limit, ...getLimitStatus(limit, usedMs, allowanceMs), allowanceMs };
+  return {
+    ...limit,
+    period,
+    periodKey: limitPeriodKey(period, now),
+    ...getLimitStatus(limit, usedMs, allowanceMs),
+    allowanceMs
+  };
 }
 
 function snapshotFromData(data, rangeDays = 7, now = Date.now()) {
@@ -115,11 +174,18 @@ function snapshotFromData(data, rangeDays = 7, now = Date.now()) {
   const todayByDomain = data.dailyUsage[today] || {};
   const todayTotalMs = Object.values(todayByDomain).reduce((sum, value) => sum + (Number(value) || 0), 0);
   const range = rangeTotal(data.dailyUsage, keys);
-  const limits = data.settings.limits.map((limit) => ({
-    ...limit,
-    ...getLimitStatus(limit, todayByDomain[limit.domain] || 0, getAllowanceMs(data, limit.domain, now)),
-    allowanceMs: getAllowanceMs(data, limit.domain, now)
-  }));
+  const limits = data.settings.limits.map((limit) => {
+    const period = normalizeLimitPeriod(limit.period);
+    const usedMs = usageForLimit(data.dailyUsage, limit.domain, limit, now);
+    const allowanceMs = getAllowanceMs(data, limit.domain, now);
+    return {
+      ...limit,
+      period,
+      periodKey: limitPeriodKey(period, now),
+      ...getLimitStatus(limit, usedMs, allowanceMs),
+      allowanceMs
+    };
+  });
 
   return {
     now,
@@ -151,13 +217,24 @@ async function handleMessage(message) {
     }
     case 'SAVE_LIMIT': {
       const domain = normalizeDomain(message.limit?.domain || '');
-      const minutes = Math.max(1, Math.min(1440, Number(message.limit?.minutes) || 0));
-      if (!domain || !minutes) throw new Error('Enter a valid website and daily limit.');
+      const period = normalizeLimitPeriod(message.limit?.period);
+      const requestedMinutes = Number(message.limit?.minutes);
+      if (!domain || !Number.isFinite(requestedMinutes) || requestedMinutes <= 0) {
+        throw new Error('Enter a valid website and time limit.');
+      }
+      const minutes = Math.max(1, Math.min(MAX_LIMIT_MINUTES[period], Math.round(requestedMinutes)));
       const data = await readData();
-      const limit = { domain, minutes, enabled: message.limit?.enabled !== false, strict: Boolean(message.limit?.strict) };
+      const limit = {
+        domain,
+        minutes,
+        period,
+        enabled: message.limit?.enabled !== false,
+        strict: Boolean(message.limit?.strict)
+      };
       const index = data.settings.limits.findIndex((item) => item.domain === domain);
       if (index >= 0) data.settings.limits[index] = limit;
       else data.settings.limits.push(limit);
+      delete data.limitAlerts?.[domain];
       await saveData(data);
       await enforceDomain(data, data.activityState.domain);
       return { ok: true, limit };
@@ -166,6 +243,7 @@ async function handleMessage(message) {
       const domain = normalizeDomain(message.domain || '');
       const data = await readData();
       data.settings.limits = data.settings.limits.filter((item) => item.domain !== domain);
+      delete data.limitAlerts?.[domain];
       await saveData(data);
       return { ok: true };
     }
@@ -226,6 +304,7 @@ async function handleMessage(message) {
       data.dailyUsage = {};
       data.sessions = [];
       data.allowances = {};
+      data.limitAlerts = {};
       data.focus = null;
       data.activityState = createActivityState({ domain: await activeDomain() });
       await saveData(data);

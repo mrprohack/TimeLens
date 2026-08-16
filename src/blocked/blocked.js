@@ -6,6 +6,9 @@ const reason = params.get('reason') || 'limit';
 const returnUrl = params.get('returnUrl') || '';
 let blockStatus = null;
 
+const PERIOD_WORD = Object.freeze({ daily: 'day', weekly: 'week', monthly: 'month' });
+const PERIOD_TITLE = Object.freeze({ daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' });
+
 function safeReturnUrl() {
   try {
     const url = new URL(returnUrl);
@@ -29,11 +32,15 @@ async function load() {
   }
 
   const limit = blockStatus.limit;
-  setText('reason-label', 'Daily limit reached');
-  setText('blocked-title', `You've reached today's limit for ${domain || 'this site'}.`);
+  const period = limit?.period || 'daily';
+  const periodWord = PERIOD_WORD[period] || 'day';
+  setText('reason-label', `${PERIOD_TITLE[period] || 'Daily'} limit reached`);
+  setText('blocked-title', 'Time’s up — don’t waste your time.');
   if (limit) {
-    setText('blocked-copy', limit.strict ? 'Strict mode is on, so extra time is disabled until tomorrow.' : 'Your boundary is active. You can close the tab or use a small one-time extension.');
-    setText('usage-line', `${formatDuration(limit.usedMs, true)} used · ${limit.minutes}m daily limit`);
+    setText('blocked-copy', limit.strict
+      ? `${domain || 'This site'} reached its ${periodWord} limit. Strict mode keeps it blocked until this limit period resets.`
+      : `${domain || 'This site'} reached its ${periodWord} limit. Close the tab, or take a small extension only if you truly need it.`);
+    setText('usage-line', `${formatDuration(limit.usedMs, true)} used · ${formatDuration(limit.minutes * 60_000, true)} / ${periodWord}`);
     document.getElementById('allowance-actions').hidden = limit.strict;
   }
 }

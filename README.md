@@ -17,9 +17,11 @@ That makes the history closer to real attention time instead of tab-open time.
 ## Features
 
 - **Accurate active-time tracking** across tab switches, focus changes, idle/locked states, sleep/wake gaps, and local midnight.
-- **Fast popup** with today's total, current website, top three sites, limit progress, and one-click Focus Mode.
+- **Fast popup** with today's total, current website, top three sites, period-aware limit progress, and one-click Focus Mode.
 - **Dashboard** with Today / 7 days / 30 days views, daily activity bars, top sites, and recent sessions.
-- **Daily website limits** with optional strict mode.
+- **Daily, weekly, or monthly website limits** with optional strict mode.
+- **Native time warnings** once at 5 minutes remaining and once at 1 minute remaining.
+- **Automatic timeout alert** with “Time’s up — don’t waste your time.” before the site is blocked.
 - **Temporary extra time** (+5 or +15 minutes) for non-strict limits.
 - **Focus Mode** for 25, 45, 60, or 90 minutes with a user-editable block list.
 - **Clear blocked screen** instead of a confusing blank/redirect loop.
@@ -27,9 +29,21 @@ That makes the history closer to real attention time instead of tab-open time.
 - **Automatic light/dark appearance** with keyboard focus states and responsive mobile-width dashboard layout.
 - **No account, cloud service, ads, or analytics.**
 
+## Limit periods and reset rules
+
+Each website can have one active limit period:
+
+- **Daily** — resets at local midnight.
+- **Weekly** — resets Monday at 00:00 in the device's local timezone.
+- **Monthly** — resets on the first day of the month at 00:00 local time.
+
+Existing TimeLens V1 limits that do not contain a period are treated as **daily** limits automatically.
+
+TimeLens evaluates the active limited website during its normal activity reconciliation cycle and when tab/focus/idle state changes. It sends at most one warning per threshold for the current site and period. If Chrome or the computer was unavailable long enough to skip a warning threshold, TimeLens shows only the most urgent applicable warning rather than stacking old alerts.
+
 ## Privacy model
 
-TimeLens stores data locally with `chrome.storage.local`. It persists normalized website domains such as `youtube.com`, timing data, user limits, Focus Mode state, and local preferences. It does **not** persist page titles, query strings, browsing content, cookies, passwords, or form data, and it does not send usage data to a server.
+TimeLens stores data locally with `chrome.storage.local`. It persists normalized website domains such as `youtube.com`, timing data, user limits, local alert-deduplication state, Focus Mode state, and local preferences. It does **not** persist page titles, query strings, browsing content, cookies, passwords, or form data, and it does not send usage data to a server.
 
 See [PRIVACY.md](PRIVACY.md) for the full data/permission explanation.
 
@@ -38,9 +52,12 @@ See [PRIVACY.md](PRIVACY.md) for the full data/permission explanation.
 | Permission | Why it is needed |
 | --- | --- |
 | `tabs` | Read the active tab URL so TimeLens can reduce it to a domain and measure which website is active. |
-| `storage` | Keep usage totals, recent sessions, limits, focus state, and preferences locally. |
+| `storage` | Keep usage totals, recent sessions, limits, warning state, focus state, and preferences locally. |
 | `idle` | Stop counting when the machine is idle or locked. |
 | `alarms` | Periodically reconcile active time and recover cleanly across MV3 service-worker sleep. |
+| `notifications` | Show the user-created 5-minute, 1-minute, and timeout alerts. |
+
+Chrome may show a **“Display notifications”** permission warning because TimeLens uses native system notifications for limit alerts.
 
 TimeLens intentionally does **not** request `history`, cookies, `webRequest`, content-script host access, or `<all_urls>` host permissions.
 
@@ -78,7 +95,10 @@ The suite covers:
 - local-midnight splitting
 - sleep-like delayed alarm reconciliation
 - usage aggregation and ordering
-- daily limit decisions and temporary allowances
+- daily fallback plus weekly/monthly period windows
+- period-aware usage aggregation
+- 5-minute, 1-minute, and timeout warning priority/deduplication
+- daily/weekly/monthly limit enforcement and temporary allowances
 - strict-mode allowance rejection
 - Focus Mode blocking/start/stop
 - retention pruning and per-day allowances
@@ -96,14 +116,14 @@ The suite covers:
 manifest.json
 src/
 ├── background/
-│   ├── service-worker.js   # Chrome event/message adapter
-│   └── store.js            # local persistence and retention
+│   ├── service-worker.js   # Chrome event/message/notification adapter
+│   └── store.js            # local persistence, warning state, retention
 ├── core/
 │   ├── activity.js         # pure tracking state machine
 │   ├── analytics.js        # usage aggregation
 │   ├── domain.js           # URL -> domain normalization
 │   ├── focus.js            # focus-session rules
-│   ├── limits.js           # limit calculations
+│   ├── limits.js           # period windows, limits, warning decisions
 │   └── time.js             # local dates/duration helpers
 ├── popup/                  # compact daily view
 ├── dashboard/              # history, limits, focus, privacy
@@ -125,5 +145,7 @@ The core modules are deliberately independent of Chrome APIs so timing and limit
 ## Project docs
 
 - [V1 design](docs/superpowers/specs/2026-08-15-timelens-v1-design.md)
-- [Implementation plan](docs/superpowers/plans/2026-08-15-timelens-v1.md)
+- [V1 implementation plan](docs/superpowers/plans/2026-08-15-timelens-v1.md)
+- [Period limits & alerts design](docs/superpowers/specs/2026-08-16-period-limits-alerts-design.md)
+- [Period limits & alerts plan](docs/superpowers/plans/2026-08-16-period-limits-alerts.md)
 - [Privacy](PRIVACY.md)
