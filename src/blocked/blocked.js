@@ -3,18 +3,27 @@ import { formatDuration, send, setText } from '../shared/ui.js';
 const params = new URLSearchParams(location.search);
 const domain = params.get('domain') || '';
 const reason = params.get('reason') || 'limit';
-const returnUrl = params.get('returnUrl') || '';
+const RETURN_URL_PREFIX = 'timelensReturnUrl:';
 let blockStatus = null;
 
 const PERIOD_WORD = Object.freeze({ daily: 'day', weekly: 'week', monthly: 'month' });
 const PERIOD_TITLE = Object.freeze({ daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' });
 
-function safeReturnUrl() {
+async function takeSafeReturnUrl() {
+  const tab = await chrome.tabs.getCurrent();
+  if (!tab?.id || !chrome.storage?.session) return null;
+  const key = `${RETURN_URL_PREFIX}${tab.id}`;
   try {
-    const url = new URL(returnUrl);
+    const result = await chrome.storage.session.get(key);
+    await chrome.storage.session.remove(key);
+    const url = new URL(result?.[key] || '');
     if (!['http:', 'https:'].includes(url.protocol)) return null;
     return url.toString();
-  } catch { return null; }
+  } catch {
+    // Session data is optional convenience; fall back to the normalized site root.
+    try { await chrome.storage.session.remove(key); } catch {}
+    return null;
+  }
 }
 
 function hideAllowance() {
@@ -94,7 +103,7 @@ document.querySelectorAll('.allowance').forEach((button) => {
     document.querySelectorAll('.allowance').forEach((item) => { item.disabled = true; });
     try {
       await send('ADD_ALLOWANCE', { domain, minutes: Number(button.dataset.minutes) });
-      const target = safeReturnUrl() || `https://${domain}`;
+      const target = (await takeSafeReturnUrl()) || `https://${domain}`;
       const tab = await chrome.tabs.getCurrent();
       if (tab?.id) await chrome.tabs.update(tab.id, { url: target });
     } catch (error) {
