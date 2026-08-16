@@ -2,6 +2,34 @@
 
 All notable changes to TimeLens are documented here.
 
+## 1.3.0 — 2026-08-16
+
+### Added
+- Chrome Side Panel focus assistant with live current-site usage, daily-budget progress, active boundaries, quick site limits, and Focus preset launchers.
+- Optional total daily active-browsing budget with warn-only or block-at-boundary behavior.
+- Category limits that combine multiple websites into one daily, weekly, or monthly boundary.
+- Smart local schedules for site and category limits, including selected weekdays and overnight windows.
+- Focus Mode `Allow only` mode in addition to the existing block-list mode.
+- Saved local Focus presets for repeatable work, study, and deep-work sessions.
+- Schema-v4 migration for budgets, categories, schedules, and Focus presets.
+- Dedicated blocked-page explanations for total-budget and category boundaries.
+
+### Changed
+- Focus sessions now carry a name, mode, and normalized domain list while retaining compatibility with older block-list data.
+- Limit snapshots expose whether scheduled rules are currently active.
+- Warning deduplication now also covers total-budget and category boundaries.
+- Dashboard navigation now separates Guardrails, Site Limits, and Focus for clearer daily use.
+- Chrome Web Store package and CI artifact are versioned as `timelens-1.3.0.zip`.
+
+### Privacy and permissions
+- Added only the Chrome `sidePanel` permission so TimeLens can open its local focus-assistant panel.
+- No host permissions, content scripts, browsing-history access, cookies, remote analytics, backend, or remotely hosted runtime code were added.
+
+### Compatibility
+- Schema-v3 TimeLens data migrates automatically to schema v4 without deleting valid usage history, limits, diagnostics, backup state, or alert preferences.
+- Existing unscheduled limits continue to apply all day.
+- Existing `blockedDomains` Focus messages remain supported.
+
 ## 1.2.0 — 2026-08-16
 
 ### Added
