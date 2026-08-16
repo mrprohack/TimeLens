@@ -22,6 +22,6 @@ jobs:
       - name: Upload release package
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: timelens-1.2.0
-          path: dist/timelens-1.2.0.zip
+          name: timelens-1.3.0
+          path: dist/timelens-1.3.0.zip
           if-no-files-found: error
