@@ -16,6 +16,7 @@
         <a href="#limits">Limits</a>
         <a href="#focus">Focus</a>
         <a href="#history">History</a>
+        <a href="#settings">Privacy</a>
       </nav>
     </div>
   </header>
@@ -42,31 +43,17 @@
         </div>
         <div class="current-activity">
           <span class="live-dot" aria-hidden="true"></span>
-          <div>
-            <div class="muted small">Current website</div>
-            <div id="current-domain" class="current-site">No active website</div>
-          </div>
+          <div><div class="muted small">Current website</div><div id="current-domain" class="current-site">No active website</div></div>
         </div>
       </div>
 
       <div class="overview-grid">
         <section class="content-section" aria-labelledby="daily-heading">
-          <div class="section-heading-row">
-            <div>
-              <h2 id="daily-heading">Daily activity</h2>
-              <p class="muted">Compare your active browsing across days.</p>
-            </div>
-          </div>
+          <div class="section-heading-row"><div><h2 id="daily-heading">Daily activity</h2><p class="muted">Compare your active browsing across days.</p></div></div>
           <div id="daily-chart" class="daily-chart" aria-label="Daily usage chart"></div>
         </section>
-
         <section class="content-section" aria-labelledby="top-heading">
-          <div class="section-heading-row">
-            <div>
-              <h2 id="top-heading">Most used websites</h2>
-              <p class="muted">Where your selected range went.</p>
-            </div>
-          </div>
+          <div class="section-heading-row"><div><h2 id="top-heading">Most used websites</h2><p class="muted">Where your selected range went.</p></div></div>
           <div id="top-sites" class="usage-list"></div>
         </section>
       </div>
@@ -75,28 +62,18 @@
     <section id="limits" class="feature-section">
       <div class="feature-copy">
         <div class="eyeline">Site limits</div>
-        <h2>Set a boundary that fits your day, week, or month.</h2>
-        <p class="muted">Choose the time and reset period. TimeLens warns you with 5 minutes left, again with 1 minute left, then blocks the site when time runs out.</p>
+        <h2>Set boundaries you can actually manage.</h2>
+        <p class="muted">Create a daily, weekly, or monthly limit. Pause it when needed, edit it without recreating it, or use Strict mode when you do not want extra time.</p>
       </div>
       <div class="feature-workspace panel">
+        <div id="limit-editing-note" class="editing-note" hidden><strong>Editing limit</strong><span id="limit-editing-domain"></span></div>
         <form id="limit-form" class="form-grid">
           <label class="label site-field"><span>Website</span><input id="limit-domain" class="input" name="domain" placeholder="youtube.com" autocomplete="off" required></label>
           <label class="label"><span>Limit</span><input id="limit-value" class="input" name="value" type="number" min="0.25" step="0.25" value="60" required></label>
-          <label class="label"><span>Unit</span>
-            <select id="limit-unit" class="input" name="unit">
-              <option value="minutes">Minutes</option>
-              <option value="hours">Hours</option>
-            </select>
-          </label>
-          <label class="label"><span>Reset</span>
-            <select id="limit-period" class="input" name="period">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </label>
+          <label class="label"><span>Unit</span><select id="limit-unit" class="input" name="unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></label>
+          <label class="label"><span>Reset</span><select id="limit-period" class="input" name="period"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
           <label class="check-row"><input id="limit-strict" name="strict" type="checkbox"><span><strong>Strict</strong><small>No temporary extension after time runs out.</small></span></label>
-          <button class="btn btn-primary" type="submit">Save limit</button>
+          <div class="form-actions"><button id="limit-cancel-edit" class="btn" type="button" hidden>Cancel</button><button id="limit-submit" class="btn btn-primary" type="submit">Save limit</button></div>
         </form>
         <div class="divider"></div>
         <div id="limit-list" class="limit-list"></div>
@@ -104,29 +81,11 @@
     </section>
 
     <section id="focus" class="feature-section reverse">
-      <div class="feature-copy">
-        <div class="eyeline">Focus mode</div>
-        <h2>Make a distraction-free window.</h2>
-        <p class="muted">Start a focused session and TimeLens blocks only the sites you choose until the timer ends.</p>
-      </div>
+      <div class="feature-copy"><div class="eyeline">Focus mode</div><h2>Make a distraction-free window.</h2><p class="muted">Start a focused session and TimeLens blocks only the sites you choose until the timer ends.</p></div>
       <div class="feature-workspace panel">
-        <div id="focus-active" class="focus-active" hidden>
-          <div>
-            <div class="eyeline">Focus in progress</div>
-            <div id="focus-remaining" class="focus-time">0m</div>
-            <div id="focus-blocked-count" class="muted"></div>
-          </div>
-          <button id="stop-focus" class="btn" type="button">End focus</button>
-        </div>
+        <div id="focus-active" class="focus-active" hidden><div><div class="eyeline">Focus in progress</div><div id="focus-remaining" class="focus-time">0m</div><div id="focus-blocked-count" class="muted"></div></div><button id="stop-focus" class="btn" type="button">End focus</button></div>
         <form id="focus-form" class="stack">
-          <label class="label"><span>Duration</span>
-            <select id="focus-minutes" class="input">
-              <option value="25">25 minutes</option>
-              <option value="45">45 minutes</option>
-              <option value="60">60 minutes</option>
-              <option value="90">90 minutes</option>
-            </select>
-          </label>
+          <label class="label"><span>Duration</span><select id="focus-minutes" class="input"><option value="25">25 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option></select></label>
           <label class="label"><span>Blocked websites · one per line or comma separated</span><textarea id="focus-domains" class="input textarea" rows="5">youtube.com
 reddit.com
 instagram.com
@@ -138,47 +97,45 @@ x.com</textarea></label>
     </section>
 
     <section id="history" class="history-section">
-      <div class="section-heading-row">
-        <div>
-          <div class="eyeline">Recent sessions</div>
-          <h2>Usage history</h2>
-          <p class="muted">Recent active browsing sessions. Background and idle time are excluded.</p>
-        </div>
-      </div>
-      <div class="history-table-wrap panel">
-        <div class="history-head"><span>Website</span><span>Started</span><span>Active time</span></div>
-        <div id="history-list" class="history-list"></div>
-      </div>
+      <div class="section-heading-row"><div><div class="eyeline">Recent sessions</div><h2>Usage history</h2><p class="muted">Recent active browsing sessions. Background and idle time are excluded.</p></div></div>
+      <div class="history-table-wrap panel"><div class="history-head"><span>Website</span><span>Started</span><span>Active time</span></div><div id="history-list" class="history-list"></div></div>
     </section>
 
     <section id="settings" class="data-section">
       <div class="feature-copy">
         <div class="eyeline">Privacy & data</div>
-        <h2>Your browsing data stays local.</h2>
-        <p class="muted">No account, ads, cloud analytics, or remote tracking. Export a backup or erase usage data whenever you want.</p>
+        <h2>Private by default, recoverable by design.</h2>
+        <p class="muted">Your usage stays local. Tune reminders, export or restore your data, and see whether TimeLens has recorded any local runtime problems.</p>
       </div>
       <div class="data-controls panel">
-        <label class="label"><span>Idle after</span>
-          <select id="idle-seconds" class="input">
-            <option value="30">30 seconds</option>
-            <option value="60">1 minute</option>
-            <option value="120">2 minutes</option>
-            <option value="300">5 minutes</option>
-          </select>
-        </label>
-        <label class="label"><span>Keep detailed sessions</span>
-          <select id="retention-days" class="input">
-            <option value="7">7 days</option>
-            <option value="30">30 days</option>
-            <option value="90">90 days</option>
-            <option value="180">180 days</option>
-          </select>
-        </label>
-        <div class="data-actions">
-          <button id="save-settings" class="btn" type="button">Save preferences</button>
+        <label class="label"><span>Idle after</span><select id="idle-seconds" class="input"><option value="30">30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="300">5 minutes</option></select></label>
+        <label class="label"><span>Keep detailed sessions</span><select id="retention-days" class="input"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="180">180 days</option></select></label>
+
+        <fieldset class="settings-group full-row">
+          <legend>Limit alerts</legend>
+          <label class="check-row"><input id="alert-five" type="checkbox"><span><strong>5 minutes left</strong><small>Early warning.</small></span></label>
+          <label class="check-row"><input id="alert-one" type="checkbox"><span><strong>1 minute left</strong><small>Final preparation warning.</small></span></label>
+          <label class="check-row"><input id="alert-timeout" type="checkbox"><span><strong>Time is up</strong><small>Boundary notification. Blocking still works if disabled.</small></span></label>
+        </fieldset>
+
+        <section class="health-card full-row" aria-labelledby="health-heading">
+          <div><div class="eyeline">Extension health</div><h3 id="health-heading"><span id="health-status">Checking…</span></h3></div>
+          <div class="health-grid">
+            <div><span class="muted small">Local data</span><strong id="storage-usage">—</strong></div>
+            <div><span class="muted small">Diagnostics</span><strong id="diagnostic-count">—</strong></div>
+          </div>
+          <p id="health-detail" class="muted small" aria-live="polite">No health information yet.</p>
+          <button id="clear-diagnostics" class="btn btn-small" type="button">Clear diagnostics</button>
+        </section>
+
+        <div class="data-actions full-row">
+          <button id="save-settings" class="btn btn-primary" type="button">Save preferences</button>
           <button id="export-data" class="btn" type="button">Export JSON</button>
+          <button id="import-data" class="btn" type="button">Restore JSON</button>
+          <input id="import-file" type="file" accept="application/json,.json" hidden>
           <button id="clear-data" class="btn btn-danger" type="button">Clear usage data</button>
         </div>
+        <p class="restore-note muted small full-row">Before a valid restore replaces local TimeLens data, the current data is automatically saved as a local backup.</p>
       </div>
     </section>
   </main>
