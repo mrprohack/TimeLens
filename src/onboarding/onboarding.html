@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome to TimeLens</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+  <main class="onboarding-shell">
+    <header class="welcome-header">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>TimeLens</span></div>
+      <div class="eyeline">Welcome</div>
+      <h1>See your time. Protect your attention.</h1>
+      <p class="lead">TimeLens counts a website only while its tab is active, the Chrome window is focused, and you are active. Your browsing-time data stays on this device.</p>
+    </header>
+
+    <section class="principles" aria-label="How TimeLens works">
+      <article class="principle panel"><strong>Accurate</strong><span>Background tabs and idle time do not count.</span></article>
+      <article class="principle panel"><strong>Private</strong><span>No account, cloud analytics, ads, or remote tracking.</span></article>
+      <article class="principle panel"><strong>Useful</strong><span>Set limits and get a warning before time runs out.</span></article>
+    </section>
+
+    <section class="setup-card panel">
+      <div>
+        <div class="eyeline">Optional first boundary</div>
+        <h2>Set your first site limit</h2>
+        <p class="muted">Leave the website blank if you want to start tracking without a limit.</p>
+      </div>
+
+      <form id="onboarding-form" class="setup-form">
+        <label class="label full"><span>Website</span><input id="first-limit-domain" class="input" placeholder="youtube.com" autocomplete="off"></label>
+        <label class="label"><span>Limit</span><input id="first-limit-value" class="input" type="number" min="0.25" step="0.25" value="60"></label>
+        <label class="label"><span>Unit</span><select id="first-limit-unit" class="input"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></label>
+        <label class="label"><span>Reset</span><select id="first-limit-period" class="input"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
+
+        <fieldset class="alert-box full">
+          <legend>Limit alerts</legend>
+          <label class="check-row"><input id="onboarding-alert-five" type="checkbox" checked><span><strong>5 minutes left</strong><small>Early warning.</small></span></label>
+          <label class="check-row"><input id="onboarding-alert-one" type="checkbox" checked><span><strong>1 minute left</strong><small>Finish what you are doing.</small></span></label>
+          <label class="check-row"><input id="onboarding-alert-timeout" type="checkbox" checked><span><strong>Time is up</strong><small>Final boundary notification.</small></span></label>
+        </fieldset>
+
+        <div class="actions full">
+          <span id="onboarding-status" class="muted" role="status" aria-live="polite"></span>
+          <button id="finish-onboarding" class="btn btn-primary" type="submit">Start using TimeLens</button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script type="module" src="onboarding.js"></script>
+</body>
+</html>

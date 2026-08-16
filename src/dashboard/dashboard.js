@@ -3,17 +3,13 @@ import { escapeHtml, formatClock, formatDuration, send, setText } from '../share
 let rangeDays = 7;
 let snapshot = null;
 let toastTimer = null;
+let editingDomain = null;
 
 const PERIOD_WORD = Object.freeze({ daily: 'day', weekly: 'week', monthly: 'month' });
 const PERIOD_TITLE = Object.freeze({ daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' });
 
-function periodWord(period) {
-  return PERIOD_WORD[period] || 'day';
-}
-
-function periodTitle(period) {
-  return PERIOD_TITLE[period] || 'Daily';
-}
+function periodWord(period) { return PERIOD_WORD[period] || 'day'; }
+function periodTitle(period) { return PERIOD_TITLE[period] || 'Daily'; }
 
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
@@ -21,12 +17,19 @@ function showToast(message, isError = false) {
   toast.textContent = message;
   toast.style.background = isError ? 'var(--danger)' : 'var(--text)';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast.hidden = true; }, 2800);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, 3200);
 }
 
 function dayLabel(day) {
   const date = new Date(`${day}T12:00:00`);
   return new Intl.DateTimeFormat(undefined, { weekday: rangeDays > 7 ? 'narrow' : 'short', day: rangeDays > 7 ? 'numeric' : undefined }).format(date);
+}
+
+function formatBytes(bytes = 0) {
+  const value = Math.max(0, Number(bytes) || 0);
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 ** 2) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 ** 2)).toFixed(1)} MB`;
 }
 
 function renderChart() {
@@ -56,35 +59,92 @@ function renderTopSites() {
     </div>`).join('');
 }
 
+function limitStatus(limit) {
+  if (!limit.enabled) return { label: 'Paused', tone: 'paused' };
+  if (limit.reached) return { label: 'Time up', tone: 'reached' };
+  if (limit.remainingMs <= 60_000) return { label: '1 min left', tone: 'critical' };
+  if (limit.remainingMs <= 5 * 60_000) return { label: '5 min left', tone: 'warning' };
+  return { label: 'Active', tone: 'active' };
+}
+
 function renderLimits() {
   const node = document.getElementById('limit-list');
   if (!snapshot.limits.length) {
     node.innerHTML = '<div class="empty">No limits yet. Add a site above when you want one.</div>';
     return;
   }
+
   node.innerHTML = snapshot.limits.map((limit) => {
     const percent = Math.min(100, Math.max(0, Math.round(limit.ratio * 100)));
     const amount = formatDuration(limit.minutes * 60_000, true);
     const used = formatDuration(limit.usedMs, true);
-    const remaining = limit.reached ? 'Time up' : `${formatDuration(limit.remainingMs, true)} left`;
-    return `<div class="limit-item">
-      <div><div class="limit-domain">${escapeHtml(limit.domain)}</div><div class="limit-meta">${escapeHtml(amount)} / ${escapeHtml(periodWord(limit.period))} · ${limit.strict ? 'Strict' : 'Extra time allowed'}</div></div>
-      <div class="limit-progress"><small>${escapeHtml(used)} used · ${escapeHtml(remaining)}</small><div class="progress" aria-hidden="true"><span style="width:${percent}%"></span></div></div>
-      <button class="icon-button delete-limit" type="button" data-domain="${escapeHtml(limit.domain)}" aria-label="Delete limit for ${escapeHtml(limit.domain)}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+    const remaining = limit.enabled ? (limit.reached ? 'No time left' : `${formatDuration(limit.remainingMs, true)} left`) : 'Not enforcing';
+    const status = limitStatus(limit);
+    return `<div class="limit-item ${limit.enabled ? '' : 'is-paused'}">
+      <div class="limit-main">
+        <div class="limit-title-row"><div class="limit-domain">${escapeHtml(limit.domain)}</div><span class="status-chip ${status.tone}">${escapeHtml(status.label)}</span></div>
+        <div class="limit-meta">${escapeHtml(amount)} / ${escapeHtml(periodWord(limit.period))} · ${limit.strict ? 'Strict' : 'Extra time allowed'}</div>
+      </div>
+      <div class="limit-progress"><small>${escapeHtml(used)} used · ${escapeHtml(remaining)}</small><div class="progress" aria-label="${percent}% of limit used"><span style="width:${percent}%"></span></div></div>
+      <div class="limit-actions">
+        <button class="btn btn-small edit-limit" type="button" data-domain="${escapeHtml(limit.domain)}">Edit</button>
+        <button class="btn btn-small toggle-limit" type="button" data-domain="${escapeHtml(limit.domain)}" data-enabled="${limit.enabled ? 'false' : 'true'}">${limit.enabled ? 'Pause' : 'Resume'}</button>
+        <button class="icon-button delete-limit" type="button" data-domain="${escapeHtml(limit.domain)}" aria-label="Delete limit for ${escapeHtml(limit.domain)}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
     </div>`;
   }).join('');
 
-  node.querySelectorAll('.delete-limit').forEach((button) => {
+  node.querySelectorAll('.edit-limit').forEach((button) => button.addEventListener('click', () => startEditing(button.dataset.domain)));
+  node.querySelectorAll('.toggle-limit').forEach((button) => {
     button.addEventListener('click', async () => {
       try {
+        await send('TOGGLE_LIMIT', { domain: button.dataset.domain, enabled: button.dataset.enabled === 'true' });
+        showToast(button.dataset.enabled === 'true' ? 'Limit resumed.' : 'Limit paused.');
+        await refresh();
+      } catch (error) { showToast(error.message, true); }
+    });
+  });
+  node.querySelectorAll('.delete-limit').forEach((button) => {
+    button.addEventListener('click', async () => {
+      if (!confirm(`Delete the limit for ${button.dataset.domain}?`)) return;
+      try {
         await send('DELETE_LIMIT', { domain: button.dataset.domain });
+        if (editingDomain === button.dataset.domain) stopEditing();
         showToast('Limit removed.');
         await refresh();
       } catch (error) { showToast(error.message, true); }
     });
   });
+}
+
+function startEditing(domain) {
+  const limit = snapshot.limits.find((item) => item.domain === domain);
+  if (!limit) return;
+  editingDomain = domain;
+  const useHours = limit.minutes >= 60 && limit.minutes % 60 === 0;
+  document.getElementById('limit-domain').value = limit.domain;
+  document.getElementById('limit-domain').readOnly = true;
+  document.getElementById('limit-value').value = String(useHours ? limit.minutes / 60 : limit.minutes);
+  document.getElementById('limit-unit').value = useHours ? 'hours' : 'minutes';
+  document.getElementById('limit-period').value = limit.period;
+  document.getElementById('limit-strict').checked = Boolean(limit.strict);
+  document.getElementById('limit-cancel-edit').hidden = false;
+  document.getElementById('limit-editing-note').hidden = false;
+  setText('limit-editing-domain', limit.domain);
+  setText('limit-submit', 'Save changes');
+  document.getElementById('limit-domain').focus();
+}
+
+function stopEditing() {
+  editingDomain = null;
+  document.getElementById('limit-form').reset();
+  document.getElementById('limit-domain').readOnly = false;
+  document.getElementById('limit-value').value = '60';
+  document.getElementById('limit-cancel-edit').hidden = true;
+  document.getElementById('limit-editing-note').hidden = true;
+  setText('limit-submit', 'Save limit');
 }
 
 function renderFocus() {
@@ -103,11 +163,26 @@ function renderHistory() {
     return;
   }
   node.innerHTML = snapshot.sessions.slice(0, 30).map((session) => `
-    <div class="history-row">
-      <span class="history-domain">${escapeHtml(session.domain)}</span>
-      <span class="history-time">${escapeHtml(formatClock(session.start))}</span>
-      <strong>${escapeHtml(formatDuration(session.durationMs, true))}</strong>
-    </div>`).join('');
+    <div class="history-row"><span class="history-domain">${escapeHtml(session.domain)}</span><span class="history-time">${escapeHtml(formatClock(session.start))}</span><strong>${escapeHtml(formatDuration(session.durationMs, true))}</strong></div>`).join('');
+}
+
+function renderSettings() {
+  document.getElementById('idle-seconds').value = String(snapshot.settings.idleSeconds);
+  document.getElementById('retention-days').value = String(snapshot.settings.retentionDays);
+  document.getElementById('alert-five').checked = snapshot.settings.alerts?.fiveMinutes !== false;
+  document.getElementById('alert-one').checked = snapshot.settings.alerts?.oneMinute !== false;
+  document.getElementById('alert-timeout').checked = snapshot.settings.alerts?.timeout !== false;
+
+  const health = snapshot.health || {};
+  const healthy = health.status === 'healthy';
+  setText('health-status', healthy ? 'Healthy' : 'Needs attention');
+  setText('storage-usage', formatBytes(health.storageBytesApprox));
+  setText('diagnostic-count', String(health.diagnosticCount || 0));
+  const detail = health.lastDiagnostic
+    ? `${health.lastDiagnostic.code}: ${health.lastDiagnostic.message}`
+    : 'No runtime problems recorded.';
+  setText('health-detail', detail);
+  document.getElementById('clear-diagnostics').disabled = !health.diagnosticCount;
 }
 
 function render() {
@@ -115,13 +190,12 @@ function render() {
   setText('range-label', rangeDays === 1 ? 'Today' : `Last ${rangeDays} days`);
   setText('range-total', formatDuration(snapshot.rangeTotalMs, true));
   setText('current-domain', snapshot.currentDomain || 'No active website');
-  document.getElementById('idle-seconds').value = String(snapshot.settings.idleSeconds);
-  document.getElementById('retention-days').value = String(snapshot.settings.retentionDays);
   renderChart();
   renderTopSites();
   renderLimits();
   renderFocus();
   renderHistory();
+  renderSettings();
 }
 
 async function refresh() {
@@ -136,6 +210,8 @@ document.getElementById('range-control').addEventListener('click', async (event)
   try { await refresh(); } catch (error) { showToast(error.message, true); }
 });
 
+document.getElementById('limit-cancel-edit').addEventListener('click', stopEditing);
+
 document.getElementById('limit-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = event.submitter;
@@ -145,18 +221,19 @@ document.getElementById('limit-form').addEventListener('submit', async (event) =
     const unit = document.getElementById('limit-unit').value;
     const period = document.getElementById('limit-period').value;
     const minutes = unit === 'hours' ? value * 60 : value;
+    const wasEditing = Boolean(editingDomain);
 
     await send('SAVE_LIMIT', {
       limit: {
-        domain: document.getElementById('limit-domain').value.trim(),
+        domain: editingDomain || document.getElementById('limit-domain').value.trim(),
         minutes,
         period,
         strict: document.getElementById('limit-strict').checked,
-        enabled: true
+        enabled: editingDomain ? snapshot.limits.find((item) => item.domain === editingDomain)?.enabled !== false : true
       }
     });
-    document.getElementById('limit-domain').value = '';
-    showToast(`${periodTitle(period)} limit saved.`);
+    stopEditing();
+    showToast(wasEditing ? 'Limit updated.' : `${periodTitle(period)} limit saved.`);
     await refresh();
   } catch (error) { showToast(error.message, true); }
   finally { submit.disabled = false; }
@@ -176,11 +253,8 @@ document.getElementById('focus-form').addEventListener('submit', async (event) =
 });
 
 document.getElementById('stop-focus').addEventListener('click', async () => {
-  try {
-    await send('STOP_FOCUS');
-    showToast('Focus session ended.');
-    await refresh();
-  } catch (error) { showToast(error.message, true); }
+  try { await send('STOP_FOCUS'); showToast('Focus session ended.'); await refresh(); }
+  catch (error) { showToast(error.message, true); }
 });
 
 document.getElementById('save-settings').addEventListener('click', async () => {
@@ -188,7 +262,12 @@ document.getElementById('save-settings').addEventListener('click', async () => {
     await send('SAVE_SETTINGS', {
       settings: {
         idleSeconds: Number(document.getElementById('idle-seconds').value),
-        retentionDays: Number(document.getElementById('retention-days').value)
+        retentionDays: Number(document.getElementById('retention-days').value),
+        alerts: {
+          fiveMinutes: document.getElementById('alert-five').checked,
+          oneMinute: document.getElementById('alert-one').checked,
+          timeout: document.getElementById('alert-timeout').checked
+        }
       }
     });
     showToast('Preferences saved.');
@@ -210,16 +289,34 @@ document.getElementById('export-data').addEventListener('click', async () => {
   } catch (error) { showToast(error.message, true); }
 });
 
+document.getElementById('import-data').addEventListener('click', () => document.getElementById('import-file').click());
+
+document.getElementById('import-file').addEventListener('change', async (event) => {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!confirm('Restore this TimeLens backup? Your current data will first be preserved as a local backup.')) return;
+    await send('IMPORT_DATA', { data: parsed });
+    stopEditing();
+    showToast('Restore complete. Previous data was kept as a local backup.');
+    await refresh();
+  } catch (error) {
+    showToast(error instanceof SyntaxError ? 'That file is not valid JSON.' : error.message, true);
+  }
+});
+
+document.getElementById('clear-diagnostics').addEventListener('click', async () => {
+  try { await send('CLEAR_DIAGNOSTICS'); showToast('Diagnostics cleared.'); await refresh(); }
+  catch (error) { showToast(error.message, true); }
+});
+
 document.getElementById('clear-data').addEventListener('click', async () => {
   if (!confirm('Clear all TimeLens usage history? Your limits and preferences will stay.')) return;
-  try {
-    await send('CLEAR_DATA');
-    showToast('Usage history cleared.');
-    await refresh();
-  } catch (error) { showToast(error.message, true); }
+  try { await send('CLEAR_DATA'); showToast('Usage history cleared.'); await refresh(); }
+  catch (error) { showToast(error.message, true); }
 });
 
 refresh().catch((error) => showToast(error.message, true));
-setInterval(() => {
-  if (snapshot?.focus) renderFocus();
-}, 30_000);
+setInterval(() => { if (snapshot?.focus) renderFocus(); }, 30_000);
