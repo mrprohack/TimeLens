@@ -9,10 +9,13 @@ TimeLens may store the following in Chrome extension local storage:
 - normalized website domains (for example, `youtube.com`),
 - active-session start/end times and durations,
 - per-day website usage totals,
-- website limits, their daily/weekly/monthly period, enabled/paused state, and strict-mode choices,
-- small per-domain alert state used to avoid repeating the 5-minute, 1-minute, or timeout warning within the same limit period,
-- temporary extra-time allowances scoped to the applicable daily, weekly, or monthly limit period,
-- Focus Mode duration and blocked-domain list,
+- website limits, their daily/weekly/monthly period, enabled/paused state, strict-mode choice, and optional local schedule,
+- an optional total daily active-browsing budget and whether it warns or blocks at the boundary,
+- user-created category limits containing a local category name, normalized domain list, period, limit, and optional schedule,
+- small local alert state used to avoid repeating the 5-minute, 1-minute, or timeout warning within the same configured period,
+- temporary extra-time allowances scoped to the applicable site-limit period,
+- Focus Mode duration, name, block/allow mode, and normalized domain list,
+- saved local Focus presets,
 - idle threshold, session-retention choices, and alert preferences,
 - a bounded local diagnostic journal containing timestamp, internal error code, and short error message when a TimeLens runtime operation fails,
 - one local pre-import backup when the user restores a valid TimeLens JSON export.
@@ -30,23 +33,34 @@ TimeLens does not intentionally persist:
 - keystrokes,
 - advertising identifiers.
 
-A full return URL may be carried temporarily in the local TimeLens blocked-page URL so a non-strict allowance can return the same tab to the page the user was visiting. It is not added to TimeLens usage-history storage.
+A full return URL may be carried temporarily in the local TimeLens blocked-page URL so a non-strict site-limit allowance can return the same tab to the page the user was visiting. It is not added to TimeLens usage-history storage. Budget and category blocks do not expose temporary site-limit allowance actions.
 
 ## Network use
 
-TimeLens does not send browsing-usage data, diagnostics, limits, Focus Mode choices, imports, or exported data to a TimeLens server. The extension does not include runtime analytics, advertising SDKs, remote scripts, remotely hosted executable code, or a TimeLens backend.
+TimeLens does not send browsing-usage data, diagnostics, limits, categories, schedules, budgets, Focus Mode choices, imports, or exported data to a TimeLens server. The extension does not include runtime analytics, advertising SDKs, remote scripts, remotely hosted executable code, or a TimeLens backend.
+
+## Side Panel
+
+TimeLens uses Chrome's Side Panel API to display a local focus-assistant interface next to the current browser tab. The panel reads the same local TimeLens snapshot used by the popup and dashboard. Opening the Side Panel does not send browsing data to a server and does not grant TimeLens additional website-content access.
 
 ## Notifications
 
-TimeLens uses Chrome's native notification API only for website limits created by the user. The user can independently enable or disable:
+TimeLens uses Chrome's native notification API for enabled TimeLens boundaries. Depending on user settings, notifications may be shown for:
 
-- the 5-minute remaining warning,
-- the 1-minute remaining warning,
-- the timeout notification.
+- website limits,
+- category limits,
+- the total daily browsing budget,
+- 5 minutes remaining,
+- 1 minute remaining,
+- the final timeout boundary.
 
-Disabling a notification does not disable the website limit itself. TimeLens continues enforcing an enabled limit when its time is exhausted.
+Disabling a notification does not disable a rule itself. A blocking website, category, or total-budget rule continues enforcing when its configured time is exhausted. Notification failures are treated as non-fatal and do not bypass blocking rules.
 
-Warning-deduplication state is stored locally and resets when that website enters a new configured limit period. Notification content is generated locally.
+Warning-deduplication state is stored locally and resets with the applicable limit period. Notification content is generated locally.
+
+## Smart schedules
+
+A site or category boundary can optionally be limited to selected local weekdays and a local start/end time. Schedule evaluation happens locally on the device. Overnight schedules are associated with the day on which the scheduled window begins.
 
 ## Diagnostics and extension health
 
@@ -70,10 +84,11 @@ TimeLens does not upload the chosen file to a TimeLens service.
 ## Permissions
 
 - `tabs`: identify the active website and redirect a tab to the local blocked page when a user-created rule requires it.
-- `storage`: persist TimeLens usage, preferences, diagnostics, and restore backup data locally.
+- `storage`: persist TimeLens usage, preferences, budgets, categories, schedules, Focus presets, diagnostics, and restore backup data locally.
 - `idle`: stop active-time counting when the machine is idle or locked.
 - `alarms`: reconcile active time while respecting Manifest V3 service-worker lifecycle behavior.
-- `notifications`: display user-configured website-limit warnings.
+- `notifications`: display user-configured TimeLens boundary warnings.
+- `sidePanel`: open the local TimeLens focus-assistant Side Panel.
 
 TimeLens does not request Chrome browsing history, cookies, `webRequest`, content-script host access, or `<all_urls>` host permissions.
 
@@ -85,7 +100,7 @@ Removing the extension removes its extension-local storage according to Chrome's
 
 ## Schema migrations
 
-TimeLens uses versioned local data. Version 1.2 uses schema version 3. Older supported TimeLens data is normalized and migrated locally when read. Migration is designed to preserve valid usage history and limits while replacing malformed settings with safe defaults.
+TimeLens uses versioned local data. Version 1.3 uses schema version 4. Supported older TimeLens data is normalized and migrated locally when read. Migration is designed to preserve valid usage history, limits, alert preferences, backup state, and diagnostics while adding safe defaults for newer features.
 
 ## Changes
 
