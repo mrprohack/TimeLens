@@ -2,6 +2,8 @@ import { escapeHtml, formatDuration, send, setText } from '../shared/ui.js';
 
 let snapshot = null;
 
+const PERIOD_WORD = Object.freeze({ daily: 'day', weekly: 'week', monthly: 'month' });
+
 function initial(domain) {
   return domain ? domain[0].toUpperCase() : '—';
 }
@@ -22,7 +24,10 @@ function renderSites() {
   container.innerHTML = sites.map((item) => {
     const limit = limitFor(item.domain);
     const width = Math.max(3, Math.min(100, (item.durationMs / max) * 100));
-    const limitCopy = limit ? `${Math.round(limit.ratio * 100)}% of ${limit.minutes}m limit` : 'No limit';
+    const period = limit?.period || 'daily';
+    const limitCopy = limit
+      ? `${Math.round(limit.ratio * 100)}% of ${formatDuration(limit.minutes * 60_000, true)} / ${PERIOD_WORD[period] || 'day'}`
+      : 'No limit';
     return `
       <div class="site-item">
         <div class="site-avatar" aria-hidden="true">${escapeHtml(initial(item.domain))}</div>
