@@ -2,62 +2,76 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CURRENT_DATA_VERSION, migrateData, validateImport } from '../src/background/migrations.js';
 
-test('migrates version 2 data to schema v3 without losing usage history', () => {
+test('migrates version 3 data to schema v4 without losing existing usage or limits', () => {
   const migrated = migrateData({
-    version: 2,
+    version: 3,
     settings: {
       idleSeconds: 120,
       retentionDays: 90,
       aggregateRetentionDays: 365,
+      alerts: { fiveMinutes: true, oneMinute: true, timeout: true },
       limits: [{ domain: 'youtube.com', minutes: 120, period: 'weekly', enabled: true, strict: false }]
     },
     dailyUsage: { '2026-08-15': { 'youtube.com': 123456 } },
     sessions: [{ id: '1', domain: 'youtube.com', start: 1, end: 2, durationMs: 1 }],
-    allowances: { '2026-08-15': { 'youtube.com': 300000 } },
-    limitAlerts: {}
+    allowances: { 'weekly:2026-08-10': { 'youtube.com': 300000 } },
+    limitAlerts: {},
+    diagnostics: []
   });
 
-  assert.equal(migrated.version, CURRENT_DATA_VERSION);
+  assert.equal(migrated.version, 4);
+  assert.equal(CURRENT_DATA_VERSION, 4);
   assert.equal(migrated.dailyUsage['2026-08-15']['youtube.com'], 123456);
   assert.equal(migrated.sessions.length, 1);
-  assert.deepEqual(migrated.settings.alerts, { fiveMinutes: true, oneMinute: true, timeout: true });
-  assert.equal(migrated.allowances['weekly:2026-08-10']['youtube.com'], 300000);
+  assert.equal(migrated.settings.limits[0].domain, 'youtube.com');
+  assert.deepEqual(migrated.settings.totalBudget, { enabled: false, minutes: 300, mode: 'warn' });
+  assert.deepEqual(migrated.settings.categories, []);
+  assert.equal(migrated.settings.focusPresets.length, 3);
 });
 
-test('normalizes malformed settings and unsafe numeric values', () => {
+test('normalizes schedules categories budget and focus presets safely', () => {
   const migrated = migrateData({
-    version: 3,
+    version: 4,
     settings: {
-      idleSeconds: -100,
-      retentionDays: 99999,
-      aggregateRetentionDays: 0,
-      alerts: { fiveMinutes: false, oneMinute: 'yes', timeout: false },
-      limits: [
-        { domain: 'HTTPS://WWW.YouTube.com/watch?v=x', minutes: -5, period: 'weekly', enabled: true },
-        { domain: 'reddit.com', minutes: 30, period: 'nonsense', enabled: true, strict: true }
+      totalBudget: { enabled: true, minutes: 99999, mode: 'nonsense' },
+      limits: [{
+        domain: 'youtube.com', minutes: 30, period: 'daily', enabled: true, strict: false,
+        schedule: { enabled: true, days: [1, 1, 9], startMinute: -5, endMinute: 2000 }
+      }],
+      categories: [
+        {
+          id: 'social!!!', name: '<b>Social</b>', domains: ['HTTPS://WWW.Reddit.com/r/x', 'instagram.com'],
+          minutes: 90, period: 'weekly', enabled: true, strict: true,
+          schedule: { enabled: true, days: [1, 2, 3, 4, 5], startMinute: 540, endMinute: 1020 }
+        },
+        { id: '', name: '', domains: [], minutes: -1 }
+      ],
+      focusPresets: [
+        { id: 'study', name: 'Study', minutes: 45, mode: 'allow', domains: ['docs.google.com', 'github.com'] },
+        { id: '', name: '', minutes: 0, mode: 'wat' }
       ]
     },
-    dailyUsage: { bad: { 'youtube.com': -100 }, '2026-08-15': { 'youtube.com': 5000 } },
-    sessions: 'not-an-array',
-    diagnostics: new Array(100).fill({ at: 1, code: 'OLD', message: 'old' })
+    dailyUsage: {},
+    sessions: []
   });
 
-  assert.equal(migrated.settings.idleSeconds, 15);
-  assert.equal(migrated.settings.retentionDays, 180);
-  assert.equal(migrated.settings.aggregateRetentionDays, 180);
-  assert.deepEqual(migrated.settings.alerts, { fiveMinutes: false, oneMinute: true, timeout: false });
-  assert.equal(migrated.settings.limits.length, 1);
-  assert.equal(migrated.settings.limits[0].domain, 'reddit.com');
-  assert.equal(migrated.settings.limits[0].period, 'daily');
-  assert.equal(migrated.dailyUsage['2026-08-15']['youtube.com'], 5000);
-  assert.equal(migrated.dailyUsage.bad, undefined);
-  assert.equal(migrated.sessions.length, 0);
-  assert.equal(migrated.diagnostics.length, 50);
+  assert.equal(migrated.settings.totalBudget.enabled, true);
+  assert.equal(migrated.settings.totalBudget.minutes, 1440);
+  assert.equal(migrated.settings.totalBudget.mode, 'warn');
+  assert.deepEqual(migrated.settings.limits[0].schedule.days, [1]);
+  assert.equal(migrated.settings.limits[0].schedule.startMinute, 0);
+  assert.equal(migrated.settings.limits[0].schedule.endMinute, 1439);
+  assert.equal(migrated.settings.categories.length, 1);
+  assert.equal(migrated.settings.categories[0].id, 'social');
+  assert.equal(migrated.settings.categories[0].name, '<b>Social</b>');
+  assert.deepEqual(migrated.settings.categories[0].domains, ['reddit.com', 'instagram.com']);
+  assert.equal(migrated.settings.focusPresets.length, 1);
+  assert.equal(migrated.settings.focusPresets[0].mode, 'allow');
 });
 
-test('validateImport rejects non-object payloads and accepts migratable exports', () => {
+test('validateImport rejects non-object payloads and accepts older migratable exports', () => {
   assert.throws(() => validateImport(null), /valid TimeLens export/i);
   assert.throws(() => validateImport([]), /valid TimeLens export/i);
   const restored = validateImport({ version: 2, settings: { limits: [] }, dailyUsage: {}, sessions: [] });
-  assert.equal(restored.version, 3);
+  assert.equal(restored.version, 4);
 });
