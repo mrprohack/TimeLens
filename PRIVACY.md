@@ -33,7 +33,7 @@ TimeLens does not intentionally persist:
 - keystrokes,
 - advertising identifiers.
 
-A full return URL may be carried temporarily in the local TimeLens blocked-page URL so a non-strict site-limit allowance can return the same tab to the page the user was visiting. It is not added to TimeLens usage-history storage. Budget and category blocks do not expose temporary site-limit allowance actions.
+For a non-strict site limit, TimeLens may temporarily keep the tab's full return URL in `chrome.storage.session` so an approved +5/+15 minute allowance can return that same tab to the page the user was visiting. The return URL is not placed in the TimeLens blocked-page query string, is not added to usage history, is removed when consumed, and is cleared with Chrome's extension session storage. Strict site limits, category limits, total-budget blocks, and Focus blocks do not store or expose an allowance return URL.
 
 ## Network use
 
@@ -84,7 +84,7 @@ TimeLens does not upload the chosen file to a TimeLens service.
 ## Permissions
 
 - `tabs`: identify the active website and redirect a tab to the local blocked page when a user-created rule requires it.
-- `storage`: persist TimeLens usage, preferences, budgets, categories, schedules, Focus presets, diagnostics, and restore backup data locally.
+- `storage`: persist TimeLens local data and use Chrome's session-scoped extension storage for a temporary non-strict allowance return URL.
 - `idle`: stop active-time counting when the machine is idle or locked.
 - `alarms`: reconcile active time while respecting Manifest V3 service-worker lifecycle behavior.
 - `notifications`: display user-configured TimeLens boundary warnings.
