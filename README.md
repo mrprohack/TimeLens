@@ -14,21 +14,27 @@ Most browser-time counters overcount tabs that are merely open. TimeLens counts 
 
 That makes the history closer to real attention time instead of tab-open time.
 
-## TimeLens 1.3 Focus Assistant
+## TimeLens 1.4 Simple Home
 
-- **Chrome Side Panel** with the current website, today's active browsing, daily-budget progress, active limits, quick site limits, and Focus preset launchers.
+TimeLens 1.4 keeps the full 1.3 focus-assistant feature set but makes everyday use much simpler.
+
+- **Simple Home** shows today's total, current website, Top 5 sites, limits needing attention, and recent activity without advanced configuration forms.
+- **Four primary destinations only:** Home, Limits, Focus, and Settings.
+- **Fast Add Limit flow:** website + time is enough for a normal daily limit. Weekly/monthly reset, Strict mode, and schedules live under Advanced options.
+- **Clean Limits screen** with compact site rows, overflow actions, a summarized daily browsing budget, and category limits collapsed by default.
+- **Action-first Focus** with 25/45/60/90-minute choices and saved presets. Raw website lists and Block/Allow-only settings stay behind Change/Focus settings.
+- **Quiet Settings** groups notifications, tracking, data, privacy, and extension health; diagnostics stay collapsed when not needed.
+- **Compact popup** for Today, current website, Start/End Focus, and one-click 30-minute daily limit creation for the current site.
+- **Compact Side Panel** for current-site usage, the most relevant active boundary, a quick limit, Focus, and dashboard access.
+- **Secondary History drawer** keeps detailed sessions available without competing with daily-use navigation.
+- **Accurate active-time tracking** across tab switches, focus changes, idle/locked states, sleep/wake gaps, and local midnight.
 - **Total daily browsing budget** with either a warning-only boundary or a block-until-reset boundary.
 - **Category limits** that share one daily, weekly, or monthly allowance across multiple websites such as Social or Entertainment.
 - **Smart schedules** for site and category limits using selected local weekdays and start/end times, including overnight windows.
 - **Focus Mode presets** with named local sessions and both **Block these sites** and **Allow only these sites** modes.
-- **Accurate active-time tracking** across tab switches, focus changes, idle/locked states, sleep/wake gaps, and local midnight.
-- **Fast popup** with today's total, current website, top sites, one-click Focus, and a Side Panel launcher.
-- **Dashboard** with Today / 7 days / 30 days views, Guardrails, site limits, Focus presets, recent sessions, restore/export, and extension health.
-- **Daily, weekly, or monthly website limits** with edit, pause/resume, delete, strict mode, and optional schedules.
 - **Configurable native alerts** at 5 minutes remaining, 1 minute remaining, and timeout for enabled boundaries.
 - **Automatic blocking** remains authoritative even when native notifications are disabled or fail.
 - **JSON export and restore** with schema validation and an automatic local backup before valid imported data replaces current data.
-- **Schema migrations** that upgrade older TimeLens local data without deleting valid usage history.
 - **Local extension health** with bounded diagnostics and approximate storage usage.
 - **Automatic light/dark appearance**, reduced-motion support, keyboard focus states, and responsive layouts.
 - **No account, backend, cloud analytics, ads, content scripts, or remote runtime code.**
@@ -50,7 +56,7 @@ Each website can have one active limit period:
 - **Weekly** — resets Monday at 00:00 local time.
 - **Monthly** — resets on the first day of the month at 00:00 local time.
 
-Site limits can optionally run only during a local smart schedule. Existing limits without a schedule continue to apply all day.
+Site limits can optionally run only during a local smart schedule. Existing limits without a schedule continue to apply all day. In the 1.4 UI these advanced choices stay collapsed by default so a normal daily limit needs only a website and time.
 
 ### Category limits
 
@@ -67,13 +73,13 @@ Focus sessions support two modes:
 - **Block list** — configured websites are unavailable until Focus ends.
 - **Allow only** — configured websites remain available and other normal web domains are blocked until Focus ends.
 
-Allow-only sessions require at least one allowed domain, preventing an accidental empty allow list. Saved presets remain local and can be launched from the Side Panel or dashboard.
+Allow-only sessions require at least one allowed domain, preventing an accidental empty allow list. Saved presets remain local and can be launched from the dashboard or Side Panel. The main 1.4 Focus screen keeps these advanced choices out of the way until the user chooses **Change**.
 
 ## Reliability model
 
 TimeLens treats enforcement as more important than optional UI feedback. A failure to create a native notification does **not** cancel a timeout block. Transient background failures are isolated from the serialized service-worker queue and recorded locally in a bounded diagnostic journal instead of being sent to a server.
 
-Stored data uses a versioned schema. Version 1.3 uses schema v4, validates imported JSON, and migrates supported older data while preserving valid usage, limits, alert preferences, diagnostics, and backup state.
+Stored data uses schema v4. TimeLens 1.4 is a presentation/interaction redesign and does not require a new schema migration; supported older data continues to migrate through the existing versioned migration layer while preserving valid usage, limits, alert preferences, diagnostics, and backup state.
 
 ## Privacy model
 
@@ -135,7 +141,11 @@ The automated suite covers:
 - schema-v4 migration and malformed-data normalization
 - import validation plus backup-before-restore
 - local diagnostic bounds and retention pruning
-- Side Panel, popup, dashboard, onboarding, and blocked-page contracts
+- four-destination dashboard information architecture
+- progressive-disclosure Add/Edit Limit flow
+- action-first Focus and quiet Settings contracts
+- compact popup and Side Panel contracts
+- onboarding and blocked-page contracts
 - exact Manifest V3 permission allowlist
 - runtime JavaScript syntax and duplicate HTML ID checks
 - remote runtime code and dynamic-code (`eval` / `new Function`) rejection
@@ -159,9 +169,16 @@ src/
 │   ├── limits.js           # period windows, limits, warning decisions
 │   ├── schedule.js         # local weekday and overnight schedules
 │   └── time.js             # local dates/duration helpers
-├── popup/                  # compact daily view
-├── sidepanel/              # live focus-assistant workspace
-├── dashboard/              # analytics, guardrails, limits, focus, privacy
+├── popup/                  # compact daily actions
+├── sidepanel/              # compact live current-site companion
+├── dashboard/
+│   ├── dashboard.js        # shell/orchestration
+│   ├── home-view.js        # daily overview
+│   ├── limits-view.js      # site/budget/category summaries
+│   ├── focus-view.js       # simple Focus flow
+│   ├── settings-view.js    # low-frequency settings
+│   ├── dialogs.js          # accessible dialog/disclosure helpers
+│   └── forms.js            # shared UI form serialization
 ├── onboarding/             # first-run setup
 ├── blocked/                # focus/limit/category/budget boundary page
 ├── options/                # redirects to dashboard settings
@@ -172,7 +189,7 @@ Core policy logic is kept independent of Chrome APIs where practical so timing a
 
 ## Release pipeline
 
-GitHub Actions runs the full checks, creates `dist/timelens-1.3.0.zip`, and uploads it as a workflow artifact. The validator requires the exact approved permissions, checks required runtime pages/assets and JavaScript syntax, verifies unique HTML IDs, and rejects remote or dynamically evaluated runtime code.
+GitHub Actions runs the full checks, creates `dist/timelens-1.4.0.zip`, and uploads it as a workflow artifact. The validator requires the exact approved permissions, checks required runtime pages/assets and JavaScript syntax, verifies unique HTML IDs, and rejects remote or dynamically evaluated runtime code.
 
 ## Project docs
 
@@ -183,6 +200,8 @@ GitHub Actions runs the full checks, creates `dist/timelens-1.3.0.zip`, and uplo
 - [1.2 production-hardening design](docs/superpowers/specs/2026-08-16-production-hardening-v1.2-design.md)
 - [1.2 production-hardening plan](docs/superpowers/plans/2026-08-16-production-hardening-v1.2.md)
 - [1.3 Focus Assistant plan](docs/superpowers/plans/2026-08-16-focus-assistant-v1.3.md)
+- [1.4 Simple Home UX design](docs/superpowers/specs/2026-08-17-simple-home-ux-v1.4-design.md)
+- [1.4 Simple Home UX plan](docs/superpowers/plans/2026-08-17-simple-home-ux-v1.4.md)
 - [Privacy](PRIVACY.md)
 - [Security](SECURITY.md)
 - [Changelog](CHANGELOG.md)
