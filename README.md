@@ -1,6 +1,6 @@
 # TimeLens
 
-**TimeLens** is a privacy-first Chrome extension that shows where your active browsing time goes and helps you set healthy boundaries with website limits and Focus Mode.
+**TimeLens** is a privacy-first Chrome extension that measures active browsing time and helps protect attention with budgets, category/site limits, schedules, and Focus Mode.
 
 > **See your time. Control your web.**
 
@@ -14,52 +14,85 @@ Most browser-time counters overcount tabs that are merely open. TimeLens counts 
 
 That makes the history closer to real attention time instead of tab-open time.
 
-## Features
+## TimeLens 1.3 Focus Assistant
 
+- **Chrome Side Panel** with the current website, today's active browsing, daily-budget progress, active limits, quick site limits, and Focus preset launchers.
+- **Total daily browsing budget** with either a warning-only boundary or a block-until-reset boundary.
+- **Category limits** that share one daily, weekly, or monthly allowance across multiple websites such as Social or Entertainment.
+- **Smart schedules** for site and category limits using selected local weekdays and start/end times, including overnight windows.
+- **Focus Mode presets** with named local sessions and both **Block these sites** and **Allow only these sites** modes.
 - **Accurate active-time tracking** across tab switches, focus changes, idle/locked states, sleep/wake gaps, and local midnight.
-- **Fast popup** with today's total, current website, top three sites, period-aware limit progress, and one-click Focus Mode.
-- **Dashboard** with Today / 7 days / 30 days views, daily activity bars, top sites, and recent sessions.
-- **Daily, weekly, or monthly website limits** with optional strict mode.
-- **Native time warnings** once at 5 minutes remaining and once at 1 minute remaining.
-- **Automatic timeout alert** with “Time’s up — don’t waste your time.” before the site is blocked.
-- **Temporary extra time** (+5 or +15 minutes) for non-strict limits.
-- **Focus Mode** for 25, 45, 60, or 90 minutes with a user-editable block list.
-- **Clear blocked screen** instead of a confusing blank/redirect loop.
-- **Local privacy controls** for idle threshold, detailed-session retention, JSON export, and clearing usage history.
-- **Automatic light/dark appearance** with keyboard focus states and responsive mobile-width dashboard layout.
-- **No account, cloud service, ads, or analytics.**
+- **Fast popup** with today's total, current website, top sites, one-click Focus, and a Side Panel launcher.
+- **Dashboard** with Today / 7 days / 30 days views, Guardrails, site limits, Focus presets, recent sessions, restore/export, and extension health.
+- **Daily, weekly, or monthly website limits** with edit, pause/resume, delete, strict mode, and optional schedules.
+- **Configurable native alerts** at 5 minutes remaining, 1 minute remaining, and timeout for enabled boundaries.
+- **Automatic blocking** remains authoritative even when native notifications are disabled or fail.
+- **JSON export and restore** with schema validation and an automatic local backup before valid imported data replaces current data.
+- **Schema migrations** that upgrade older TimeLens local data without deleting valid usage history.
+- **Local extension health** with bounded diagnostics and approximate storage usage.
+- **Automatic light/dark appearance**, reduced-motion support, keyboard focus states, and responsive layouts.
+- **No account, backend, cloud analytics, ads, content scripts, or remote runtime code.**
 
-## Limit periods and reset rules
+## Boundary rules
+
+### Total browsing budget
+
+The total budget counts all active browsing for the local day. It is disabled by default. When enabled it can either:
+
+- **Warn only** — notify at the configured boundary but keep browsing available.
+- **Block browsing** — redirect active web tabs to the TimeLens boundary page once the daily budget is reached.
+
+### Site limits
 
 Each website can have one active limit period:
 
 - **Daily** — resets at local midnight.
-- **Weekly** — resets Monday at 00:00 in the device's local timezone.
+- **Weekly** — resets Monday at 00:00 local time.
 - **Monthly** — resets on the first day of the month at 00:00 local time.
 
-Existing TimeLens V1 limits that do not contain a period are treated as **daily** limits automatically.
+Site limits can optionally run only during a local smart schedule. Existing limits without a schedule continue to apply all day.
 
-TimeLens evaluates the active limited website during its normal activity reconciliation cycle and when tab/focus/idle state changes. It sends at most one warning per threshold for the current site and period. If Chrome or the computer was unavailable long enough to skip a warning threshold, TimeLens shows only the most urgent applicable warning rather than stacking old alerts.
+### Category limits
+
+A category groups normalized domains under one shared boundary. A rule for `youtube.com` also matches subdomains such as `music.youtube.com`, but not lookalikes such as `notyoutube.com`. Category limits support daily/weekly/monthly periods and optional schedules.
+
+### Smart schedules
+
+Schedules use local weekdays and minute-of-day start/end values. Overnight windows belong to the day on which they start, so a Friday 22:00–02:00 schedule remains active until 02:00 Saturday.
+
+## Focus Mode
+
+Focus sessions support two modes:
+
+- **Block list** — configured websites are unavailable until Focus ends.
+- **Allow only** — configured websites remain available and other normal web domains are blocked until Focus ends.
+
+Allow-only sessions require at least one allowed domain, preventing an accidental empty allow list. Saved presets remain local and can be launched from the Side Panel or dashboard.
+
+## Reliability model
+
+TimeLens treats enforcement as more important than optional UI feedback. A failure to create a native notification does **not** cancel a timeout block. Transient background failures are isolated from the serialized service-worker queue and recorded locally in a bounded diagnostic journal instead of being sent to a server.
+
+Stored data uses a versioned schema. Version 1.3 uses schema v4, validates imported JSON, and migrates supported older data while preserving valid usage, limits, alert preferences, diagnostics, and backup state.
 
 ## Privacy model
 
-TimeLens stores data locally with `chrome.storage.local`. It persists normalized website domains such as `youtube.com`, timing data, user limits, local alert-deduplication state, Focus Mode state, and local preferences. It does **not** persist page titles, query strings, browsing content, cookies, passwords, or form data, and it does not send usage data to a server.
+TimeLens stores data locally with `chrome.storage.local`. It persists normalized website domains, timing totals, limits, budgets, categories, schedules, Focus presets/sessions, alert-deduplication state, preferences, local diagnostics, and restore backup data when applicable. It does **not** intentionally persist page content, page titles, query strings in usage history, cookies, passwords, form data, or keystrokes, and it does not send browsing usage to a TimeLens server.
 
-See [PRIVACY.md](PRIVACY.md) for the full data/permission explanation.
+See [PRIVACY.md](PRIVACY.md) for the full data and permission explanation.
 
 ## Permissions
 
 | Permission | Why it is needed |
 | --- | --- |
-| `tabs` | Read the active tab URL so TimeLens can reduce it to a domain and measure which website is active. |
-| `storage` | Keep usage totals, recent sessions, limits, warning state, focus state, and preferences locally. |
+| `tabs` | Identify the active website and redirect a tab to the local blocked page when an enabled rule requires it. |
+| `storage` | Keep local usage, limits, budgets, categories, schedules, Focus presets, diagnostics, and restore backup data. |
 | `idle` | Stop counting when the machine is idle or locked. |
-| `alarms` | Periodically reconcile active time and recover cleanly across MV3 service-worker sleep. |
-| `notifications` | Show the user-created 5-minute, 1-minute, and timeout alerts. |
+| `alarms` | Reconcile active time and recover cleanly across Manifest V3 service-worker sleep. |
+| `notifications` | Show locally generated boundary warnings selected by the user. |
+| `sidePanel` | Open the local TimeLens focus-assistant Side Panel. |
 
-Chrome may show a **“Display notifications”** permission warning because TimeLens uses native system notifications for limit alerts.
-
-TimeLens intentionally does **not** request `history`, cookies, `webRequest`, content-script host access, or `<all_urls>` host permissions.
+TimeLens intentionally does **not** request `history`, cookies, `webRequest`, content-script host access, `<all_urls>`, or other host permissions.
 
 ## Install for development
 
@@ -67,48 +100,46 @@ TimeLens intentionally does **not** request `history`, cookies, `webRequest`, co
 2. Open `chrome://extensions` in Chrome.
 3. Enable **Developer mode**.
 4. Choose **Load unpacked**.
-5. Select the repository root (the folder containing `manifest.json`).
-6. Pin TimeLens from the Extensions menu if you want quick popup access.
+5. Select the repository root containing `manifest.json`.
+6. Pin TimeLens if you want quick popup access.
 
-There is no frontend build step and no runtime dependency install.
+There is no frontend build step and there are no production npm dependencies.
 
 ## Development
 
-Node.js is used only for automated tests and package validation.
+Node.js is used only for automated tests, validation, and release packaging.
 
 ```bash
 npm test
 npm run validate
 npm run check
+npm run package
 ```
 
-`npm run check` runs the complete test suite and the package validator.
+- `npm run check` runs the complete test suite and extension validator.
+- `npm run package` creates `dist/timelens-<version>.zip` for Chrome Web Store upload/review.
 
 ## Test coverage
 
-The suite covers:
+The automated suite covers:
 
 - URL/domain normalization and non-web schemes
-- tab switching and active-session boundaries
-- browser focus loss/resume
-- idle/active transitions
-- local-midnight splitting
+- tab switching, focus changes, idle transitions, and local-midnight splitting
 - sleep-like delayed alarm reconciliation
-- usage aggregation and ordering
-- daily fallback plus weekly/monthly period windows
-- period-aware usage aggregation
-- 5-minute, 1-minute, and timeout warning priority/deduplication
-- daily/weekly/monthly limit enforcement and temporary allowances
-- strict-mode allowance rejection
-- Focus Mode blocking/start/stop
-- retention pruning and per-day allowances
-- clearing usage while preserving limits/preferences
-- Manifest V3 permissions and referenced assets
-- popup/dashboard/blocked-page contracts
-- hidden-state regression protection
-- syntax validation for every runtime JavaScript file
-- duplicate HTML ID checks
-- remote runtime fetch/import/script checks
+- daily/weekly/monthly usage windows and warnings
+- total-budget warn/block behavior
+- category aggregation and secure root/subdomain matching
+- weekday and overnight smart schedules
+- block-list and allow-only Focus sessions
+- notification-failure isolation from enforcement
+- schema-v4 migration and malformed-data normalization
+- import validation plus backup-before-restore
+- local diagnostic bounds and retention pruning
+- Side Panel, popup, dashboard, onboarding, and blocked-page contracts
+- exact Manifest V3 permission allowlist
+- runtime JavaScript syntax and duplicate HTML ID checks
+- remote runtime code and dynamic-code (`eval` / `new Function`) rejection
+- version parity and Chrome Web Store package contracts
 
 ## Architecture
 
@@ -116,31 +147,32 @@ The suite covers:
 manifest.json
 src/
 ├── background/
+│   ├── migrations.js       # schema migration + import validation
 │   ├── service-worker.js   # Chrome event/message/notification adapter
-│   └── store.js            # local persistence, warning state, retention
+│   └── store.js            # local persistence, backup, diagnostics, retention
 ├── core/
 │   ├── activity.js         # pure tracking state machine
 │   ├── analytics.js        # usage aggregation
+│   ├── categories.js       # category domain matching + aggregate limits
 │   ├── domain.js           # URL -> domain normalization
-│   ├── focus.js            # focus-session rules
+│   ├── focus.js            # block-list / allow-only focus rules
 │   ├── limits.js           # period windows, limits, warning decisions
+│   ├── schedule.js         # local weekday and overnight schedules
 │   └── time.js             # local dates/duration helpers
 ├── popup/                  # compact daily view
-├── dashboard/              # history, limits, focus, privacy
-├── blocked/                # limit/focus boundary page
+├── sidepanel/              # live focus-assistant workspace
+├── dashboard/              # analytics, guardrails, limits, focus, privacy
+├── onboarding/             # first-run setup
+├── blocked/                # focus/limit/category/budget boundary page
 ├── options/                # redirects to dashboard settings
 └── shared/                 # design tokens + UI helpers
 ```
 
-The core modules are deliberately independent of Chrome APIs so timing and limit behavior can be tested without launching a browser. Chrome-specific behavior is isolated in the MV3 service worker.
+Core policy logic is kept independent of Chrome APIs where practical so timing and enforcement behavior can be unit tested. Chrome-specific lifecycle and navigation behavior stays in the Manifest V3 service worker.
 
-## Design goals
+## Release pipeline
 
-- **Fast:** vanilla ES modules; no framework or production dependencies.
-- **Simple:** popup for quick decisions, dashboard for deeper control.
-- **Accurate:** event/timestamp accounting rather than a continuously running background timer.
-- **Private:** domain-level local data only; no remote telemetry.
-- **Recoverable:** persistent state survives MV3 worker termination without treating laptop sleep as active browsing.
+GitHub Actions runs the full checks, creates `dist/timelens-1.3.0.zip`, and uploads it as a workflow artifact. The validator requires the exact approved permissions, checks required runtime pages/assets and JavaScript syntax, verifies unique HTML IDs, and rejects remote or dynamically evaluated runtime code.
 
 ## Project docs
 
@@ -148,4 +180,10 @@ The core modules are deliberately independent of Chrome APIs so timing and limit
 - [V1 implementation plan](docs/superpowers/plans/2026-08-15-timelens-v1.md)
 - [Period limits & alerts design](docs/superpowers/specs/2026-08-16-period-limits-alerts-design.md)
 - [Period limits & alerts plan](docs/superpowers/plans/2026-08-16-period-limits-alerts.md)
+- [1.2 production-hardening design](docs/superpowers/specs/2026-08-16-production-hardening-v1.2-design.md)
+- [1.2 production-hardening plan](docs/superpowers/plans/2026-08-16-production-hardening-v1.2.md)
+- [1.3 Focus Assistant plan](docs/superpowers/plans/2026-08-16-focus-assistant-v1.3.md)
 - [Privacy](PRIVACY.md)
+- [Security](SECURITY.md)
+- [Changelog](CHANGELOG.md)
+- [License](LICENSE)
