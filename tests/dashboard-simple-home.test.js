@@ -39,6 +39,24 @@ test('home contains only fast daily-use controls', async () => {
   assert.doesNotMatch(home, /category-form|total-budget-form|limit-schedule-days|preset-form|health-details/);
 });
 
+test('home renderer caps everyday lists and owns the secondary history surface', async () => {
+  const js = await read('src/dashboard/home-view.js');
+  assert.match(js, /export function renderHome/);
+  assert.match(js, /export function renderHistoryDrawer/);
+  assert.match(js, /todayTop\.slice\(0,\s*5\)/);
+  assert.match(js, /sessions\.slice\(0,\s*5\)/);
+  assert.match(js, /home-today-total/);
+  assert.match(js, /home-attention/);
+});
+
+test('dashboard controller switches views and wires shared dialogs', async () => {
+  const js = await read('src/dashboard/dashboard.js');
+  assert.match(js, /setDashboardView/);
+  assert.match(js, /from ['"]\.\/dialogs\.js['"]/);
+  assert.match(js, /data-dashboard-view/);
+  assert.match(js, /history-drawer/);
+});
+
 test('mobile navigation keeps the daily destinations compact', async () => {
   const html = await read('src/dashboard/dashboard.html');
   const css = await read('src/dashboard/dashboard.css');
