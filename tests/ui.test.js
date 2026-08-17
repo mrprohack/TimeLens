@@ -46,7 +46,7 @@ test('simple limit flow hides advanced controls until requested', async () => {
   }
   assert.match(html, /id=["']limit-advanced-options["'][^>]*hidden/);
   const forms = await read('src/dashboard/forms.js');
-  assert.match(forms, /period:\s*'daily'/);
+  assert.match(forms, /period\s*=\s*'daily'/);
   assert.match(forms, /strict\s*=\s*false/);
 });
 
