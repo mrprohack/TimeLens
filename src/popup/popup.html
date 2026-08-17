@@ -15,44 +15,33 @@
     </header>
 
     <section class="today-summary" aria-labelledby="today-label">
-      <div id="today-label" class="eyeline">Active browsing today</div>
+      <div id="today-label" class="eyeline">Today</div>
       <div id="today-total" class="big-number">0m</div>
-      <div class="current-row">
+      <div class="current-card">
         <div class="site-avatar" id="current-avatar" aria-hidden="true">—</div>
         <div class="current-copy">
+          <div class="muted small">Current website</div>
           <div id="current-domain" class="current-domain">No active website</div>
-          <div id="current-usage" class="muted">0m today</div>
+          <div id="current-usage" class="muted small">0m today</div>
+          <div id="current-boundary" class="boundary-copy muted small">No limit</div>
         </div>
       </div>
     </section>
 
-    <section class="focus-card" id="focus-card">
-      <div>
-        <div class="focus-title" id="focus-title">Focus mode</div>
-        <div class="muted" id="focus-subtitle">Block distracting sites for 25 minutes.</div>
-      </div>
-      <button id="focus-toggle" class="btn btn-primary" type="button">Start focus</button>
+    <div class="primary-actions">
+      <button id="focus-toggle" class="btn btn-primary" type="button">Start Focus</button>
+      <button id="limit-current-site" class="btn" type="button">Limit this site</button>
+    </div>
+
+    <section id="top-sites-section" class="sites-section" aria-labelledby="top-sites-heading">
+      <div class="section-heading"><h2 id="top-sites-heading">Top sites</h2><span class="muted">Today</span></div>
+      <div id="top-sites" class="site-list"></div>
     </section>
 
-    <section class="sites-section" aria-labelledby="top-sites-heading">
-      <div class="section-heading">
-        <h2 id="top-sites-heading">Top sites</h2>
-        <span class="muted">Today</span>
-      </div>
-      <div id="top-sites" class="site-list">
-        <div class="empty-state">Browse normally and TimeLens will build your day here.</div>
-      </div>
-    </section>
-
-    <footer>
-      <button id="open-side-panel" class="dashboard-link" type="button">
-        <span>Open focus assistant</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <button id="open-dashboard" class="dashboard-link" type="button">
-        <span>Open dashboard</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+    <footer class="popup-footer">
+      <button id="open-dashboard" class="footer-link" type="button">Dashboard</button>
+      <span aria-hidden="true">·</span>
+      <button id="open-side-panel" class="footer-link" type="button">Side Panel</button>
     </footer>
 
     <div id="error-message" class="error-message" role="status" hidden></div>
