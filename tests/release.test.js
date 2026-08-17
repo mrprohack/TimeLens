@@ -6,22 +6,24 @@ import { constants } from 'node:fs';
 const root = new URL('../', import.meta.url);
 const text = (path) => readFile(new URL(path, root), 'utf8');
 
-test('manifest and package versions match the 1.3 focus assistant release', async () => {
+test('manifest and package versions match the 1.4 simple home release', async () => {
   const manifest = JSON.parse(await text('manifest.json'));
   const pkg = JSON.parse(await text('package.json'));
-  assert.equal(manifest.version, '1.3.0');
-  assert.equal(pkg.version, '1.3.0');
+  assert.equal(manifest.version, '1.4.0');
+  assert.equal(pkg.version, '1.4.0');
   assert.equal(pkg.scripts.package, 'node scripts/package-extension.mjs');
 });
 
-test('production release includes onboarding side panel and release documentation', async () => {
+test('production release includes simple dashboard modules and release documentation', async () => {
   for (const path of [
-    'src/onboarding/onboarding.html',
-    'src/onboarding/onboarding.css',
-    'src/onboarding/onboarding.js',
+    'src/dashboard/home-view.js',
+    'src/dashboard/limits-view.js',
+    'src/dashboard/focus-view.js',
+    'src/dashboard/settings-view.js',
+    'src/dashboard/dialogs.js',
+    'src/dashboard/forms.js',
     'src/sidepanel/sidepanel.html',
-    'src/sidepanel/sidepanel.css',
-    'src/sidepanel/sidepanel.js',
+    'src/onboarding/onboarding.html',
     'CHANGELOG.md',
     'SECURITY.md',
     'LICENSE',
@@ -31,16 +33,19 @@ test('production release includes onboarding side panel and release documentatio
   }
 });
 
-test('CI uses pinned GitHub actions and uploads the 1.3 Web Store zip', async () => {
+test('CI uses pinned GitHub actions and uploads the 1.4 Web Store zip', async () => {
   const workflow = await text('.github/workflows/ci.yml');
   assert.match(workflow, /actions\/checkout@[a-f0-9]{40}/);
   assert.match(workflow, /actions\/setup-node@[a-f0-9]{40}/);
   assert.match(workflow, /npm run package/);
   assert.match(workflow, /actions\/upload-artifact@[a-f0-9]{40}/);
-  assert.match(workflow, /timelens-1\.3\.0\.zip/);
+  assert.match(workflow, /timelens-1\.4\.0\.zip/);
 });
 
-test('validator requires side panel and exact approved 1.3 permission set', async () => {
+test('validator keeps the exact approved permission model', async () => {
+  const manifest = JSON.parse(await text('manifest.json'));
+  assert.deepEqual([...manifest.permissions].sort(), ['alarms', 'idle', 'notifications', 'sidePanel', 'storage', 'tabs']);
+  assert.equal(manifest.host_permissions, undefined);
   const validator = await text('scripts/validate-extension.mjs');
   assert.match(validator, /src\/sidepanel\/sidepanel\.html/);
   assert.match(validator, /sidePanel/);

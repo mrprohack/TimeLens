@@ -1,122 +1,94 @@
 import { escapeHtml, formatDuration, send, setText } from '../shared/ui.js';
 
 let state = null;
-const PERIOD_WORD = Object.freeze({ daily: 'day', weekly: 'week', monthly: 'month' });
+const DEFAULT_FOCUS_DOMAINS = ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'];
 
-function percent(value) {
-  return Math.max(0, Math.min(100, Math.round((Number(value) || 0) * 100)));
+function status(message = '') {
+  setText('side-status', message);
 }
 
-function status(message) {
-  setText('side-status', message || '');
+function currentLimit() {
+  return state?.limits?.find((limit) => limit.domain === state.currentDomain && limit.enabled && limit.scheduleActive !== false) || null;
 }
 
-function renderBudget() {
-  const budget = state?.totalBudget;
-  const copy = document.getElementById('side-budget-copy');
-  const bar = document.getElementById('side-budget-bar');
-  const progress = bar.parentElement;
-  if (!budget?.enabled) {
-    copy.textContent = 'Not enabled';
-    bar.style.width = '0%';
-    progress.setAttribute('aria-valuenow', '0');
-    return;
-  }
-  const used = formatDuration(budget.usedMs, true);
-  const total = formatDuration(budget.minutes * 60_000, true);
-  copy.textContent = `${used} / ${total}`;
-  const ratio = percent(budget.ratio);
-  bar.style.width = `${ratio}%`;
-  progress.setAttribute('aria-valuenow', String(ratio));
-}
-
-function renderBoundaries() {
-  const container = document.getElementById('side-boundaries');
-  const entries = [];
-  const limit = state?.limits?.find((item) => item.domain === state.currentDomain && item.enabled && item.scheduleActive !== false);
-  if (limit) {
-    entries.push({
-      title: 'Website limit',
-      meta: `${formatDuration(limit.usedMs, true)} / ${formatDuration(limit.minutes * 60_000, true)} per ${PERIOD_WORD[limit.period] || 'day'}`,
-      ratio: limit.ratio
-    });
-  }
+function strongestBoundary() {
+  const candidates = [];
+  const limit = currentLimit();
+  if (limit) candidates.push({ label: 'Site limit', remainingMs: limit.remainingMs, reached: limit.reached, period: limit.period });
   for (const category of state?.currentCategoryLimits || []) {
     if (!category.enabled || category.scheduleActive === false) continue;
-    entries.push({
-      title: category.name,
-      meta: `${formatDuration(category.usedMs, true)} / ${formatDuration(category.minutes * 60_000, true)} per ${PERIOD_WORD[category.period] || 'day'}`,
-      ratio: category.ratio
-    });
+    candidates.push({ label: category.name, remainingMs: category.remainingMs, reached: category.reached, period: category.period });
   }
-
-  if (!entries.length) {
-    container.innerHTML = '<p class="muted">No active limits for this website.</p>';
-    return;
-  }
-
-  container.innerHTML = entries.map((entry) => `
-    <div class="boundary-item">
-      <div class="boundary-title"><span>${escapeHtml(entry.title)}</span><span>${percent(entry.ratio)}%</span></div>
-      <div class="progress" aria-hidden="true"><span style="width:${percent(entry.ratio)}%"></span></div>
-      <div class="boundary-copy">${escapeHtml(entry.meta)}</div>
-    </div>`).join('');
+  const budget = state?.totalBudget;
+  if (budget?.enabled) candidates.push({ label: 'Daily budget', remainingMs: budget.remainingMs, reached: budget.reached, period: 'daily' });
+  candidates.sort((a, b) => (a.reached === b.reached ? (a.remainingMs || 0) - (b.remainingMs || 0) : a.reached ? -1 : 1));
+  return candidates[0] || null;
 }
 
-function renderFocus() {
+function renderPresets() {
+  const node = document.getElementById('side-focus-presets');
   const presets = state?.settings?.focusPresets || [];
-  const container = document.getElementById('side-focus-presets');
-  const stop = document.getElementById('side-stop-focus');
-  if (state?.focus) {
-    const remaining = Math.max(0, state.focus.endsAt - Date.now());
-    setText('side-focus-state', `${state.focus.name || 'Focus'} · ${formatDuration(remaining, true)} left`);
-    stop.hidden = false;
-  } else {
-    setText('side-focus-state', 'Ready');
-    stop.hidden = true;
-  }
-
-  container.innerHTML = presets.map((preset) => `
-    <button class="btn preset-button" type="button" data-preset="${escapeHtml(preset.id)}">
-      <strong>${escapeHtml(preset.name)}</strong>
-      <small>${escapeHtml(formatDuration(preset.minutes * 60_000, true))} · ${preset.mode === 'allow' ? 'allow only' : 'block list'}</small>
-    </button>`).join('');
+  node.innerHTML = presets.slice(0, 4).map((preset) => `<button class="preset-chip" type="button" data-preset="${escapeHtml(preset.id)}">${escapeHtml(preset.name)} · ${escapeHtml(formatDuration(preset.minutes * 60_000, true))}</button>`).join('');
+  node.hidden = Boolean(state?.focus) || !presets.length;
 }
 
 function render() {
   setText('side-current-domain', state?.currentDomain || 'No active website');
-  setText('side-today-total', formatDuration(state?.todayTotalMs || 0, true));
-  document.getElementById('side-limit-site').disabled = !state?.currentDomain;
-  renderBudget();
-  renderBoundaries();
-  renderFocus();
+  setText('side-current-time', state?.currentDomain ? `${formatDuration(state.currentDomainMs || 0, true)} today` : '0m today');
+
+  const boundary = strongestBoundary();
+  setText('side-boundary', boundary
+    ? (boundary.reached ? `${boundary.label}: limit reached` : `${boundary.label}: ${formatDuration(Math.max(0, boundary.remainingMs || 0), true)} left`)
+    : 'No active limit.');
+
+  const limit = currentLimit();
+  const limitButton = document.getElementById('side-limit-site');
+  limitButton.disabled = !state?.currentDomain || Boolean(limit);
+  limitButton.textContent = limit ? 'Limit set' : 'Set limit';
+
+  const focusButton = document.getElementById('side-focus-action');
+  if (state?.focus) {
+    const remaining = Math.max(0, state.focus.endsAt - Date.now());
+    setText('side-focus-state', state.focus.name || 'Focus');
+    focusButton.textContent = `End Focus · ${formatDuration(remaining, true)} left`;
+    focusButton.classList.remove('btn-primary');
+  } else {
+    setText('side-focus-state', 'Ready');
+    focusButton.textContent = 'Start 25 min Focus';
+    focusButton.classList.add('btn-primary');
+  }
+  renderPresets();
 }
 
 async function refresh() {
   try {
     state = await send('GET_SNAPSHOT', { rangeDays: 7 });
     render();
-  } catch (error) {
-    status(error.message);
-  }
+  } catch (error) { status(error.message); }
 }
 
 document.getElementById('side-limit-site').addEventListener('click', async () => {
-  if (!state?.currentDomain) return;
-  const minutes = Number(document.getElementById('side-limit-minutes').value) || 30;
+  if (!state?.currentDomain || currentLimit()) return;
   const button = document.getElementById('side-limit-site');
+  const minutes = Number(document.getElementById('side-limit-minutes').value) || 30;
   button.disabled = true;
   try {
-    await send('SAVE_LIMIT', {
-      limit: { domain: state.currentDomain, minutes, period: 'daily', strict: false, enabled: true }
-    });
+    await send('SAVE_LIMIT', { limit: { domain: state.currentDomain, minutes, period: 'daily', strict: false, enabled: true } });
     status(`${state.currentDomain} limited to ${minutes} minutes per day.`);
     await refresh();
-  } catch (error) {
-    status(error.message);
-  } finally {
-    button.disabled = false;
-  }
+  } catch (error) { status(error.message); }
+  finally { button.disabled = false; }
+});
+
+document.getElementById('side-focus-action').addEventListener('click', async () => {
+  const button = document.getElementById('side-focus-action');
+  button.disabled = true;
+  try {
+    if (state?.focus) await send('STOP_FOCUS');
+    else await send('START_FOCUS', { minutes: 25, domains: DEFAULT_FOCUS_DOMAINS, mode: 'block', name: 'Focus' });
+    await refresh();
+  } catch (error) { status(error.message); }
+  finally { button.disabled = false; }
 });
 
 document.getElementById('side-focus-presets').addEventListener('click', async (event) => {
@@ -126,41 +98,17 @@ document.getElementById('side-focus-presets').addEventListener('click', async (e
   if (!preset) return;
   button.disabled = true;
   try {
-    await send('START_FOCUS', {
-      minutes: preset.minutes,
-      domains: preset.domains,
-      mode: preset.mode,
-      name: preset.name
-    });
+    await send('START_FOCUS', { minutes: preset.minutes, domains: preset.domains, mode: preset.mode, name: preset.name });
     status(`${preset.name} started.`);
     await refresh();
-  } catch (error) {
-    status(error.message);
-  } finally {
-    button.disabled = false;
-  }
-});
-
-document.getElementById('side-stop-focus').addEventListener('click', async () => {
-  try {
-    await send('STOP_FOCUS');
-    status('Focus ended.');
-    await refresh();
-  } catch (error) {
-    status(error.message);
-  }
+  } catch (error) { status(error.message); }
+  finally { button.disabled = false; }
 });
 
 document.getElementById('side-open-dashboard').addEventListener('click', () => {
   chrome.tabs.create({ url: chrome.runtime.getURL('src/dashboard/dashboard.html') });
 });
 
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) refresh();
-});
-
-setInterval(() => {
-  if (!document.hidden) refresh();
-}, 15_000);
-
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+setInterval(() => { if (!document.hidden) refresh(); }, 15_000);
 refresh();
