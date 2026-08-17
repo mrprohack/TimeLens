@@ -2,6 +2,25 @@
 
 All notable changes to TimeLens are documented here.
 
+## 1.4.0 — 2026-08-17
+
+### Changed
+- Rebuilt the dashboard around four primary destinations: Home, Limits, Focus, and Settings.
+- Added a simplified Home view with today's active browsing, current website, Top 5 sites, limits needing attention, recent sessions, and three fast actions.
+- Replaced the permanent site-limit form with a compact Add/Edit Limit dialog. A normal daily limit now requires only a website and time; weekly/monthly reset, Strict mode, and schedules stay under Advanced options.
+- Replaced always-visible limit action buttons with compact overflow menus.
+- Moved total-budget configuration into a dialog and collapsed category limits by default.
+- Reworked Focus into an action-first duration/preset flow. Raw website lists and block/allow settings stay in Focus settings.
+- Grouped notifications, tracking, data, privacy, and extension health under Settings; health details stay collapsed until requested.
+- Simplified the popup and Side Panel around current usage, the most relevant boundary, one quick limit action, and Focus.
+- Added a secondary History drawer instead of keeping History in the primary dashboard navigation.
+- Split dashboard presentation into focused Home, Limits, Focus, Settings, dialogs, and form modules.
+
+### Compatibility and privacy
+- Schema remains version 4; existing 1.3 usage, limits, categories, budgets, schedules, Focus presets, diagnostics, and backup data remain compatible.
+- Chrome permissions are unchanged: `tabs`, `storage`, `idle`, `alarms`, `notifications`, and `sidePanel`.
+- No host permissions, content scripts, remote analytics, backend, accounts, or remote runtime code were added.
+
 ## 1.3.0 — 2026-08-16
 
 ### Added
