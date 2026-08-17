@@ -1,110 +1,92 @@
 import { escapeHtml, formatDuration, send, setText } from '../shared/ui.js';
 
 let snapshot = null;
-
-const PERIOD_WORD = Object.freeze({ daily: 'day', weekly: 'week', monthly: 'month' });
+const DEFAULT_FOCUS_DOMAINS = ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'];
 
 function initial(domain) {
   return domain ? domain[0].toUpperCase() : '—';
 }
 
-function limitFor(domain) {
-  return snapshot?.limits?.find((limit) => limit.domain === domain) || null;
+function currentLimit() {
+  return snapshot?.limits?.find((limit) => limit.domain === snapshot.currentDomain) || null;
 }
 
-function renderSites() {
-  const container = document.getElementById('top-sites');
-  const sites = snapshot.todayTop.slice(0, 3);
-  if (!sites.length) {
-    container.innerHTML = '<div class="empty-state">Browse normally and TimeLens will build your day here.</div>';
-    return;
-  }
-
-  const max = Math.max(...sites.map((item) => item.durationMs), 1);
-  container.innerHTML = sites.map((item) => {
-    const limit = limitFor(item.domain);
-    const width = Math.max(3, Math.min(100, (item.durationMs / max) * 100));
-    const period = limit ? (limit.period || 'daily') : 'daily';
-    const limitCopy = limit
-      ? `${Math.round(limit.ratio * 100)}% of ${formatDuration(limit.minutes * 60_000, true)} / ${PERIOD_WORD[period] || 'day'}`
-      : 'No limit';
-    return `
-      <div class="site-item">
-        <div class="site-avatar" aria-hidden="true">${escapeHtml(initial(item.domain))}</div>
-        <div class="site-main">
-          <div class="site-name">${escapeHtml(item.domain)}</div>
-          <div class="progress" aria-hidden="true"><span style="width:${width}%"></span></div>
-          <div class="site-limit">${escapeHtml(limitCopy)}</div>
-        </div>
-        <div class="site-time">${escapeHtml(formatDuration(item.durationMs, true))}</div>
-      </div>`;
-  }).join('');
+function renderTopSites() {
+  const node = document.getElementById('top-sites');
+  const sites = (snapshot?.todayTop || []).slice(0, 3);
+  document.getElementById('top-sites-section').hidden = !sites.length;
+  node.innerHTML = sites.map((site) => `<div class="site-item"><span class="site-name">${escapeHtml(site.domain)}</span><span class="site-time">${escapeHtml(formatDuration(site.durationMs, true))}</span></div>`).join('');
 }
 
 function render() {
-  setText('today-total', formatDuration(snapshot.todayTotalMs, true));
-  setText('current-domain', snapshot.currentDomain || 'No active website');
-  setText('current-usage', `${formatDuration(snapshot.currentDomainMs, true)} today`);
-  setText('current-avatar', initial(snapshot.currentDomain));
+  setText('today-total', formatDuration(snapshot?.todayTotalMs || 0, true));
+  setText('current-domain', snapshot?.currentDomain || 'No active website');
+  setText('current-usage', snapshot?.currentDomain ? `${formatDuration(snapshot.currentDomainMs || 0, true)} today` : '0m today');
+  setText('current-avatar', initial(snapshot?.currentDomain));
 
-  const focusActive = Boolean(snapshot.focus);
-  const toggle = document.getElementById('focus-toggle');
-  toggle.textContent = focusActive ? 'End focus' : 'Start focus';
-  toggle.classList.toggle('btn-primary', !focusActive);
-  setText('focus-title', focusActive ? (snapshot.focus.name || 'Focus is active') : 'Focus mode');
-  if (focusActive) {
-    const remaining = Math.max(0, snapshot.focus.endsAt - Date.now());
-    const domains = snapshot.focus.domains || snapshot.focus.blockedDomains || [];
-    const modeCopy = snapshot.focus.mode === 'allow' ? `${domains.length} sites allowed` : `${domains.length} sites blocked`;
-    setText('focus-subtitle', `${formatDuration(remaining, true)} remaining · ${modeCopy}`);
+  const limit = currentLimit();
+  setText('current-boundary', limit
+    ? (limit.reached ? 'Limit reached' : `${formatDuration(Math.max(0, limit.remainingMs || 0), true)} left on ${limit.period || 'daily'} limit`)
+    : 'No limit');
+
+  const focus = document.getElementById('focus-toggle');
+  if (snapshot?.focus) {
+    focus.textContent = `End Focus · ${formatDuration(Math.max(0, snapshot.focus.endsAt - Date.now()), true)} left`;
+    focus.classList.remove('btn-primary');
   } else {
-    setText('focus-subtitle', 'Block common distractions for 25 minutes.');
+    focus.textContent = 'Start Focus';
+    focus.classList.add('btn-primary');
   }
 
-  renderSites();
+  const limitButton = document.getElementById('limit-current-site');
+  limitButton.disabled = !snapshot?.currentDomain || Boolean(limit);
+  limitButton.textContent = !snapshot?.currentDomain ? 'No active site' : limit ? 'Limit already set' : 'Limit this site';
+  renderTopSites();
+}
+
+function showError(error) {
+  const node = document.getElementById('error-message');
+  node.hidden = false;
+  node.textContent = error?.message || String(error);
 }
 
 async function refresh() {
   try {
     snapshot = await send('GET_SNAPSHOT', { rangeDays: 7 });
     render();
-  } catch (error) {
-    const node = document.getElementById('error-message');
-    node.hidden = false;
-    node.textContent = error.message;
-  }
+  } catch (error) { showError(error); }
 }
 
 document.getElementById('focus-toggle').addEventListener('click', async () => {
   const button = document.getElementById('focus-toggle');
   button.disabled = true;
   try {
-    if (snapshot?.focus) {
-      await send('STOP_FOCUS');
-    } else {
-      await send('START_FOCUS', {
-        minutes: 25,
-        domains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'],
-        mode: 'block',
-        name: 'Focus'
-      });
-    }
+    if (snapshot?.focus) await send('STOP_FOCUS');
+    else await send('START_FOCUS', { minutes: 25, domains: DEFAULT_FOCUS_DOMAINS, mode: 'block', name: 'Focus' });
     await refresh();
-  } finally {
-    button.disabled = false;
-  }
+  } catch (error) { showError(error); }
+  finally { button.disabled = false; }
+});
+
+document.getElementById('limit-current-site').addEventListener('click', async () => {
+  if (!snapshot?.currentDomain || currentLimit()) return;
+  const button = document.getElementById('limit-current-site');
+  button.disabled = true;
+  try {
+    await send('SAVE_LIMIT', {
+      limit: { domain: snapshot.currentDomain, minutes: 30, period: 'daily', strict: false, enabled: true }
+    });
+    await refresh();
+  } catch (error) { showError(error); }
+  finally { button.disabled = false; }
 });
 
 document.getElementById('open-side-panel').addEventListener('click', async () => {
-  const node = document.getElementById('error-message');
   try {
     const currentWindow = await chrome.windows.getCurrent();
     await chrome.sidePanel.open({ windowId: currentWindow.id });
     globalThis.close();
-  } catch (error) {
-    node.hidden = false;
-    node.textContent = error?.message || 'Could not open the focus assistant.';
-  }
+  } catch (error) { showError(error); }
 });
 
 document.getElementById('open-dashboard').addEventListener('click', () => {
