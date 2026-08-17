@@ -65,7 +65,7 @@ Start Focus, use presets, manage presets.
 ### Settings
 Notifications, retention, backup/restore, diagnostics, privacy, data deletion.
 
-History is not a top-level destination. Recent history appears on Home with a **View history** expansion or secondary page/section.
+History is not a top-level destination. Home shows the five most recent sessions; **View full history** opens a secondary history drawer on desktop and a full-screen sheet on narrow/mobile layouts. Closing it returns to Home without changing the primary navigation state.
 
 ## 4. Dashboard Home
 
@@ -177,7 +177,7 @@ All limits look good today.
 
 Show the last five sessions only.
 
-A quiet `View full history` control expands or navigates to detailed history.
+A quiet `View full history` control opens the secondary history drawer/sheet defined in Section 3.
 
 Do not display an always-visible full history table on Home.
 
@@ -326,7 +326,7 @@ Study     45m
 Deep Work 90m
 ```
 
-One click selects a preset; a second primary action starts it.
+One click selects a preset; the primary `Start Focus` action starts the selected preset. This prevents accidental session starts while keeping the flow fast.
 
 `Manage presets` is secondary.
 
@@ -487,7 +487,9 @@ Single primary column with compact secondary cards.
 
 ### Mobile
 - Sticky bottom or top navigation for Home / Limits / Focus.
+- Settings remains accessible from the header icon.
 - Dialogs become bottom sheets or full-width cards.
+- History and site-detail drawers become full-screen sheets.
 - Minimum 44px touch targets.
 - No horizontal scrolling.
 - No seven-column weekday control until Advanced options is expanded.
@@ -501,8 +503,8 @@ Prioritize scanability over data density. No element should require horizontal s
 - Save actions show immediate success feedback.
 - Forms preserve entered values after recoverable validation errors.
 - Validation errors appear next to the affected field, not only as a global toast.
-- Keyboard focus moves into an opened dialog and returns to the trigger when closed.
-- Escape closes non-destructive dialogs.
+- Keyboard focus moves into an opened dialog/drawer and returns to the trigger when closed.
+- Escape closes non-destructive dialogs and drawers.
 - Advanced sections remember their state only within the current screen session; they default collapsed on a new visit.
 
 ## 14. Architecture Boundaries
@@ -542,7 +544,7 @@ Required test groups:
 
 ### Information architecture
 - only Home / Limits / Focus / Settings are primary dashboard navigation,
-- History is secondary,
+- History is secondary and opens from Home without changing primary navigation,
 - advanced sections start collapsed.
 
 ### Simple limit flow
@@ -564,7 +566,7 @@ Required test groups:
 ### Responsive/accessibility
 - 390px dashboard has no horizontal overflow,
 - Side Panel has no horizontal overflow,
-- dialogs have labels and focus handling,
+- dialogs/drawers have labels and focus handling,
 - buttons meet touch-target requirements,
 - reduced-motion behavior remains supported.
 
@@ -584,10 +586,11 @@ The redesign is complete when all of the following are true:
 7. Settings and diagnostics no longer compete with daily-use controls.
 8. Popup exposes Today, current site, Start/End Focus, and Limit this site without clutter.
 9. Side Panel shows live status and quick actions but does not duplicate full settings.
-10. Desktop and 390px mobile layouts have no horizontal overflow.
-11. Existing TimeLens 1.3 functionality remains available.
-12. Existing privacy/security constraints remain unchanged.
-13. All automated tests and release validation pass.
+10. Full history is secondary and opens as a drawer/sheet from Home.
+11. Desktop and 390px mobile layouts have no horizontal overflow.
+12. Existing TimeLens 1.3 functionality remains available.
+13. Existing privacy/security constraints remain unchanged.
+14. All automated tests and release validation pass.
 
 ## 17. Explicit Non-Goals
 
