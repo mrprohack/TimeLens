@@ -51,6 +51,14 @@ h3 { margin-bottom: 8px; }
 .status-chip.active { color: var(--accent); background: var(--accent-soft); }
 .icon-button, .icon-close { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); display: inline-grid; place-items: center; }
 .icon-close { font-size: 22px; line-height: 1; }
+.row-menu { grid-column: 1 / -1; justify-self: end; position: relative; }
+.row-menu summary { width: 38px; height: 38px; list-style: none; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); display: grid; place-items: center; cursor: pointer; font-size: 20px; line-height: 1; }
+.row-menu summary::-webkit-details-marker { display: none; }
+.row-menu[open] summary, .row-menu summary:hover { color: var(--text); background: var(--surface-2); }
+.row-menu-popover { position: absolute; right: 0; top: 44px; z-index: 12; min-width: 150px; padding: 6px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); box-shadow: var(--shadow); display: grid; gap: 2px; }
+.row-menu-popover button { width: 100%; min-height: 38px; border: 0; border-radius: 8px; padding: 8px 10px; background: transparent; color: var(--text); text-align: left; font-weight: 650; cursor: pointer; }
+.row-menu-popover button:hover, .row-menu-popover button:focus-visible { background: var(--surface-2); }
+.row-menu-popover .danger { color: var(--danger); }
 
 .disclosure-row, .disclosure-button { width: 100%; border: 0; background: transparent; color: var(--text); padding: 0; text-align: left; }
 .disclosure-row { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -106,6 +114,7 @@ h3 { margin-bottom: 8px; }
   .limit-item { grid-template-columns: 1fr; }
   .limit-progress { text-align: left; }
   .limit-actions { grid-column: auto; justify-content: flex-start; flex-wrap: wrap; }
+  .row-menu { grid-column: auto; justify-self: start; }
 }
 
 @media (max-width: 600px) {
