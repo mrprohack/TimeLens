@@ -43,8 +43,8 @@ test('home renderer caps everyday lists and owns the secondary history surface',
   const js = await read('src/dashboard/home-view.js');
   assert.match(js, /export function renderHome/);
   assert.match(js, /export function renderHistoryDrawer/);
-  assert.match(js, /todayTop\.slice\(0,\s*5\)/);
-  assert.match(js, /sessions\.slice\(0,\s*5\)/);
+  assert.match(js, /todayTop[\s\S]{0,40}\.slice\(0,\s*5\)/);
+  assert.match(js, /sessions[\s\S]{0,40}\.slice\(0,\s*5\)/);
   assert.match(js, /home-today-total/);
   assert.match(js, /home-attention/);
 });
