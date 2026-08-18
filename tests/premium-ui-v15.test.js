@@ -58,3 +58,40 @@ test('mobile primary actions keep touch-friendly sizing and overflow safety', as
   assert.match(dashboard, /min-width:\s*0/);
   assert.match(dashboard, /overflow-x:\s*hidden/);
 });
+
+test('popup remains compact and uses the premium hierarchy', async () => {
+  const html = await read('src/popup/popup.html');
+  const css = await read('src/popup/popup.css');
+  for (const id of ['today-total', 'current-domain', 'current-boundary', 'focus-toggle', 'limit-current-site', 'open-dashboard']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(html, /\.\.\/shared\/theme\.css/);
+  assert.match(css, /width:\s*360px/);
+  assert.match(css, /overflow:\s*hidden/);
+  assert.match(css, /var\(--brand-soft\)/);
+  assert.match(css, /border-radius:\s*(?:16|18|20)px/);
+});
+
+test('side panel stays a focused premium companion', async () => {
+  const html = await read('src/sidepanel/sidepanel.html');
+  const css = await read('src/sidepanel/sidepanel.css');
+  for (const id of ['side-current-domain', 'side-current-time', 'side-boundary', 'side-limit-site', 'side-focus-action', 'side-open-dashboard']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(css, /overflow-x:\s*hidden/);
+  assert.match(css, /var\(--brand-soft\)/);
+  assert.match(css, /min-height:\s*var\(--touch-target\)/);
+});
+
+test('blocked page keeps safe actions inside a premium full-screen boundary state', async () => {
+  const html = await read('src/blocked/blocked.html');
+  const css = await read('src/blocked/blocked.css');
+  for (const id of ['blocked-title', 'blocked-copy', 'close-tab', 'open-dashboard', 'allowance-actions']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(html, /\.\.\/shared\/theme\.css/);
+  assert.match(css, /linear-gradient|radial-gradient/);
+  assert.match(css, /#(?:0b1020|111827|10162)/i);
+  assert.match(css, /min-height:\s*100vh/);
+  assert.match(css, /@media\s*\(max-width:\s*480px\)/);
+});
