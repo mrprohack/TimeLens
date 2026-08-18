@@ -22,13 +22,16 @@ test('premium theme exposes shared brand and semantic tokens', async () => {
 
 test('dashboard preserves four daily destinations and adds a desktop rail shell', async () => {
   const html = await read('src/dashboard/dashboard.html');
-  const css = await read('src/dashboard/dashboard.css');
+  const css = await read('src/dashboard/premium-v15.css');
   assert.deepEqual(primaryNavLabels(html), ['Home', 'Limits', 'Focus', 'Settings']);
   assert.match(html, /class=["'][^"']*app-header[^"']*["']/);
-  assert.match(css, /grid-template-columns:\s*(?:2[0-9]{2}px|var\(--sidebar-width\))\s+minmax\(0,\s*1fr\)/);
-  assert.match(css, /@media\s*\(max-width:\s*(?:900|960)px\)/);
+  assert.match(html, /href=["']premium-v15\.css["']/);
+  assert.match(css, /--sidebar-width:\s*236px/);
+  assert.match(css, /body\s*\{[\s\S]{0,180}padding:\s*0\s+0\s+0\s+var\(--sidebar-width\)/);
+  assert.match(css, /\.app-header\s*\{[\s\S]{0,160}position:\s*fixed/);
+  assert.match(css, /@media\s*\(max-width:\s*960px\)/);
   assert.match(css, /@media\s*\(max-width:\s*600px\)/);
-  assert.match(css, /\.mobile-nav[\s\S]{0,260}display:\s*(?:flex|grid)/);
+  assert.match(css, /\.mobile-nav\s*\{[\s\S]{0,520}display:\s*grid/);
 });
 
 test('production dashboard never invents showcase-only metrics', async () => {
@@ -49,7 +52,7 @@ test('advanced surfaces remain progressively disclosed', async () => {
 
 test('mobile primary actions keep touch-friendly sizing and overflow safety', async () => {
   const theme = await read('src/shared/theme.css');
-  const dashboard = await read('src/dashboard/dashboard.css');
+  const dashboard = await read('src/dashboard/premium-v15.css');
   assert.match(theme, /--touch-target:\s*44px/);
   assert.match(theme, /min-height:\s*var\(--touch-target\)/);
   assert.match(dashboard, /max-width:\s*100%/);
