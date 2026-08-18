@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TimeLens",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "See where your browsing time goes and stay focused with private, local website limits.",
   "minimum_chrome_version": "116",
   "permissions": ["tabs", "storage", "idle", "alarms", "notifications", "sidePanel"],
