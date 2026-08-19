@@ -65,3 +65,35 @@ test('package script builds from production runtime paths only and excludes prev
   assert.doesNotMatch(script, /docs/);
   assert.doesNotMatch(script, /preview/);
 });
+
+test('Tailwind v4 is compiled locally before checks and packaging', async () => {
+  const pkg = JSON.parse(await text('package.json'));
+  assert.ok(pkg.devDependencies?.tailwindcss, 'tailwindcss must be a local dev dependency');
+  assert.ok(pkg.devDependencies?.['@tailwindcss/cli'], '@tailwindcss/cli must be a local dev dependency');
+  assert.match(pkg.scripts?.['build:css'] || '', /@tailwindcss\/cli/);
+  assert.match(pkg.scripts?.['build:css'] || '', /src\/styles\/tailwind\.css/);
+  assert.match(pkg.scripts?.['build:css'] || '', /src\/styles\/timelens\.css/);
+  assert.match(pkg.scripts?.check || '', /build:css/);
+  assert.match(pkg.scripts?.package || '', /build:css/);
+  await access(new URL('src/styles/tailwind.css', root), constants.R_OK);
+  await access(new URL('src/styles/timelens.css', root), constants.R_OK);
+});
+
+test('CI installs locked Tailwind dependencies before running checks', async () => {
+  const workflow = await text('.github/workflows/ci.yml');
+  assert.match(workflow, /npm ci[\s\S]*npm run check/);
+  await access(new URL('package-lock.json', root), constants.R_OK);
+});
+
+test('migrated runtime pages load only the local compiled TimeLens stylesheet', async () => {
+  for (const path of [
+    'src/dashboard/dashboard.html',
+    'src/popup/popup.html',
+    'src/sidepanel/sidepanel.html',
+    'src/blocked/blocked.html'
+  ]) {
+    const html = await text(path);
+    assert.match(html, /\.\.\/styles\/timelens\.css/);
+    assert.doesNotMatch(html, /cdn\.tailwindcss\.com|https?:\/\/[^"']+\.css/i);
+  }
+});
