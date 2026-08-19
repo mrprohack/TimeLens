@@ -103,7 +103,7 @@ test('blocked page keeps a safe exit and conditional allowance controls', async 
 });
 
 test('shared theme guarantees hidden state wins and respects reduced motion', async () => {
-  const css = await read('src/shared/theme.css');
+  const css = await read('src/styles/tailwind.css');
   assert.match(css, /\[hidden\]\s*\{[^}]*display:\s*none\s*!important/s);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
 });
