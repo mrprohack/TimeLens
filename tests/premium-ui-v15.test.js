@@ -95,3 +95,50 @@ test('blocked page keeps safe actions inside a premium full-screen boundary stat
   assert.match(css, /min-height:\s*100vh/);
   assert.match(css, /@media\s*\(max-width:\s*480px\)/);
 });
+
+test('home matches the reference-style analytics composition using real TimeLens data', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  const css = await read('src/dashboard/dashboard.css');
+  const js = await read('src/dashboard/home-view.js');
+
+  for (const id of [
+    'home-today-total', 'home-focus-kpi', 'home-site-count', 'home-budget-kpi',
+    'home-breakdown', 'home-usage-trend', 'home-top-sites', 'home-attention', 'home-recent'
+  ]) assert.match(html, new RegExp(`id=["']${id}["']`));
+
+  assert.match(html, /class=["'][^"']*dashboard-topbar[^"']*["']/);
+  assert.match(html, /class=["'][^"']*kpi-grid[^"']*["']/);
+  assert.match(html, /class=["'][^"']*analytics-grid[^"']*["']/);
+  assert.match(css, /\.kpi-grid\s*\{[\s\S]{0,180}repeat\(4/);
+  assert.match(css, /\.analytics-grid\s*\{/);
+  assert.match(css, /\.trend-bars\s*\{/);
+  assert.match(css, /\.breakdown-donut\s*\{/);
+  assert.match(js, /home-focus-kpi/);
+  assert.match(js, /home-site-count/);
+  assert.match(js, /home-budget-kpi/);
+  assert.match(js, /home-usage-trend/);
+  assert.match(js, /home-breakdown/);
+});
+
+test('usage history drawer presents reference-style summary stats without a new backend', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  const js = await read('src/dashboard/home-view.js');
+  for (const id of ['history-total-time', 'history-session-count', 'history-list']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(js, /history-total-time/);
+  assert.match(js, /history-session-count/);
+});
+
+test('popup includes a real-data summary ring like the design reference', async () => {
+  const html = await read('src/popup/popup.html');
+  const css = await read('src/popup/popup.css');
+  const js = await read('src/popup/popup.js');
+  assert.match(html, /class=["'][^"']*summary-ring[^"']*["']/);
+  assert.match(html, /id=["']popup-site-count["']/);
+  assert.match(html, /id=["']popup-focus-status["']/);
+  assert.match(css, /conic-gradient/);
+  assert.match(js, /--summary-progress/);
+  assert.match(js, /popup-site-count/);
+  assert.match(js, /popup-focus-status/);
+});
