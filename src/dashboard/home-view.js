@@ -1,3 +1,4 @@
+import './sidebar-history.js';
 import { escapeHtml, formatClock, formatDuration, setText } from '../shared/ui.js';
 
 const BREAKDOWN_COLORS = ['#2563eb', '#7c3aed', '#10b981', '#f59e0b', '#94a3b8'];
