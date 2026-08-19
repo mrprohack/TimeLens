@@ -5,20 +5,17 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-      - name: Resolve initial Tailwind lockfile
-        run: npm install --package-lock-only --ignore-scripts
+          cache: npm
       - name: Install dependencies
         run: npm ci
       - name: Test and validate extension
@@ -31,13 +28,3 @@ jobs:
           name: timelens-1.5.0
           path: dist/timelens-1.5.0.zip
           if-no-files-found: error
-      - name: Commit generated Tailwind assets once
-        if: github.event_name == 'push' && github.ref == 'refs/heads/feat/premium-dashboard-v1.5'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json src/styles/timelens.css
-          if ! git diff --cached --quiet; then
-            git commit -m "build: commit generated Tailwind assets"
-            git push origin HEAD:feat/premium-dashboard-v1.5
-          fi
