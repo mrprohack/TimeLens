@@ -27,7 +27,7 @@ body { width: 360px; max-width: 360px; overflow: hidden; background: #f5f7ff; }
 .primary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .primary-actions .btn { min-height: var(--touch-target); border-radius: 12px; }
 .primary-actions .btn-primary { background: linear-gradient(135deg,#315cf6,#2448e8); border-color: #315cf6; box-shadow: 0 10px 22px rgba(49,92,246,.2); }
-.sites-section { display: grid; gap: 7px; padding: 1px 3px 0; }
+.sites-section { display: none; }
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; }
 .section-heading h2 { margin: 0; font-size: 12px; color: #1a2233; }
 .site-list { display: grid; }
