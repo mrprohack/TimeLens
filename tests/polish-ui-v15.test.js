@@ -47,6 +47,13 @@ test('mobile hero is compact and content clears the fixed navigation safe area',
   assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*\.mobile-nav\s*\{[\s\S]{0,520}env\(safe-area-inset-bottom\)/);
 });
 
+test('mobile current-site controls collapse into a single compact row above navigation', async () => {
+  const css = await polish();
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*\.current-strip\s*\{[\s\S]{0,360}grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*\.current-time-pill\s*\{[\s\S]{0,160}display:\s*none/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*\.quick-actions\s*\{[\s\S]{0,240}display:\s*flex/);
+});
+
 test('popup history and blocked surfaces share the polished elevation language', async () => {
   const css = await polish();
   assert.match(css, /html body \.today-summary\s*\{[\s\S]{0,500}box-shadow:\s*var\(--shadow-hero\)/);
