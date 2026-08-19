@@ -41,5 +41,5 @@ test('popup history and blocked surfaces share the polished elevation language',
   const css = await read('src/styles/tailwind.css');
   assert.match(css, /html body \.today-summary\s*\{[\s\S]{0,500}box-shadow:\s*var\(--shadow-hero\)/);
   assert.match(css, /html body \.history-drawer\s*\{[\s\S]{0,500}box-shadow:/);
-  assert.match(css, /html body \.blocked-card\s*\{[\s\S]{0,500}border:/);
+  assert.match(css, /html body \.blocked-shell\s*\{[\s\S]{0,500}border:/);
 });
