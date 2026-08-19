@@ -11,7 +11,8 @@ test('manifest and package versions match the 1.5 premium dashboard release', as
   const pkg = JSON.parse(await text('package.json'));
   assert.equal(manifest.version, '1.5.0');
   assert.equal(pkg.version, '1.5.0');
-  assert.equal(pkg.scripts.package, 'node scripts/package-extension.mjs');
+  assert.match(pkg.scripts.package, /build:css/);
+  assert.match(pkg.scripts.package, /package-extension\.mjs/);
 });
 
 test('production release includes premium UI modules, deterministic previews, and release documentation', async () => {
@@ -68,8 +69,8 @@ test('package script builds from production runtime paths only and excludes prev
 
 test('Tailwind v4 is compiled locally before checks and packaging', async () => {
   const pkg = JSON.parse(await text('package.json'));
-  assert.ok(pkg.devDependencies?.tailwindcss, 'tailwindcss must be a local dev dependency');
-  assert.ok(pkg.devDependencies?.['@tailwindcss/cli'], '@tailwindcss/cli must be a local dev dependency');
+  assert.equal(pkg.devDependencies?.tailwindcss, '4.3.3');
+  assert.equal(pkg.devDependencies?.['@tailwindcss/cli'], '4.3.3');
   assert.match(pkg.scripts?.['build:css'] || '', /@tailwindcss\/cli/);
   assert.match(pkg.scripts?.['build:css'] || '', /src\/styles\/tailwind\.css/);
   assert.match(pkg.scripts?.['build:css'] || '', /src\/styles\/timelens\.css/);
@@ -85,7 +86,10 @@ test('CI installs locked Tailwind dependencies before running checks', async () 
   await access(new URL('package-lock.json', root), constants.R_OK);
 });
 
-test('migrated runtime pages load only the local compiled TimeLens stylesheet', async () => {
+test('runtime pages consume the local Tailwind bundle through the shared compatibility bridge', async () => {
+  const bridge = await text('src/shared/theme.css');
+  assert.match(bridge, /@import\s+["']\.\.\/styles\/timelens\.css["']/);
+  assert.doesNotMatch(bridge, /https?:\/\//i);
   for (const path of [
     'src/dashboard/dashboard.html',
     'src/popup/popup.html',
@@ -93,7 +97,7 @@ test('migrated runtime pages load only the local compiled TimeLens stylesheet', 
     'src/blocked/blocked.html'
   ]) {
     const html = await text(path);
-    assert.match(html, /\.\.\/styles\/timelens\.css/);
+    assert.match(html, /\.\.\/shared\/theme\.css/);
     assert.doesNotMatch(html, /cdn\.tailwindcss\.com|https?:\/\/[^"']+\.css/i);
   }
 });
