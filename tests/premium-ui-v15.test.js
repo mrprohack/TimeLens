@@ -145,9 +145,10 @@ test('popup includes a real-data summary ring like the design reference', async 
 
 test('sidebar usage history opens the existing history drawer', async () => {
   const html = await read('src/dashboard/dashboard.html');
+  const home = await read('src/dashboard/home-view.js');
   const js = await read('src/dashboard/sidebar-history.js');
   assert.match(html, /id=["']sidebar-history["']/);
-  assert.match(html, /src=["']sidebar-history\.js["']/);
+  assert.match(home, /import\s+["']\.\/sidebar-history\.js["']/);
   assert.match(js, /sidebar-history/);
   assert.match(js, /open-history/);
   assert.match(js, /\.click\(\)/);
