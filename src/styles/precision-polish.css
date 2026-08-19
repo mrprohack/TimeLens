@@ -351,7 +351,50 @@ html body .blocked-shell .btn:not(.btn-primary) {
   }
 
   html body .current-strip {
-    padding: 11px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+  }
+
+  html body .current-strip-copy {
+    min-width: 0;
+    gap: 7px;
+  }
+
+  html body .current-strip-copy small {
+    display: none;
+  }
+
+  html body .current-strip-copy strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  html body .site-orb {
+    width: 32px;
+    height: 32px;
+  }
+
+  html body .current-time-pill {
+    display: none;
+  }
+
+  html body .quick-actions {
+    grid-column: auto;
+    display: flex;
+    justify-content: flex-end;
+    width: auto;
+    gap: 6px;
+  }
+
+  html body .quick-actions .btn {
+    min-height: 38px;
+    padding: 8px 9px;
+    font-size: 10px;
+    white-space: nowrap;
   }
 
   html body .analytics-card {
