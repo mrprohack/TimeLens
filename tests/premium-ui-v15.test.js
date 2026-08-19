@@ -142,3 +142,13 @@ test('popup includes a real-data summary ring like the design reference', async 
   assert.match(js, /popup-site-count/);
   assert.match(js, /popup-focus-status/);
 });
+
+test('sidebar usage history opens the existing history drawer', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  const js = await read('src/dashboard/sidebar-history.js');
+  assert.match(html, /id=["']sidebar-history["']/);
+  assert.match(html, /src=["']sidebar-history\.js["']/);
+  assert.match(js, /sidebar-history/);
+  assert.match(js, /open-history/);
+  assert.match(js, /\.click\(\)/);
+});
