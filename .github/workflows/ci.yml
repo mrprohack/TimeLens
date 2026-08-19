@@ -15,6 +15,10 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+      - name: Resolve initial Tailwind lockfile
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Install dependencies
+        run: npm ci
       - name: Test and validate extension
         run: npm run check
       - name: Build Chrome Web Store package
@@ -24,4 +28,10 @@ jobs:
         with:
           name: timelens-1.5.0
           path: dist/timelens-1.5.0.zip
+          if-no-files-found: error
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: timelens-tailwind-lock
+          path: package-lock.json
           if-no-files-found: error
