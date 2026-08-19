@@ -12,7 +12,7 @@ function primaryNavLabels(html) {
 }
 
 test('premium theme exposes shared brand and semantic tokens', async () => {
-  const css = await read('src/shared/theme.css');
+  const css = await read('src/styles/tailwind.css');
   for (const token of ['--brand:', '--brand-strong:', '--brand-soft:', '--surface-raised:', '--surface-muted:', '--warning-soft:', '--danger-soft:']) {
     assert.match(css, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -50,7 +50,7 @@ test('advanced surfaces remain progressively disclosed', async () => {
 });
 
 test('mobile primary actions keep touch-friendly sizing and overflow safety', async () => {
-  const theme = await read('src/shared/theme.css');
+  const theme = await read('src/styles/tailwind.css');
   const dashboard = await read('src/dashboard/dashboard.css');
   assert.match(theme, /--touch-target:\s*44px/);
   assert.match(theme, /min-height:\s*var\(--touch-target\)/);
@@ -161,7 +161,7 @@ test('popup keeps the reference one-screen composition by hiding optional top-si
 });
 
 test('precision instrument palette is specific to TimeLens rather than generic indigo', async () => {
-  const css = await read('src/shared/theme.css');
+  const css = await read('src/styles/tailwind.css');
   const expected = {
     '--time-blue': '#3157ff',
     '--focus-violet': '#7455ff',
@@ -177,7 +177,7 @@ test('precision instrument palette is specific to TimeLens rather than generic i
 });
 
 test('dashboard spends its visual emphasis on one clock-like Time Halo', async () => {
-  const css = await read('src/shared/theme.css');
+  const css = await read('src/styles/tailwind.css');
   assert.match(css, /\.kpi-primary::after\s*\{[\s\S]{0,520}conic-gradient/);
   assert.match(css, /\.kpi-primary\s*\{[\s\S]{0,420}grid-column:\s*span\s+3/);
   assert.match(css, /\.kpi-grid\s*\{[\s\S]{0,260}repeat\(6/);
@@ -185,20 +185,20 @@ test('dashboard spends its visual emphasis on one clock-like Time Halo', async (
 });
 
 test('mobile dashboard reserves safe-area space so bottom navigation never covers content', async () => {
-  const css = await read('src/shared/theme.css');
+  const css = await read('src/styles/tailwind.css');
   assert.match(css, /\.dashboard-shell\s*\{[\s\S]{0,260}env\(safe-area-inset-bottom\)/);
   assert.match(css, /\.mobile-nav\s*\{[\s\S]{0,380}env\(safe-area-inset-bottom\)/);
 });
 
 test('polish uses one orchestrated time motion and keeps reduced-motion quiet', async () => {
-  const css = await read('src/shared/theme.css');
+  const css = await read('src/styles/tailwind.css');
   assert.match(css, /@keyframes\s+time-halo-in/);
   assert.match(css, /@keyframes\s+usage-rise/);
   assert.match(css, /prefers-reduced-motion:[\s\S]*animation:\s*none\s*!important/);
 });
 
 test('popup side panel and blocked state share the precision-instrument surface language', async () => {
-  const css = await read('src/shared/theme.css');
+  const css = await read('src/styles/tailwind.css');
   assert.match(css, /html\s+body\s+\.popup-shell/);
   assert.match(css, /html\s+body\s+\.side-shell/);
   assert.match(css, /html\s+body\s+\.blocked-shell/);
