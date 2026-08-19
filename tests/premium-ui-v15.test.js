@@ -153,3 +153,9 @@ test('sidebar usage history opens the existing history drawer', async () => {
   assert.match(js, /open-history/);
   assert.match(js, /\.click\(\)/);
 });
+
+test('popup keeps the reference one-screen composition by hiding optional top-sites detail', async () => {
+  const css = await read('src/popup/popup.css');
+  assert.match(css, /\.sites-section\s*\{[^}]*display:\s*none/);
+  assert.match(css, /\.popup-footer\s*\{/);
+});
