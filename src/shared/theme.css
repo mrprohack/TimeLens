@@ -1,2 +1,3 @@
 /* Compatibility bridge: shared TimeLens design primitives are compiled locally from Tailwind. */
 @import "../styles/timelens.css";
+@import "../styles/precision-polish.css";
