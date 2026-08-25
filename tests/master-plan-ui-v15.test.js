@@ -48,3 +48,19 @@ test('limits and focus use distinct master plan task layouts', async () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
 });
+
+test('settings and history follow the master plan grouped inspection layout', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  const css = await read('src/styles/master-plan.css');
+  const settings = await read('src/dashboard/settings-view.js');
+  assert.match(css, /html body \.settings-stack\s*\{[\s\S]{0,220}width:\s*min\(860px,\s*100%\)/);
+  assert.match(css, /html body \.settings-card\s*\{[\s\S]{0,220}padding:\s*20px/);
+  assert.match(css, /html body \.appearance-card\s*\{/);
+  assert.match(css, /html body \.history-drawer\s*\{[\s\S]{0,220}width:\s*min\(820px,/);
+  assert.match(css, /html body \.history-summary\s*\{[\s\S]{0,240}grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(css, /html body \.history-head\s*\{[\s\S]{0,300}position:\s*sticky/);
+  for (const label of ['Notifications','Tracking','Data','Privacy','Extension health']) assert.match(html, new RegExp(label));
+  assert.match(settings, /Appearance/);
+  for (const value of ['light','dark','system']) assert.match(settings, new RegExp(`value="${value}"`));
+  for (const id of ['history-total-time','history-session-count','history-list']) assert.match(html, new RegExp(`id="${id}"`));
+});
