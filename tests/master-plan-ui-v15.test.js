@@ -35,3 +35,16 @@ test('home matches the master plan hierarchy without inventing metrics', async (
     assert.match(html, new RegExp(`id="${id}"`));
   }
 });
+
+test('limits and focus use distinct master plan task layouts', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  const css = await read('src/styles/master-plan.css');
+  assert.match(css, /html body \[data-view="limits"\] \.workspace-card/);
+  assert.match(css, /html body \.limit-item\s*\{[\s\S]{0,300}border-radius:\s*13px/);
+  assert.match(css, /html body \.budget-summary-card\s*\{/);
+  assert.match(css, /html body \.focus-simple\s*\{[\s\S]{0,520}text-align:\s*center/);
+  assert.match(css, /html body \.duration-options\s*\{[\s\S]{0,300}grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
+  for (const id of ['limit-list','budget-summary','category-section','simple-start-focus','focus-active','stop-focus']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+});
