@@ -1,4 +1,7 @@
 import { formatDuration } from '../core/time.js';
+import { initializeAppearance } from './appearance.js';
+
+initializeAppearance();
 
 export { formatDuration };
 
