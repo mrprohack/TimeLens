@@ -12,7 +12,8 @@ test('master plan layer is loaded last and defines the shared product shell', as
   for (const token of ['--mp-page-max:', '--mp-rail-width:', '--mp-card-radius:', '--mp-card-shadow:']) {
     assert.match(css, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
-  for (const selector of ['.mp-page-heading', '.mp-primary-instrument', '.mp-workspace-card', '.mp-compact-card']) {
+  assert.match(css, /html body \.dashboard-shell\s*\{/);
+  for (const selector of ['.page-heading', '.kpi-primary', '.workspace-card', '.kpi-card']) {
     assert.match(css, new RegExp(selector.replace('.', '\\.')));
   }
 });
@@ -21,5 +22,5 @@ test('dashboard keeps four primary destinations and secondary history in the mas
   const html = await read('src/dashboard/dashboard.html');
   for (const view of ['home', 'limits', 'focus', 'settings']) assert.match(html, new RegExp(`data-dashboard-view="${view}"`));
   assert.match(html, /id="sidebar-history"/);
-  assert.match(html, /class="[^"]*mp-dashboard-shell/);
+  assert.match(html, /class="dashboard-shell"/);
 });
