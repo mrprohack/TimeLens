@@ -80,3 +80,13 @@ test('compact surfaces match the master plan while preserving action hooks', asy
   assert.match(css, /html body \.blocked-shell\s*\{[\s\S]{0,280}width:\s*min\(680px,/);
   assert.match(css, /html body \.dialog-panel\s*\{[\s\S]{0,220}border-radius:\s*20px/);
 });
+
+test('master plan has explicit mobile and appearance acceptance rules', async () => {
+  const css = await read('src/styles/master-plan.css');
+  assert.match(css, /@media\s*\(max-width:\s*900px\)/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)/);
+  assert.match(css, /env\(safe-area-inset-bottom\)/);
+  assert.match(css, /html\[data-theme="dark"\]\s+body\s*\{/);
+  assert.match(css, /html\[data-theme="light"\]\s+body\s*\{/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.kpi-grid\s*\{[\s\S]{0,240}grid-template-columns:\s*1fr/);
+});
