@@ -108,3 +108,20 @@ test('v2 compact surfaces keep one dominant action and readable live time', asyn
   assert.match(side, /\.current-time\s*\{[\s\S]{0,220}font-size:\s*34px/);
   assert.match(blocked, /\.primary-actions\s*\{[\s\S]{0,240}grid-template-columns:\s*minmax\(0,\s*1\.35fr\)\s+minmax\(0,\s*1fr\)/);
 });
+
+test('preview harness covers the full v2 screenshot matrix', async () => {
+  for (const path of [
+    'preview/dashboard.html',
+    'preview/limits.html',
+    'preview/focus.html',
+    'preview/settings.html',
+    'preview/history.html',
+    'preview/popup.html',
+    'preview/sidepanel.html',
+    'preview/blocked.html',
+    'preview/dialog.html'
+  ]) {
+    const html = await read(path);
+    assert.match(html, /\.\.\/src\/shared\/theme\.css/);
+  }
+});
