@@ -22,12 +22,14 @@ jobs:
         run: npm run check
       - name: Build Chrome Web Store package
         run: npm run package
-      - name: Capture Precision v2 UI screenshots
+      - name: Capture Master Plan UI screenshots
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p screenshots preview-light preview-dark preview-system
-          for page in home settings popup sidepanel blocked; do
+
+          # Build deterministic explicit-appearance copies for every visual surface.
+          for page in home limits focus settings history popup sidepanel blocked dialog; do
             sed 's/<html/<html data-theme="light" data-appearance="light"/' "preview/$page.html" > "preview-light/$page.html"
             sed 's/<html/<html data-theme="dark" data-appearance="dark"/' "preview/$page.html" > "preview-dark/$page.html"
           done
@@ -42,6 +44,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/preview/home.html >/dev/null; then break; fi
             sleep 0.25
           done
+
           CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME"
           shot() {
@@ -50,7 +53,7 @@ jobs:
             test -s "screenshots/$name.png"
           }
 
-          # Existing system/default review matrix.
+          # Default/system review matrix retained for regression continuity.
           shot home-desktop 1440,1000 preview/home.html
           shot home-mobile 390,844 preview/home.html
           shot limits-desktop 1440,1000 preview/limits.html
@@ -66,28 +69,55 @@ jobs:
           shot dialog-desktop 1000,850 preview/dialog.html
           shot dialog-mobile 390,844 preview/dialog.html
 
-          # Explicit appearance states exercise the final data-theme layer.
+          # Home — desktop/mobile, explicit Light/Dark.
           shot home-light-desktop 1440,1000 preview-light/home.html
-          shot home-light-mobile 390,844 preview-light/home.html
           shot home-dark-desktop 1440,1000 preview-dark/home.html
+          shot home-light-mobile 390,844 preview-light/home.html
           shot home-dark-mobile 390,844 preview-dark/home.html
+
+          # Limits — desktop/mobile, explicit Light/Dark.
+          shot limits-light-desktop 1440,1000 preview-light/limits.html
+          shot limits-dark-desktop 1440,1000 preview-dark/limits.html
+          shot limits-light-mobile 390,844 preview-light/limits.html
+          shot limits-dark-mobile 390,844 preview-dark/limits.html
+
+          # Focus — desktop/mobile, explicit Light/Dark.
+          shot focus-light-desktop 1440,900 preview-light/focus.html
+          shot focus-dark-desktop 1440,900 preview-dark/focus.html
+          shot focus-light-mobile 390,844 preview-light/focus.html
+          shot focus-dark-mobile 390,844 preview-dark/focus.html
+
+          # Settings — Light/Dark/System on desktop and mobile.
           shot settings-light-desktop 1440,1000 preview-light/settings.html
-          shot settings-light-mobile 390,844 preview-light/settings.html
-          shot settings-system-desktop 1440,1000 preview-system/settings.html
-          shot settings-system-mobile 390,844 preview-system/settings.html
           shot settings-dark-desktop 1440,1000 preview-dark/settings.html
+          shot settings-system-desktop 1440,1000 preview-system/settings.html
+          shot settings-light-mobile 390,844 preview-light/settings.html
           shot settings-dark-mobile 390,844 preview-dark/settings.html
+          shot settings-system-mobile 390,844 preview-system/settings.html
+
+          # History — explicit Light/Dark inspection workspace.
+          shot history-light-desktop 1440,900 preview-light/history.html
+          shot history-dark-desktop 1440,900 preview-dark/history.html
+
+          # Compact extension surfaces.
           shot popup-light 360,600 preview-light/popup.html
           shot popup-dark 360,600 preview-dark/popup.html
           shot sidepanel-light 420,900 preview-light/sidepanel.html
           shot sidepanel-dark 420,900 preview-dark/sidepanel.html
           shot blocked-light 1440,900 preview-light/blocked.html
           shot blocked-dark 1440,900 preview-dark/blocked.html
+
+          # Dialogs — desktop/mobile, explicit Light/Dark.
+          shot dialog-light-desktop 1000,850 preview-light/dialog.html
+          shot dialog-dark-desktop 1000,850 preview-dark/dialog.html
+          shot dialog-light-mobile 390,844 preview-light/dialog.html
+          shot dialog-dark-mobile 390,844 preview-dark/dialog.html
+
           ls -lh screenshots
       - name: Upload UI screenshots
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: timelens-precision-v2-screenshots
+          name: timelens-master-plan-screenshots
           path: screenshots
           if-no-files-found: error
       - name: Upload release package
