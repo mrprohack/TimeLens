@@ -26,7 +26,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p screenshots
+          mkdir -p screenshots preview-light preview-dark preview-system
+          for page in home settings popup sidepanel blocked; do
+            sed 's/<html/<html data-theme="light" data-appearance="light"/' "preview/$page.html" > "preview-light/$page.html"
+            sed 's/<html/<html data-theme="dark" data-appearance="dark"/' "preview/$page.html" > "preview-dark/$page.html"
+          done
+          sed 's/<html/<html data-theme="light" data-appearance="system"/' preview/settings.html > preview-system/settings.html
+          sed -i 's/value="system" checked/value="system"/; s/value="light"/value="light" checked/' preview-light/settings.html
+          sed -i 's/value="system" checked/value="system"/; s/value="dark"/value="dark" checked/' preview-dark/settings.html
+
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/timelens-preview.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
@@ -41,6 +49,8 @@ jobs:
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --force-device-scale-factor=1 --run-all-compositor-stages-before-draw --virtual-time-budget=1000 --window-size="$size" --screenshot="screenshots/$name.png" "http://127.0.0.1:4173/$page"
             test -s "screenshots/$name.png"
           }
+
+          # Existing system/default review matrix.
           shot home-desktop 1440,1000 preview/home.html
           shot home-mobile 390,844 preview/home.html
           shot limits-desktop 1440,1000 preview/limits.html
@@ -55,6 +65,24 @@ jobs:
           shot blocked 1440,900 preview/blocked.html
           shot dialog-desktop 1000,850 preview/dialog.html
           shot dialog-mobile 390,844 preview/dialog.html
+
+          # Explicit appearance states exercise the final data-theme layer.
+          shot home-light-desktop 1440,1000 preview-light/home.html
+          shot home-light-mobile 390,844 preview-light/home.html
+          shot home-dark-desktop 1440,1000 preview-dark/home.html
+          shot home-dark-mobile 390,844 preview-dark/home.html
+          shot settings-light-desktop 1440,1000 preview-light/settings.html
+          shot settings-light-mobile 390,844 preview-light/settings.html
+          shot settings-system-desktop 1440,1000 preview-system/settings.html
+          shot settings-system-mobile 390,844 preview-system/settings.html
+          shot settings-dark-desktop 1440,1000 preview-dark/settings.html
+          shot settings-dark-mobile 390,844 preview-dark/settings.html
+          shot popup-light 360,600 preview-light/popup.html
+          shot popup-dark 360,600 preview-dark/popup.html
+          shot sidepanel-light 420,900 preview-light/sidepanel.html
+          shot sidepanel-dark 420,900 preview-dark/sidepanel.html
+          shot blocked-light 1440,900 preview-light/blocked.html
+          shot blocked-dark 1440,900 preview-dark/blocked.html
           ls -lh screenshots
       - name: Upload UI screenshots
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
