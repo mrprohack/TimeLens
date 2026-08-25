@@ -24,3 +24,14 @@ test('dashboard keeps four primary destinations and secondary history in the mas
   assert.match(html, /id="sidebar-history"/);
   assert.match(html, /class="dashboard-shell"/);
 });
+
+test('home matches the master plan hierarchy without inventing metrics', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  const css = await read('src/styles/master-plan.css');
+  assert.match(css, /html body \.kpi-grid\s*\{[\s\S]{0,320}grid-template-columns:\s*minmax\(0,\s*1\.7fr\)\s+repeat\(2,\s*minmax\(0,\s*\.65fr\)\)/);
+  assert.match(css, /html body \.kpi-grid\s*>\s*\.kpi-card:nth-child\(2\)\s*\{[\s\S]{0,100}display:\s*none/);
+  assert.match(css, /html body \.analytics-grid\s*\{[\s\S]{0,320}grid-template-areas:/);
+  for (const id of ['home-today-total','home-site-count','home-budget-kpi','home-breakdown','home-top-sites','home-attention','home-usage-trend','home-recent']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+});
