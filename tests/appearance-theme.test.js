@@ -12,7 +12,7 @@ test('appearance controller supports persisted light dark and system preferences
   assert.match(source, /localStorage/);
   assert.match(source, /matchMedia\(['"]\(prefers-color-scheme: dark\)['"]\)/);
   assert.match(source, /dataset\.theme/);
-  assert.match(source, /addEventListener\(['"]change['"]/);
+  assert.match(source, /addEventListener(?:\?\.)?\(['"]change['"]/);
 });
 
 test('shared UI initializes appearance on dashboard popup side panel blocked and onboarding surfaces', async () => {
@@ -59,8 +59,8 @@ test('final appearance layer explicitly fixes v2 dark surfaces after legacy page
 test('manual light mode wins over OS-dark media styles and blocked page has a light treatment', async () => {
   const css = await read('src/styles/appearance.css');
   assert.match(css, /html\[data-theme=["']light["']\]/);
-  assert.match(css, /html\[data-theme=["']light["'] body:has\(\.blocked-shell\)/);
-  assert.match(css, /html\[data-theme=["']light["'] body \.blocked-shell/);
+  assert.match(css, /html\[data-theme=["']light["']\] body:has\(\.blocked-shell\)/);
+  assert.match(css, /html\[data-theme=["']light["']\] body \.blocked-shell/);
   assert.match(css, /color-scheme:\s*light/);
   assert.match(css, /color-scheme:\s*dark/);
 });
