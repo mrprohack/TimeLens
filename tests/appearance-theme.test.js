@@ -65,6 +65,12 @@ test('manual light mode wins over OS-dark media styles and blocked page has a li
   assert.match(css, /color-scheme:\s*dark/);
 });
 
+test('dark mode forces page chrome and analytics headings onto readable dark colors', async () => {
+  const css = await read('src/styles/appearance.css');
+  assert.match(css, /html\[data-theme=["']dark["']\] body\s*\{[\s\S]{0,240}background:\s*var\(--bg\)[\s\S]{0,160}color:\s*var\(--text\)/);
+  assert.match(css, /html\[data-theme=["']dark["']\] body \.section-heading-row h2\s*\{[\s\S]{0,120}color:\s*var\(--text\)/);
+});
+
 test('settings preview includes the three appearance choices for screenshot review', async () => {
   const preview = await read('preview/settings.html');
   assert.match(preview, /appearance-options/);
