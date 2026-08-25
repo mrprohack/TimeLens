@@ -22,6 +22,46 @@ jobs:
         run: npm run check
       - name: Build Chrome Web Store package
         run: npm run package
+      - name: Capture Precision v2 UI screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p screenshots
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/timelens-preview.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/preview/home.html >/dev/null; then break; fi
+            sleep 0.25
+          done
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME"
+          shot() {
+            local name="$1" size="$2" page="$3"
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --force-device-scale-factor=1 --run-all-compositor-stages-before-draw --virtual-time-budget=1000 --window-size="$size" --screenshot="screenshots/$name.png" "http://127.0.0.1:4173/$page"
+            test -s "screenshots/$name.png"
+          }
+          shot home-desktop 1440,1000 preview/home.html
+          shot home-mobile 390,844 preview/home.html
+          shot limits-desktop 1440,1000 preview/limits.html
+          shot limits-mobile 390,844 preview/limits.html
+          shot focus-desktop 1440,900 preview/focus.html
+          shot focus-mobile 390,844 preview/focus.html
+          shot settings-desktop 1440,1000 preview/settings.html
+          shot settings-mobile 390,844 preview/settings.html
+          shot history-desktop 1440,900 preview/history.html
+          shot popup 360,600 preview/popup.html
+          shot sidepanel 420,900 preview/sidepanel.html
+          shot blocked 1440,900 preview/blocked.html
+          shot dialog-desktop 1000,850 preview/dialog.html
+          shot dialog-mobile 390,844 preview/dialog.html
+          ls -lh screenshots
+      - name: Upload UI screenshots
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: timelens-precision-v2-screenshots
+          path: screenshots
+          if-no-files-found: error
       - name: Upload release package
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
