@@ -1,0 +1,20 @@
+/* Final contrast guard for page CSS that still contains legacy light values. */
+html[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+html[data-theme="light"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+html[data-theme="dark"] body .section-heading-row h2 {
+  color: var(--text);
+}
+
+html[data-theme="dark"] body .side-header .brand,
+html[data-theme="dark"] body .side-header .btn,
+html[data-theme="dark"] body .popup-header .brand {
+  color: var(--text);
+}
