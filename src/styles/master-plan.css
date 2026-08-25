@@ -477,3 +477,95 @@ html body .history-row + .history-row {
 html body .history-row:hover {
   background: var(--surface-muted);
 }
+
+/* Compact surfaces — harmonized quick-action geometry. */
+html body .popup-shell {
+  width: 360px;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 14px 16px 15px;
+  display: grid;
+  gap: 10px;
+  background: transparent;
+}
+
+html body .today-summary {
+  padding: 14px;
+  border-radius: 20px;
+  border-color: var(--mp-card-border);
+  background: var(--surface-raised);
+}
+
+html body .popup-shell .primary-actions .btn {
+  min-height: 48px;
+  border-radius: 14px;
+}
+
+html body .side-shell {
+  width: min(100%, 520px);
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 18px;
+  display: grid;
+  gap: 13px;
+}
+
+html body .current-panel {
+  padding: 22px;
+  border-color: color-mix(in srgb, var(--brand) 16%, var(--line));
+  background: radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 30%), var(--surface-raised);
+}
+
+html body .current-panel h1 {
+  margin: 8px 0 7px;
+  font-size: clamp(28px, 8vw, 36px);
+  line-height: 1.03;
+}
+
+html body .current-time {
+  display: block;
+  margin-top: 4px;
+  color: var(--brand-strong);
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -.05em;
+}
+
+html body .quick-panel {
+  padding: 18px;
+  display: grid;
+  gap: 13px;
+  background: var(--surface-raised);
+}
+
+html body .quick-panel #side-focus-action,
+html body .quick-panel .quick-limit .btn {
+  min-height: 48px;
+  border-radius: 13px;
+}
+
+html body .blocked-shell {
+  width: min(680px, calc(100vw - 40px));
+  max-width: 100%;
+  padding: clamp(28px, 5vw, 54px);
+  border: 1px solid color-mix(in srgb, #cbd5e1 14%, transparent);
+  border-radius: 26px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .32);
+}
+
+html[data-theme="dark"] body .blocked-shell {
+  background: linear-gradient(180deg, #111827 0%, #0e1626 100%);
+  border-color: #2a3850;
+}
+
+html body .blocked-shell .primary-actions .btn {
+  min-height: 48px;
+  border-radius: 13px;
+}
+
+html body .dialog-panel {
+  border-radius: 20px;
+  border: 1px solid var(--mp-card-border);
+  background: var(--surface-raised);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, .18);
+}
