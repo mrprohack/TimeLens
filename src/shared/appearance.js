@@ -17,8 +17,13 @@ export function getAppearancePreference(storage = globalThis.localStorage) {
   }
 }
 
+function getSystemAppearanceQuery() {
+  if (typeof globalThis.matchMedia !== 'function') return null;
+  return globalThis.matchMedia('(prefers-color-scheme: dark)');
+}
+
 function systemPrefersDark() {
-  return globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches === true;
+  return getSystemAppearanceQuery()?.matches === true;
 }
 
 export function resolveAppearance(preference, prefersDark = systemPrefersDark()) {
@@ -50,7 +55,7 @@ export function initializeAppearance() {
   if (initialized || typeof globalThis.addEventListener !== 'function') return result;
   initialized = true;
 
-  mediaQuery = globalThis.matchMedia?.('(prefers-color-scheme: dark)') || null;
+  mediaQuery = getSystemAppearanceQuery();
   mediaQuery?.addEventListener?.('change', () => {
     if (getAppearancePreference() === 'system') applyAppearance('system');
   });
