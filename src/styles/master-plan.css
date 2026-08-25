@@ -332,3 +332,148 @@ html body .focus-time {
   font-size: clamp(54px, 9vw, 78px);
   letter-spacing: -.06em;
 }
+
+/* Settings — calm grouped workspace with Appearance first. */
+html body .settings-stack {
+  width: min(860px, 100%);
+  display: grid;
+  gap: 14px;
+}
+
+html body .settings-card {
+  padding: 20px;
+  border-color: var(--mp-card-border);
+}
+
+html body .settings-card h2 {
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: var(--text);
+}
+
+html body .appearance-card {
+  order: -1;
+  padding: 22px;
+  background: color-mix(in srgb, var(--brand-soft) 22%, var(--surface-raised));
+}
+
+html body .appearance-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+html body .appearance-choice {
+  min-height: 92px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface-raised);
+}
+
+html body .appearance-choice:has(input:checked) {
+  border-color: color-mix(in srgb, var(--brand) 42%, var(--line));
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 14%, transparent);
+}
+
+html body .settings-grid {
+  gap: 12px;
+}
+
+html body .setting-list {
+  border-radius: 13px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+html body .setting-list .check-row {
+  padding: 12px 13px;
+  background: var(--surface-muted);
+}
+
+html body .setting-list .check-row + .check-row {
+  border-top: 1px solid var(--line);
+}
+
+html body .data-actions {
+  gap: 9px;
+  align-items: center;
+}
+
+html body .data-actions .btn-danger {
+  margin-left: auto;
+}
+
+/* History — wide inspection drawer with aligned summary and table rows. */
+html body .history-drawer {
+  width: min(820px, calc(100vw - 32px));
+  max-width: 100%;
+  padding: 22px;
+}
+
+html body .history-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+html body .history-summary > div {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface-muted);
+}
+
+html body .history-summary strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 24px;
+}
+
+html body .history-tabs {
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+html body .history-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px 120px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 13px 13px 0 0;
+  background: var(--surface-raised);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 760;
+}
+
+html body .history-list {
+  border: 1px solid var(--line);
+  border-radius: 0 0 13px 13px;
+  overflow: hidden;
+}
+
+html body .history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px 120px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-raised);
+}
+
+html body .history-row + .history-row {
+  border-top: 1px solid var(--line);
+}
+
+html body .history-row:hover {
+  background: var(--surface-muted);
+}
