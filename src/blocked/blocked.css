@@ -11,6 +11,7 @@ h1 { margin: 0; max-width: 560px; color: #fff; font-size: clamp(38px,7vw,56px); 
 .blocked-copy { margin: 0; max-width: 500px; color: #b6c0d1; font-size: 16px; line-height: 1.65; }
 .usage-line { color: #dbe4f3; font-weight: 720; margin-top: 4px; }
 .primary-actions,.allowance-buttons { position: relative; z-index: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.primary-actions { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); }
 .primary-actions .btn { min-width: 150px; min-height: var(--touch-target); border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.07); color: #f8fafc; box-shadow: none; }
 .primary-actions .btn-primary { border-color: #6366f1; background: #6366f1; color: #fff; box-shadow: 0 14px 34px rgba(79,70,229,.28); }
 .allowance-actions { position: relative; z-index: 1; display: grid; gap: 14px; }
