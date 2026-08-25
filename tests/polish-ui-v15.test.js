@@ -98,3 +98,13 @@ test('v2 secondary dashboard surfaces emphasize state and keep destructive actio
   assert.match(css, /\.history-head\s*\{[\s\S]{0,420}position:\s*sticky/);
   assert.match(css, /\.dialog-panel \.dialog-actions\s*\{[\s\S]{0,320}justify-content:\s*flex-end/);
 });
+
+test('v2 compact surfaces keep one dominant action and readable live time', async () => {
+  const popup = await read('src/popup/popup.css');
+  const side = await read('src/sidepanel/sidepanel.css');
+  const blocked = await read('src/blocked/blocked.css');
+  assert.match(popup, /\.summary-ring strong\s*\{[\s\S]{0,220}font-size:\s*27px/);
+  assert.match(popup, /\.footer-link:first-child\s*\{[\s\S]{0,180}font-weight:\s*800/);
+  assert.match(side, /\.current-time\s*\{[\s\S]{0,220}font-size:\s*34px/);
+  assert.match(blocked, /\.primary-actions\s*\{[\s\S]{0,240}grid-template-columns:\s*minmax\(0,\s*1\.35fr\)\s+minmax\(0,\s*1fr\)/);
+});
