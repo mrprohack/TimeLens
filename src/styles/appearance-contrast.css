@@ -9,6 +9,18 @@ html[data-theme="light"] body {
   color: var(--text);
 }
 
+html[data-theme="dark"] body:has(.popup-shell),
+html[data-theme="dark"] body:has(.side-shell) {
+  background: #0b1020 !important;
+  color: var(--text);
+}
+
+html[data-theme="light"] body:has(.popup-shell),
+html[data-theme="light"] body:has(.side-shell) {
+  background: #f6f8fe !important;
+  color: var(--text);
+}
+
 html[data-theme="dark"] body .section-heading-row h2 {
   color: var(--text);
 }
