@@ -72,6 +72,13 @@ test('dark mode forces page chrome and analytics headings onto readable dark col
   assert.match(css, /html\[data-theme=["']dark["']\] body \.section-heading-row h2\s*\{[\s\S]{0,120}color:\s*var\(--text\)/);
 });
 
+test('dark popup and side panel force a dark page canvas around their dark cards', async () => {
+  const css = await read('src/styles/appearance-contrast.css');
+  assert.match(css, /html\[data-theme=["']dark["']\] body:has\(\.popup-shell\)/);
+  assert.match(css, /html\[data-theme=["']dark["']\] body:has\(\.side-shell\)/);
+  assert.match(css, /background:\s*#0b1020\s*!important/);
+});
+
 test('settings preview includes the three appearance choices for screenshot review', async () => {
   const preview = await read('preview/settings.html');
   assert.match(preview, /appearance-options/);
