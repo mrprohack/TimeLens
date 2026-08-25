@@ -422,6 +422,18 @@ html[data-theme="dark"] body {
   color: var(--text);
 }
 
+html[data-theme="dark"] body .side-shell {
+  min-height: 100vh;
+  background: var(--bg) !important;
+  color: var(--text);
+}
+
+html[data-theme="light"] body .side-shell {
+  min-height: 100vh;
+  background: var(--bg) !important;
+  color: var(--text);
+}
+
 html[data-theme="dark"] body .app-header,
 html[data-theme="dark"] body .kpi-card,
 html[data-theme="dark"] body .analytics-card,
