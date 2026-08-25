@@ -90,3 +90,16 @@ test('master plan has explicit mobile and appearance acceptance rules', async ()
   assert.match(css, /html\[data-theme="light"\]\s+body\s*\{/);
   assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.kpi-grid\s*\{[\s\S]{0,240}grid-template-columns:\s*1fr/);
 });
+
+test('CI renders the full master-plan acceptance screenshot matrix', async () => {
+  const workflow = await read('.github/workflows/ci.yml');
+  for (const shot of [
+    'home-light-desktop','home-dark-desktop','home-light-mobile','home-dark-mobile',
+    'limits-light-desktop','limits-dark-desktop','limits-light-mobile','limits-dark-mobile',
+    'focus-light-desktop','focus-dark-desktop','focus-light-mobile','focus-dark-mobile',
+    'settings-light-desktop','settings-dark-desktop','settings-system-desktop',
+    'history-light-desktop','history-dark-desktop',
+    'popup-light','popup-dark','sidepanel-light','sidepanel-dark',
+    'blocked-light','blocked-dark','dialog-light-desktop','dialog-dark-desktop','dialog-light-mobile','dialog-dark-mobile'
+  ]) assert.match(workflow, new RegExp(shot));
+});
