@@ -47,6 +47,7 @@ test('final appearance layer explicitly fixes v2 dark surfaces after legacy page
   const bridge = await read('src/shared/theme.css');
   const css = await read('src/styles/appearance.css');
   assert.match(bridge, /appearance\.css/);
+  assert.match(bridge, /appearance-contrast\.css/);
   assert.match(css, /html\[data-theme=["']dark["']\]/);
   for (const selector of ['.app-header', '.kpi-primary', '.analytics-card', '.focus-simple', '.settings-card', '.history-drawer', '.dialog-panel', '.today-summary', '.side-shell']) {
     assert.match(css, new RegExp(selector.replace('.', '\\.')));
@@ -66,7 +67,7 @@ test('manual light mode wins over OS-dark media styles and blocked page has a li
 });
 
 test('dark mode forces page chrome and analytics headings onto readable dark colors', async () => {
-  const css = await read('src/styles/appearance.css');
+  const css = `${await read('src/styles/appearance.css')}\n${await read('src/styles/appearance-contrast.css')}`;
   assert.match(css, /html\[data-theme=["']dark["']\] body\s*\{[\s\S]{0,240}background:\s*var\(--bg\)[\s\S]{0,160}color:\s*var\(--text\)/);
   assert.match(css, /html\[data-theme=["']dark["']\] body \.section-heading-row h2\s*\{[\s\S]{0,120}color:\s*var\(--text\)/);
 });
