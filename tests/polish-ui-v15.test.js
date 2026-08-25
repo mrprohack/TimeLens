@@ -90,3 +90,11 @@ test('v2 has explicit page polish for limits focus settings popup side panel and
     assert.match(css, new RegExp(selector.replace('.', '\\.')));
   }
 });
+
+test('v2 secondary dashboard surfaces emphasize state and keep destructive actions quiet', async () => {
+  const css = await polish();
+  assert.match(css, /\.focus-simple::before\s*\{[\s\S]{0,500}border-radius:\s*50%/);
+  assert.match(css, /\.settings-card \.data-actions \.btn-danger\s*\{[\s\S]{0,280}margin-left:\s*auto/);
+  assert.match(css, /\.history-head\s*\{[\s\S]{0,420}position:\s*sticky/);
+  assert.match(css, /\.dialog-panel \.dialog-actions\s*\{[\s\S]{0,320}justify-content:\s*flex-end/);
+});
