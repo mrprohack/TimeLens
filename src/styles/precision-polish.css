@@ -453,3 +453,364 @@ html body .blocked-shell .btn:not(.btn-primary) {
     transition: none;
   }
 }
+
+/* Precision Time Instrument v2 — one anchor per surface, shared geometry. */
+:root {
+  --surface-hero: #ffffff;
+  --surface-panel: #ffffff;
+  --surface-inset: #f4f7fd;
+  --line-strong: rgba(34, 48, 79, .14);
+  --shadow-compact: 0 1px 3px rgba(32, 47, 88, .04), 0 8px 20px rgba(32, 47, 88, .035);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-hero: 24px;
+  --focus-ring: 0 0 0 3px rgba(49, 87, 255, .22);
+}
+
+html body :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--time-blue);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+html body .dashboard-shell {
+  width: min(1220px, calc(100% - 48px));
+}
+
+html body .kpi-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+html body .kpi-primary {
+  grid-column: span 2;
+  min-height: 176px;
+  border-radius: var(--radius-hero);
+  padding: 20px 196px 20px 20px;
+  background:
+    radial-gradient(circle at 82% 48%, rgba(116, 85, 255, .10), transparent 24%),
+    radial-gradient(circle at 90% 15%, rgba(49, 87, 255, .08), transparent 30%),
+    linear-gradient(145deg, #ffffff 0%, #fbfcff 58%, #eef3ff 100%);
+}
+
+html body .kpi-primary .kpi-value,
+html body .current-time-pill,
+html body .usage-row strong,
+html body .breakdown-donut strong,
+html body .trend-label,
+html body .history-summary strong,
+html body .history-row > :last-child,
+html body .focus-time,
+html body .popup-shell #today-total,
+html body .side-shell .current-time {
+  font-variant-numeric: tabular-nums;
+}
+
+html body .kpi-primary .kpi-value {
+  margin-top: 12px;
+  font-size: clamp(42px, 4vw, 54px);
+  line-height: .96;
+}
+
+html body .kpi-grid > .kpi-card:not(.kpi-primary) {
+  min-height: 176px;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-compact);
+}
+
+html body .kpi-grid > .kpi-card:not(.kpi-primary) .kpi-value {
+  margin-top: 14px;
+  font-size: 26px;
+}
+
+html body .current-strip {
+  border-radius: var(--radius-md);
+  border-color: var(--line-soft);
+  padding: 12px 14px;
+}
+
+html body .analytics-card {
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+html body .analytics-grid {
+  gap: 12px;
+}
+
+html body .section-heading-row {
+  margin-bottom: 14px;
+}
+
+html body .section-heading-row h2 {
+  font-size: 16px;
+}
+
+html body .usage-row strong,
+html body .recent-item > strong {
+  color: #263149;
+}
+
+html body .usage-item,
+html body .attention-item,
+html body .recent-item {
+  min-height: 48px;
+}
+
+/* Secondary dashboard surfaces use the same calm component grammar. */
+html body .workspace-card {
+  border-radius: var(--radius-lg);
+  border-color: var(--line-soft);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-compact);
+}
+
+html body .workspace-card .workspace-heading {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+html body .limit-item {
+  border-radius: var(--radius-md);
+}
+
+html body .focus-simple {
+  max-width: 760px;
+  margin-inline: auto;
+  padding: clamp(30px, 6vw, 64px);
+  border-radius: var(--radius-hero);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(116, 85, 255, .10), transparent 28%),
+    linear-gradient(180deg, #fff 0%, #fbfcff 100%);
+  box-shadow: var(--shadow-hero);
+}
+
+html body .focus-simple .duration-options,
+html body .focus-simple .preset-chips {
+  justify-content: center;
+}
+
+html body .focus-simple .focus-time {
+  font-size: clamp(62px, 9vw, 96px);
+  letter-spacing: -.07em;
+}
+
+html body .focus-simple .focus-primary {
+  min-width: min(320px, 100%);
+  min-height: 50px;
+  border-radius: var(--radius-md);
+}
+
+html body .settings-card {
+  border-radius: var(--radius-lg);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-compact);
+}
+
+html body .settings-card h2 {
+  margin-bottom: 14px;
+}
+
+html body .settings-card .check-row,
+html body .settings-card .label {
+  border-radius: var(--radius-sm);
+}
+
+html body .history-drawer {
+  position: fixed;
+  width: min(600px, 92vw);
+  border-radius: 0;
+}
+
+html body .history-tabs .is-active {
+  color: var(--time-blue);
+  box-shadow: inset 0 -2px 0 var(--time-blue);
+}
+
+html body .dialog-panel {
+  border-radius: var(--radius-hero);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-float);
+}
+
+html body .dialog-panel .dialog-heading {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+/* Popup: current status is the instrument, supporting facts stay quiet. */
+html body .popup-shell {
+  gap: 12px;
+}
+
+html body .popup-shell .today-summary {
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+html body .popup-shell .summary-grid {
+  align-items: center;
+}
+
+html body .popup-shell .summary-facts > div {
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+}
+
+html body .popup-shell .current-card {
+  border-radius: var(--radius-md);
+}
+
+html body .popup-shell .primary-actions .btn-primary {
+  box-shadow: 0 8px 18px rgba(49, 87, 255, .16);
+}
+
+/* Side Panel: one live current-site anchor, then compact controls. */
+html body .side-shell {
+  gap: 12px;
+}
+
+html body .side-shell .current-panel {
+  border-radius: var(--radius-hero);
+  border-color: rgba(49, 87, 255, .13);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(116, 85, 255, .08), transparent 30%),
+    linear-gradient(160deg, #fff 0%, #f6f8ff 100%);
+  box-shadow: var(--shadow-hero);
+}
+
+html body .side-shell .current-panel h1 {
+  letter-spacing: -.04em;
+}
+
+html body .side-shell .quick-panel {
+  border-radius: var(--radius-lg);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-compact);
+}
+
+html body .side-shell .quick-limit {
+  align-items: stretch;
+}
+
+html body .side-shell .quick-limit .input,
+html body .side-shell .quick-limit .btn {
+  min-height: 44px;
+}
+
+/* Blocked page: strong message, restrained alternatives. */
+html body .blocked-message {
+  max-width: 620px;
+  margin-inline: auto;
+}
+
+html body .blocked-message h1 {
+  max-width: 16ch;
+  margin-inline: auto;
+  letter-spacing: -.045em;
+}
+
+html body .blocked-shell .site-letter {
+  box-shadow: 0 16px 44px rgba(49, 87, 255, .24), inset 0 0 0 1px rgba(255,255,255,.09);
+}
+
+html body .blocked-shell .primary-actions .btn {
+  min-height: 46px;
+}
+
+html body .blocked-shell .allowance-actions {
+  opacity: .88;
+}
+
+@media (max-width: 1000px) {
+  html body .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html body .kpi-primary {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  html body .dashboard-shell {
+    width: min(100% - 24px, 100%);
+    padding-top: 18px;
+  }
+
+  html body .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  html body .kpi-primary {
+    grid-column: 1 / -1;
+    min-height: 146px;
+    border-radius: var(--radius-lg);
+    padding: 14px 120px 14px 14px;
+  }
+
+  html body .kpi-grid > .kpi-card:not(.kpi-primary) {
+    min-height: 108px;
+    border-radius: var(--radius-md);
+  }
+
+  html body .focus-simple {
+    padding: 30px 16px 24px;
+    border-radius: var(--radius-lg);
+  }
+
+  html body .focus-simple .focus-time {
+    font-size: 64px;
+  }
+
+  html body .settings-card,
+  html body .workspace-card,
+  html body .analytics-card {
+    border-radius: var(--radius-md);
+  }
+
+  html body .history-drawer {
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+
+  html body .dialog-panel {
+    align-self: end;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: var(--radius-hero) var(--radius-hero) 0 0;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-hero: #182235;
+    --surface-panel: #151e2f;
+    --surface-inset: #1a2436;
+    --line-strong: rgba(183, 196, 221, .17);
+  }
+
+  html body .focus-simple,
+  html body .side-shell .current-panel {
+    background: linear-gradient(160deg, #192438 0%, #141d2d 100%);
+  }
+
+  html body .popup-shell .summary-facts > div {
+    background: var(--surface-inset);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body :is(button, a, input, select, textarea, [tabindex]) {
+    scroll-behavior: auto;
+  }
+}
