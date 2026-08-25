@@ -60,3 +60,33 @@ test('popup history and blocked surfaces share the polished elevation language',
   assert.match(css, /html body \.history-drawer\s*\{[\s\S]{0,500}box-shadow:/);
   assert.match(css, /html body \.blocked-shell\s*\{[\s\S]{0,500}border:/);
 });
+
+test('v2 gives home one dominant time instrument and quieter supporting KPI surfaces', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  const css = await polish();
+  assert.match(html, /kpi-card panel kpi-primary/);
+  assert.match(css, /\.kpi-primary[\s\S]{0,1200}grid-column:\s*span\s*2/);
+  assert.match(css, /font-variant-numeric:\s*tabular-nums/);
+});
+
+test('v2 exposes a shared visible keyboard focus treatment', async () => {
+  const css = await polish();
+  assert.match(css, /:focus-visible/);
+  assert.match(css, /--focus-ring:/);
+});
+
+test('v2 preserves production action hooks on popup side panel and blocked state', async () => {
+  const popup = await read('src/popup/popup.html');
+  const side = await read('src/sidepanel/sidepanel.html');
+  const blocked = await read('src/blocked/blocked.html');
+  for (const id of ['focus-toggle', 'limit-current-site', 'open-dashboard']) assert.match(popup, new RegExp(`id="${id}"`));
+  for (const id of ['side-limit-site', 'side-focus-action', 'side-open-dashboard']) assert.match(side, new RegExp(`id="${id}"`));
+  for (const id of ['close-tab', 'open-dashboard', 'allowance-actions']) assert.match(blocked, new RegExp(`id="${id}"`));
+});
+
+test('v2 has explicit page polish for limits focus settings popup side panel and blocked state', async () => {
+  const css = await polish();
+  for (const selector of ['.workspace-card', '.focus-simple', '.settings-card', '.popup-shell', '.side-shell', '.blocked-shell']) {
+    assert.match(css, new RegExp(selector.replace('.', '\\.')));
+  }
+});
