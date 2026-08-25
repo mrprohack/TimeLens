@@ -106,3 +106,74 @@ html body :focus-visible {
   outline: 3px solid color-mix(in srgb, var(--brand) 30%, transparent);
   outline-offset: 2px;
 }
+
+/* Home — dominant usage instrument + two supporting cards. */
+html body .kpi-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) repeat(2, minmax(0, .65fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+html body .kpi-grid > .kpi-card:nth-child(2) {
+  display: none;
+}
+
+html body .kpi-primary {
+  grid-column: auto;
+  min-height: 178px;
+  padding: 22px;
+  overflow: hidden;
+  position: relative;
+}
+
+html body .kpi-primary .kpi-value {
+  margin-top: 14px;
+  font-size: clamp(38px, 4.4vw, 56px);
+  letter-spacing: -.055em;
+}
+
+html body .kpi-grid > .kpi-card:nth-child(3),
+html body .kpi-grid > .kpi-card:nth-child(4) {
+  min-height: 178px;
+  padding: 18px;
+  border: 1px solid var(--mp-card-border);
+  background: var(--surface-raised);
+  box-shadow: var(--mp-card-shadow);
+}
+
+html body .current-strip {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--mp-card-border);
+  background: var(--surface-raised);
+  box-shadow: 0 7px 22px rgba(35, 52, 96, .04);
+}
+
+html body .analytics-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "breakdown top"
+    "trend alerts"
+    "recent recent";
+  gap: var(--mp-section-gap);
+  align-items: stretch;
+}
+
+html body .breakdown-card { grid-area: breakdown; }
+html body .top-sites-card { grid-area: top; }
+html body .trend-card { grid-area: trend; grid-column: auto; }
+html body .alerts-card { grid-area: alerts; grid-column: auto; }
+html body .recent-card { grid-area: recent; grid-column: auto; }
+
+html body .analytics-card {
+  min-height: 100%;
+  padding: 20px;
+}
+
+html body .recent-card .recent-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+}
