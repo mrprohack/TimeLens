@@ -64,3 +64,24 @@ test('manual light mode wins over OS-dark media styles and blocked page has a li
   assert.match(css, /color-scheme:\s*light/);
   assert.match(css, /color-scheme:\s*dark/);
 });
+
+test('settings preview includes the three appearance choices for screenshot review', async () => {
+  const preview = await read('preview/settings.html');
+  assert.match(preview, /appearance-options/);
+  for (const value of ['light', 'dark', 'system']) {
+    assert.match(preview, new RegExp(`value=[\\"']${value}[\\"']`));
+  }
+});
+
+test('CI captures explicit light dark and system appearance screenshots', async () => {
+  const workflow = await read('.github/workflows/ci.yml');
+  assert.match(workflow, /preview-light/);
+  assert.match(workflow, /preview-dark/);
+  for (const shot of [
+    'home-light-desktop', 'home-dark-desktop', 'home-dark-mobile',
+    'settings-light-desktop', 'settings-dark-desktop', 'settings-dark-mobile',
+    'settings-system-desktop', 'popup-dark', 'sidepanel-dark', 'blocked-dark'
+  ]) {
+    assert.match(workflow, new RegExp(shot));
+  }
+});
