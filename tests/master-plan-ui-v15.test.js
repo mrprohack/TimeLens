@@ -31,9 +31,7 @@ test('home matches the master plan hierarchy without inventing metrics', async (
   assert.match(css, /html body \.kpi-grid\s*\{[\s\S]{0,320}grid-template-columns:\s*minmax\(0,\s*1\.7fr\)\s+repeat\(2,\s*minmax\(0,\s*\.65fr\)\)/);
   assert.match(css, /html body \.kpi-grid\s*>\s*\.kpi-card:nth-child\(2\)\s*\{[\s\S]{0,100}display:\s*none/);
   assert.match(css, /html body \.analytics-grid\s*\{[\s\S]{0,320}grid-template-areas:/);
-  for (const id of ['home-today-total','home-site-count','home-budget-kpi','home-breakdown','home-top-sites','home-attention','home-usage-trend','home-recent']) {
-    assert.match(html, new RegExp(`id="${id}"`));
-  }
+  for (const id of ['home-today-total','home-site-count','home-budget-kpi','home-breakdown','home-top-sites','home-attention','home-usage-trend','home-recent']) assert.match(html, new RegExp(`id="${id}"`));
 });
 
 test('limits and focus use distinct master plan task layouts', async () => {
@@ -44,9 +42,7 @@ test('limits and focus use distinct master plan task layouts', async () => {
   assert.match(css, /html body \.budget-summary-card\s*\{/);
   assert.match(css, /html body \.focus-simple\s*\{[\s\S]{0,520}text-align:\s*center/);
   assert.match(css, /html body \.duration-options\s*\{[\s\S]{0,300}grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
-  for (const id of ['limit-list','budget-summary','category-section','simple-start-focus','focus-active','stop-focus']) {
-    assert.match(html, new RegExp(`id="${id}"`));
-  }
+  for (const id of ['limit-list','budget-summary','category-section','simple-start-focus','focus-active','stop-focus']) assert.match(html, new RegExp(`id="${id}"`));
 });
 
 test('settings and history follow the master plan grouped inspection layout', async () => {
@@ -102,4 +98,10 @@ test('CI renders the full master-plan acceptance screenshot matrix', async () =>
     'popup-light','popup-dark','sidepanel-light','sidepanel-dark',
     'blocked-light','blocked-dark','dialog-light-desktop','dialog-dark-desktop','dialog-light-mobile','dialog-dark-mobile'
   ]) assert.match(workflow, new RegExp(shot));
+});
+
+test('explicit dark Side Panel paints the entire compact shell dark', async () => {
+  const css = await read('src/styles/master-plan.css');
+  assert.match(css, /html\[data-theme="dark"\]\s+body \.side-shell\s*\{[\s\S]{0,180}background:\s*var\(--bg\)\s*!important/);
+  assert.match(css, /html\[data-theme="dark"\]\s+body \.side-shell\s*\{[\s\S]{0,220}color:\s*var\(--text\)/);
 });
