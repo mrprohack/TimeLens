@@ -64,3 +64,19 @@ test('settings and history follow the master plan grouped inspection layout', as
   for (const value of ['light','dark','system']) assert.match(settings, new RegExp(`value="${value}"`));
   for (const id of ['history-total-time','history-session-count','history-list']) assert.match(html, new RegExp(`id="${id}"`));
 });
+
+test('compact surfaces match the master plan while preserving action hooks', async () => {
+  const popup = await read('src/popup/popup.html');
+  const side = await read('src/sidepanel/sidepanel.html');
+  const blocked = await read('src/blocked/blocked.html');
+  const css = await read('src/styles/master-plan.css');
+  for (const id of ['focus-toggle','limit-current-site','open-dashboard','open-side-panel']) assert.match(popup, new RegExp(`id="${id}"`));
+  for (const id of ['side-current-domain','side-current-time','side-limit-site','side-focus-action','side-open-dashboard']) assert.match(side, new RegExp(`id="${id}"`));
+  for (const id of ['close-tab','open-dashboard','allowance-actions']) assert.match(blocked, new RegExp(`id="${id}"`));
+  assert.match(css, /html body \.popup-shell\s*\{[\s\S]{0,220}gap:\s*10px/);
+  assert.match(css, /html body \.current-panel\s*\{[\s\S]{0,260}padding:\s*22px/);
+  assert.match(css, /html body \.current-time\s*\{[\s\S]{0,200}font-size:\s*38px/);
+  assert.match(css, /html body \.quick-panel\s*\{[\s\S]{0,240}padding:\s*18px/);
+  assert.match(css, /html body \.blocked-shell\s*\{[\s\S]{0,280}width:\s*min\(680px,/);
+  assert.match(css, /html body \.dialog-panel\s*\{[\s\S]{0,220}border-radius:\s*20px/);
+});
