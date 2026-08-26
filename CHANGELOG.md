@@ -2,6 +2,22 @@
 
 All notable changes to TimeLens are documented here.
 
+## 1.5.0 — 2026-08-19
+
+### Changed
+- Reworked the premium dashboard to closely follow the approved TimeLens reference: white/blue SaaS shell, fixed desktop sidebar, compact KPI cards, donut breakdown, ranked distracting sites, alert cards, seven-day usage bars, and recent sessions.
+- Added real-data KPI presentation for total usage, Focus state, sites visited, and the existing optional daily browsing budget. No synthetic productivity score, streak, cloud-sync, or telemetry data is introduced.
+- Added a secondary Usage History entry in the sidebar that opens the existing local History drawer with total-time and session-count summaries.
+- Rebuilt the extension popup around the approved reference composition: circular Today summary, sites-visited and Focus status, current website boundary, Focus/Limit actions, and a visible dashboard entry in one compact screen.
+- Kept the optional Top Sites detail out of the popup normal view so the primary actions remain visible without scrolling at the representative 360×600 viewport.
+- Refreshed deterministic dashboard and popup preview fixtures for visual QA.
+- Kept the dark high-contrast blocked/time-out presentation and responsive dashboard behavior consistent with the same blue/indigo visual system.
+
+### Compatibility and privacy
+- Schema remains version 4 and all existing tracking, limits, categories, schedules, total budget, Focus presets, diagnostics, and local backups remain compatible.
+- Chrome permissions are unchanged: `tabs`, `storage`, `idle`, `alarms`, `notifications`, and `sidePanel`.
+- No host permissions, content scripts, browsing-history access, cookies, backend, accounts, cloud sync, analytics, or remote runtime code were added.
+
 ## 1.4.0 — 2026-08-17
 
 ### Changed

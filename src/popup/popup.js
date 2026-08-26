@@ -11,6 +11,20 @@ function currentLimit() {
   return snapshot?.limits?.find((limit) => limit.domain === snapshot.currentDomain) || null;
 }
 
+function summaryProgress() {
+  const budget = snapshot?.totalBudget;
+  if (budget?.enabled && budget.effectiveMs > 0) {
+    const used = Math.max(0, budget.effectiveMs - Math.max(0, budget.remainingMs || 0));
+    return Math.min(100, Math.max(0, Math.round((used / budget.effectiveMs) * 100)));
+  }
+  const limit = currentLimit();
+  if (limit?.effectiveMs > 0) {
+    const used = Math.max(0, limit.effectiveMs - Math.max(0, limit.remainingMs || 0));
+    return Math.min(100, Math.max(0, Math.round((used / limit.effectiveMs) * 100)));
+  }
+  return 0;
+}
+
 function renderTopSites() {
   const node = document.getElementById('top-sites');
   const sites = (snapshot?.todayTop || []).slice(0, 3);
@@ -20,6 +34,10 @@ function renderTopSites() {
 
 function render() {
   setText('today-total', formatDuration(snapshot?.todayTotalMs || 0, true));
+  setText('popup-site-count', String((snapshot?.todayTop || []).length));
+  setText('popup-focus-status', snapshot?.focus ? 'Active' : 'Ready');
+  document.querySelector('.summary-ring')?.style.setProperty('--summary-progress', `${summaryProgress() * 3.6}deg`);
+
   setText('current-domain', snapshot?.currentDomain || 'No active website');
   setText('current-usage', snapshot?.currentDomain ? `${formatDuration(snapshot.currentDomainMs || 0, true)} today` : '0m today');
   setText('current-avatar', initial(snapshot?.currentDomain));
@@ -73,9 +91,7 @@ document.getElementById('limit-current-site').addEventListener('click', async ()
   const button = document.getElementById('limit-current-site');
   button.disabled = true;
   try {
-    await send('SAVE_LIMIT', {
-      limit: { domain: snapshot.currentDomain, minutes: 30, period: 'daily', strict: false, enabled: true }
-    });
+    await send('SAVE_LIMIT', { limit: { domain: snapshot.currentDomain, minutes: 30, period: 'daily', strict: false, enabled: true } });
     await refresh();
   } catch (error) { showError(error); }
   finally { button.disabled = false; }

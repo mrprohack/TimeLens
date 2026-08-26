@@ -19,201 +19,151 @@
         <button class="nav-link" type="button" data-dashboard-view="focus">Focus</button>
         <button class="nav-link" type="button" data-dashboard-view="settings">Settings</button>
       </nav>
+      <div class="sidebar-secondary">
+        <button id="sidebar-history" class="nav-link secondary-link" type="button">Usage History</button>
+      </div>
+      <div class="sidebar-status">
+        <span class="status-pulse" aria-hidden="true"></span>
+        <span><strong>Local tracking</strong><small>Private on this device</small></span>
+      </div>
     </div>
   </header>
 
   <main class="dashboard-shell">
     <section class="dashboard-view" data-view="home">
-      <div class="home-hero">
+      <div class="dashboard-topbar">
         <div>
-          <div class="eyeline">Today</div>
-          <div id="home-today-total" class="hero-number">0m</div>
-          <p id="home-comparison" class="muted">Active browsing today</p>
+          <div class="eyeline">TimeLens</div>
+          <h1>Dashboard</h1>
+          <p class="muted">Your time at a glance</p>
         </div>
-        <div class="current-card panel">
-          <div class="muted small">Current website</div>
-          <strong id="home-current-site">No active website</strong>
-          <span id="home-current-time" class="muted small">0m today</span>
+        <div class="dashboard-topbar-actions">
+          <div class="period-context" aria-label="Usage period"><span>Today</span></div>
+          <button id="home-start-focus" class="btn focus-mode-button" type="button"><span class="focus-dot" aria-hidden="true"></span>Focus Mode</button>
         </div>
       </div>
 
-      <div class="quick-actions" aria-label="Quick actions">
-        <button id="home-start-focus" class="btn btn-primary" type="button">Start Focus</button>
-        <button id="home-add-limit" class="btn" type="button">Add Limit</button>
-        <button id="home-open-side-panel" class="btn btn-quiet" type="button">Open Side Panel</button>
+      <div class="kpi-grid">
+        <article class="kpi-card panel kpi-primary">
+          <div class="kpi-head"><span>Total Usage</span><span class="kpi-icon">↗</span></div>
+          <strong id="home-today-total" class="kpi-value">0m</strong>
+          <span id="home-comparison" class="kpi-meta positive">Active browsing today</span>
+          <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </article>
+        <article class="kpi-card panel">
+          <div class="kpi-head"><span>Focus Mode</span><span class="kpi-icon kpi-icon-purple">◎</span></div>
+          <strong id="home-focus-kpi" class="kpi-value">Ready</strong>
+          <span id="home-focus-meta" class="kpi-meta">25 minute quick start</span>
+          <div class="mini-wave purple" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </article>
+        <article class="kpi-card panel">
+          <div class="kpi-head"><span>Sites Visited</span><span class="kpi-icon kpi-icon-green">◉</span></div>
+          <strong id="home-site-count" class="kpi-value">0</strong>
+          <span class="kpi-meta">Active websites today</span>
+          <div class="site-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        </article>
+        <article class="kpi-card panel budget-kpi-card">
+          <div class="kpi-head"><span>Daily Budget</span><span class="kpi-icon">◷</span></div>
+          <div class="budget-kpi-layout"><div><strong id="home-budget-kpi" class="kpi-value">Off</strong><span id="home-budget-meta" class="kpi-meta">No overall budget</span></div><div id="home-budget-ring" class="budget-ring" style="--budget-progress:0deg"><span></span></div></div>
+        </article>
       </div>
 
-      <div class="home-grid">
-        <div class="home-card panel">
-          <div class="section-heading-row"><div><div class="eyeline">Top websites</div><h2>Where your time went</h2></div></div>
+      <div class="current-strip panel">
+        <div class="current-strip-copy"><span class="site-orb" aria-hidden="true">◉</span><span><small>Current website</small><strong id="home-current-site">No active website</strong></span></div>
+        <span id="home-current-time" class="current-time-pill">0m today</span>
+        <div class="quick-actions" aria-label="Quick actions">
+          <button id="home-add-limit" class="btn btn-primary" type="button">+ Add Limit</button>
+          <button id="home-open-side-panel" class="btn" type="button">Open Side Panel</button>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <article class="analytics-card panel breakdown-card">
+          <div class="section-heading-row"><div><h2>Time Breakdown</h2><p class="muted small">Today by website</p></div></div>
+          <div id="home-breakdown" class="breakdown-layout"></div>
+        </article>
+
+        <article class="analytics-card panel top-sites-card">
+          <div class="section-heading-row"><div><h2>Top Distracting Sites</h2><p class="muted small">Most active today</p></div></div>
           <div id="home-top-sites" class="usage-list"></div>
-        </div>
-        <div class="home-card panel">
-          <div class="section-heading-row"><div><div class="eyeline">Needs attention</div><h2>Limits today</h2></div></div>
-          <div id="home-attention" class="attention-list"><p class="muted">All limits look good today.</p></div>
-        </div>
-      </div>
+        </article>
 
-      <div class="home-card panel recent-card">
-        <div class="section-heading-row">
-          <div><div class="eyeline">Recent activity</div><h2>Latest sessions</h2></div>
-          <button id="open-history" class="btn btn-quiet" type="button">View full history</button>
-        </div>
-        <div id="home-recent" class="recent-list"></div>
+        <article class="analytics-card panel alerts-card">
+          <div class="section-heading-row"><div><h2>Alerts</h2><p class="muted small">Limits needing attention</p></div></div>
+          <div id="home-attention" class="attention-list"><p class="muted">All limits look good today.</p></div>
+        </article>
+
+        <article class="analytics-card panel trend-card">
+          <div class="section-heading-row"><div><h2>Usage Trend</h2><p class="muted small">Recent active browsing</p></div><span class="trend-label">7 days</span></div>
+          <div id="home-usage-trend" class="trend-bars"></div>
+        </article>
+
+        <article class="analytics-card panel recent-card">
+          <div class="section-heading-row">
+            <div><h2>Recent Sessions</h2><p class="muted small">Latest browsing activity</p></div>
+            <button id="open-history" class="btn btn-quiet btn-small" type="button">View all</button>
+          </div>
+          <div id="home-recent" class="recent-list"></div>
+        </article>
       </div>
 
       <p class="privacy-note">Private · stored on this device</p>
 
       <div class="legacy-dashboard-hooks" hidden aria-hidden="true">
-        <div id="range-control" class="range-control" role="group" aria-label="Usage range">
-          <button type="button" data-days="1">Today</button><button type="button" data-days="7" class="active">7 days</button><button type="button" data-days="30">30 days</button>
-        </div>
+        <div id="range-control" class="range-control" role="group" aria-label="Usage range"><button type="button" data-days="1">Today</button><button type="button" data-days="7" class="active">7 days</button><button type="button" data-days="30">30 days</button></div>
         <span id="range-label">Last 7 days</span><span id="range-total">0m</span><span id="summary-note"></span><span id="current-domain">No active website</span>
         <div id="daily-chart"></div><div id="top-sites"></div>
       </div>
     </section>
 
     <section class="dashboard-view" data-view="limits" hidden>
-      <div class="page-heading">
-        <div><div class="eyeline">Limits</div><h1>Keep the boundaries simple.</h1><p class="muted">Start with site limits. Open extra controls only when you need them.</p></div>
-        <button id="limits-add-limit" class="btn btn-primary" type="button">+ Add limit</button>
-      </div>
-
-      <div class="panel workspace-card">
-        <div class="workspace-heading"><div><h2>Site limits</h2><p class="muted small">Daily by default. Weekly, monthly, Strict and schedules stay optional.</p></div></div>
-        <div id="limit-list" class="limit-list"></div>
-      </div>
-
-      <div class="panel workspace-card budget-summary-card">
-        <div class="workspace-heading">
-          <div><h2>Daily browsing budget</h2><p class="muted small">One optional boundary across all active browsing.</p></div>
-          <strong id="total-budget-progress">Not enabled</strong>
-        </div>
-        <div id="budget-summary" class="summary-action-row"><span class="muted">No overall budget set.</span><button id="open-budget-dialog" class="btn" type="button">Set budget</button></div>
-      </div>
-
-      <div class="panel workspace-card">
-        <button id="category-disclosure" class="disclosure-row" type="button" aria-expanded="false" aria-controls="category-section">
-          <span><strong>Category limits</strong><small id="category-count" class="muted">Optional shared limits</small></span><span aria-hidden="true">›</span>
-        </button>
-        <div id="category-section" hidden>
-          <div class="subsection-actions"><button id="open-category-dialog" class="btn" type="button">Add category</button></div>
-          <div id="category-list" class="limit-list"></div>
-        </div>
-      </div>
+      <div class="page-heading"><div><div class="eyeline">Limits</div><h1>Keep the boundaries simple.</h1><p class="muted">Start with site limits. Open extra controls only when you need them.</p></div><button id="limits-add-limit" class="btn btn-primary" type="button">+ Add limit</button></div>
+      <div class="panel workspace-card"><div class="workspace-heading"><div><h2>Site limits</h2><p class="muted small">Daily by default. Weekly, monthly, Strict and schedules stay optional.</p></div></div><div id="limit-list" class="limit-list"></div></div>
+      <div class="panel workspace-card budget-summary-card"><div class="workspace-heading"><div><h2>Daily browsing budget</h2><p class="muted small">One optional boundary across all active browsing.</p></div><strong id="total-budget-progress">Not enabled</strong></div><div id="budget-summary" class="summary-action-row"><span class="muted">No overall budget set.</span><button id="open-budget-dialog" class="btn" type="button">Set budget</button></div></div>
+      <div class="panel workspace-card"><button id="category-disclosure" class="disclosure-row" type="button" aria-expanded="false" aria-controls="category-section"><span><strong>Category limits</strong><small id="category-count" class="muted">Optional shared limits</small></span><span aria-hidden="true">›</span></button><div id="category-section" hidden><div class="subsection-actions"><button id="open-category-dialog" class="btn" type="button">Add category</button></div><div id="category-list" class="limit-list"></div></div></div>
     </section>
 
     <section class="dashboard-view" data-view="focus" hidden>
-      <div class="focus-simple panel">
-        <div id="focus-idle-state">
-          <div class="eyeline">Focus</div>
-          <h1>Ready to focus?</h1>
-          <p class="muted">Choose a duration and start. Your detailed website list stays out of the way.</p>
-          <div id="focus-duration-options" class="duration-options" role="group" aria-label="Focus duration">
-            <button type="button" class="duration-chip is-selected" data-focus-minutes="25">25 min</button>
-            <button type="button" class="duration-chip" data-focus-minutes="45">45 min</button>
-            <button type="button" class="duration-chip" data-focus-minutes="60">60 min</button>
-            <button type="button" class="duration-chip" data-focus-minutes="90">90 min</button>
-          </div>
-          <div id="focus-preset-chips" class="preset-chips"></div>
-          <div class="focus-selection-row"><span id="focus-selection-copy" class="muted">Using: Block distractions</span><button id="open-focus-settings" class="btn btn-quiet" type="button">Change</button></div>
-          <button id="simple-start-focus" class="btn btn-primary focus-primary" type="button">Start Focus</button>
-        </div>
-        <div id="focus-active" class="focus-active" hidden>
-          <div><div class="eyeline">Focus in progress</div><div id="focus-remaining" class="focus-time">0m</div><strong id="focus-session-name">Focus</strong><div id="focus-blocked-count" class="muted"></div></div>
-          <button id="stop-focus" class="btn btn-danger" type="button">End Focus</button>
-        </div>
-      </div>
+      <div class="focus-simple panel"><div id="focus-idle-state"><div class="eyeline">Focus</div><h1>Ready to focus?</h1><p class="muted">Choose a duration and start. Your detailed website list stays out of the way.</p><div id="focus-duration-options" class="duration-options" role="group" aria-label="Focus duration"><button type="button" class="duration-chip is-selected" data-focus-minutes="25">25 min</button><button type="button" class="duration-chip" data-focus-minutes="45">45 min</button><button type="button" class="duration-chip" data-focus-minutes="60">60 min</button><button type="button" class="duration-chip" data-focus-minutes="90">90 min</button></div><div id="focus-preset-chips" class="preset-chips"></div><div class="focus-selection-row"><span id="focus-selection-copy" class="muted">Using: Block distractions</span><button id="open-focus-settings" class="btn btn-quiet" type="button">Change</button></div><button id="simple-start-focus" class="btn btn-primary focus-primary" type="button">Start Focus</button></div><div id="focus-active" class="focus-active" hidden><div><div class="eyeline">Focus in progress</div><div id="focus-remaining" class="focus-time">0m</div><strong id="focus-session-name">Focus</strong><div id="focus-blocked-count" class="muted"></div></div><button id="stop-focus" class="btn btn-danger" type="button">End Focus</button></div></div>
     </section>
 
     <section class="dashboard-view" data-view="settings" hidden>
       <div class="page-heading"><div><div class="eyeline">Settings</div><h1>Only the controls you rarely need.</h1><p class="muted">Notifications, tracking, data and privacy live here.</p></div></div>
       <div class="settings-stack">
-        <div class="panel settings-card"><h2>Notifications</h2><div class="setting-list">
-          <label class="check-row"><input id="alert-five" type="checkbox"><span><strong>5 minutes left</strong><small>Early warning.</small></span></label>
-          <label class="check-row"><input id="alert-one" type="checkbox"><span><strong>1 minute left</strong><small>Final warning.</small></span></label>
-          <label class="check-row"><input id="alert-timeout" type="checkbox"><span><strong>Time is up</strong><small>Boundary notification.</small></span></label>
-        </div></div>
-
-        <div class="panel settings-card"><h2>Tracking</h2><div class="settings-grid">
-          <label class="label"><span>Idle after</span><select id="idle-seconds" class="input"><option value="30">30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="300">5 minutes</option></select></label>
-          <label class="label"><span>Keep detailed sessions</span><select id="retention-days" class="input"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="180">180 days</option></select></label>
-        </div><button id="save-settings" class="btn btn-primary" type="button">Save preferences</button></div>
-
-        <div class="panel settings-card"><h2>Data</h2><p class="muted small">Export, restore, or clear your local usage data.</p><div class="data-actions">
-          <button id="export-data" class="btn" type="button">Export JSON</button><button id="import-data" class="btn" type="button">Restore JSON</button><input id="import-file" type="file" accept="application/json,.json" hidden><button id="clear-data" class="btn btn-danger" type="button">Clear usage data</button>
-        </div></div>
-
+        <div class="panel settings-card"><h2>Notifications</h2><div class="setting-list"><label class="check-row"><input id="alert-five" type="checkbox"><span><strong>5 minutes left</strong><small>Early warning.</small></span></label><label class="check-row"><input id="alert-one" type="checkbox"><span><strong>1 minute left</strong><small>Final warning.</small></span></label><label class="check-row"><input id="alert-timeout" type="checkbox"><span><strong>Time is up</strong><small>Boundary notification.</small></span></label></div></div>
+        <div class="panel settings-card"><h2>Tracking</h2><div class="settings-grid"><label class="label"><span>Idle after</span><select id="idle-seconds" class="input"><option value="30">30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="300">5 minutes</option></select></label><label class="label"><span>Keep detailed sessions</span><select id="retention-days" class="input"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="180">180 days</option></select></label></div><button id="save-settings" class="btn btn-primary" type="button">Save preferences</button></div>
+        <div class="panel settings-card"><h2>Data</h2><p class="muted small">Export, restore, or clear your local usage data.</p><div class="data-actions"><button id="export-data" class="btn" type="button">Export JSON</button><button id="import-data" class="btn" type="button">Restore JSON</button><input id="import-file" type="file" accept="application/json,.json" hidden><button id="clear-data" class="btn btn-danger" type="button">Clear usage data</button></div></div>
         <div class="panel settings-card"><h2>Privacy</h2><p class="muted">TimeLens keeps browsing-time data on this device and does not use a backend or analytics service.</p></div>
-
-        <div class="panel settings-card">
-          <button id="health-toggle" class="disclosure-row" type="button" aria-expanded="false" aria-controls="health-details"><span><strong>Extension health</strong><small id="health-status" class="muted">Checking…</small></span><span aria-hidden="true">›</span></button>
-          <div id="health-details" hidden>
-            <div class="health-grid"><div><span class="muted small">Local data</span><strong id="storage-usage">—</strong></div><div><span class="muted small">Diagnostics</span><strong id="diagnostic-count">—</strong></div></div>
-            <p id="health-detail" class="muted small" aria-live="polite">No health information yet.</p>
-            <button id="clear-diagnostics" class="btn" type="button">Clear diagnostics</button>
-          </div>
-        </div>
+        <div class="panel settings-card"><button id="health-toggle" class="disclosure-row" type="button" aria-expanded="false" aria-controls="health-details"><span><strong>Extension health</strong><small id="health-status" class="muted">Checking…</small></span><span aria-hidden="true">›</span></button><div id="health-details" hidden><div class="health-grid"><div><span class="muted small">Local data</span><strong id="storage-usage">—</strong></div><div><span class="muted small">Diagnostics</span><strong id="diagnostic-count">—</strong></div></div><p id="health-detail" class="muted small" aria-live="polite">No health information yet.</p><button id="clear-diagnostics" class="btn" type="button">Clear diagnostics</button></div></div>
       </div>
     </section>
   </main>
 
-  <nav class="mobile-nav" aria-label="Mobile dashboard navigation">
-    <button type="button" class="mobile-nav-item is-active" data-dashboard-view="home">Home</button>
-    <button type="button" class="mobile-nav-item" data-dashboard-view="limits">Limits</button>
-    <button type="button" class="mobile-nav-item" data-dashboard-view="focus">Focus</button>
-    <button type="button" class="mobile-nav-item mobile-settings" data-dashboard-view="settings" aria-label="Settings">⚙</button>
-  </nav>
+  <nav class="mobile-nav" aria-label="Mobile dashboard navigation"><button type="button" class="mobile-nav-item is-active" data-dashboard-view="home">Home</button><button type="button" class="mobile-nav-item" data-dashboard-view="limits">Limits</button><button type="button" class="mobile-nav-item" data-dashboard-view="focus">Focus</button><button type="button" class="mobile-nav-item mobile-settings" data-dashboard-view="settings">Settings</button></nav>
 
   <div id="history-drawer" class="drawer-backdrop" hidden aria-hidden="true">
     <aside class="history-drawer panel" role="dialog" aria-modal="true" aria-labelledby="history-title">
-      <div class="dialog-heading"><div><div class="eyeline">History</div><h2 id="history-title">Browsing sessions</h2></div><button class="icon-close" type="button" data-close-dialog aria-label="Close history">×</button></div>
+      <div class="dialog-heading"><div><div class="eyeline">Usage History</div><h2 id="history-title">Browsing sessions</h2></div><button class="icon-close" type="button" data-close-dialog aria-label="Close history">×</button></div>
+      <div class="history-summary"><div><span>Total time</span><strong id="history-total-time">0m</strong></div><div><span>Sessions</span><strong id="history-session-count">0</strong></div></div>
+      <div class="history-context"><span>Recent sessions</span><small>Latest browsing activity</small></div>
       <div class="history-head"><span>Website</span><span>Started</span><span>Active time</span></div>
       <div id="history-list" class="history-list"></div>
     </aside>
   </div>
 
   <div id="limit-dialog" class="dialog-backdrop" hidden aria-hidden="true">
-    <div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="limit-dialog-title">
-      <div class="dialog-heading"><div><div class="eyeline">Limit</div><h2 id="limit-dialog-title">Add a limit</h2></div><button class="icon-close" type="button" data-close-dialog aria-label="Close limit dialog">×</button></div>
-      <div id="limit-editing-note" class="editing-note" hidden><strong>Editing limit</strong><span id="limit-editing-domain"></span></div>
-      <form id="limit-form" class="stack" novalidate>
-        <label class="label"><span>Website</span><input id="limit-domain" class="input" name="domain" placeholder="youtube.com" autocomplete="off" required><small id="limit-domain-error" class="field-error" hidden></small></label>
-        <div class="simple-time-row"><label class="label"><span>Daily time</span><input id="limit-value" class="input" name="value" type="number" min="0.25" step="0.25" value="60" required><small id="limit-value-error" class="field-error" hidden></small></label><label class="label unit-field"><span>Unit</span><select id="limit-unit" class="input" name="unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></label></div>
-        <button id="limit-advanced-toggle" class="disclosure-button" type="button" aria-expanded="false" aria-controls="limit-advanced-options">Advanced options <span aria-hidden="true">▾</span></button>
-        <div id="limit-advanced-options" class="advanced-options" hidden>
-          <label class="label"><span>Reset</span><select id="limit-period" class="input" name="period"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
-          <label class="check-row"><input id="limit-strict" name="strict" type="checkbox"><span><strong>Strict mode</strong><small>No temporary extension when time runs out.</small></span></label>
-          <fieldset class="schedule-box"><legend>Schedule</legend><label class="check-row"><input id="limit-schedule-enabled" type="checkbox"><span><strong>Use a schedule</strong><small>Otherwise this limit applies all day.</small></span></label><div id="limit-schedule-days" class="weekday-grid"><label><input type="checkbox" value="1" checked>Mon</label><label><input type="checkbox" value="2" checked>Tue</label><label><input type="checkbox" value="3" checked>Wed</label><label><input type="checkbox" value="4" checked>Thu</label><label><input type="checkbox" value="5" checked>Fri</label><label><input type="checkbox" value="6">Sat</label><label><input type="checkbox" value="0">Sun</label></div><div class="time-grid"><label class="label"><span>Start</span><input id="limit-schedule-start" class="input" type="time" value="09:00"></label><label class="label"><span>End</span><input id="limit-schedule-end" class="input" type="time" value="17:00"></label></div></fieldset>
-        </div>
-        <div class="dialog-actions"><button id="limit-cancel-edit" class="btn" type="button" hidden>Cancel</button><button id="limit-submit" class="btn btn-primary" type="submit">Save limit</button></div>
-      </form>
-    </div>
+    <div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="limit-dialog-title"><div class="dialog-heading"><div><div class="eyeline">Limit</div><h2 id="limit-dialog-title">Add a limit</h2></div><button class="icon-close" type="button" data-close-dialog aria-label="Close limit dialog">×</button></div><div id="limit-editing-note" class="editing-note" hidden><strong>Editing limit</strong><span id="limit-editing-domain"></span></div><form id="limit-form" class="stack" novalidate><label class="label"><span>Website</span><input id="limit-domain" class="input" name="domain" placeholder="youtube.com" autocomplete="off" required><small id="limit-domain-error" class="field-error" hidden></small></label><div class="simple-time-row"><label class="label"><span>Daily time</span><input id="limit-value" class="input" name="value" type="number" min="0.25" step="0.25" value="60" required><small id="limit-value-error" class="field-error" hidden></small></label><label class="label unit-field"><span>Unit</span><select id="limit-unit" class="input" name="unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></label></div><button id="limit-advanced-toggle" class="disclosure-button" type="button" aria-expanded="false" aria-controls="limit-advanced-options">Advanced options <span aria-hidden="true">▾</span></button><div id="limit-advanced-options" class="advanced-options" hidden><label class="label"><span>Reset</span><select id="limit-period" class="input" name="period"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label><label class="check-row"><input id="limit-strict" name="strict" type="checkbox"><span><strong>Strict mode</strong><small>No temporary extension when time runs out.</small></span></label><fieldset class="schedule-box"><legend>Schedule</legend><label class="check-row"><input id="limit-schedule-enabled" type="checkbox"><span><strong>Use a schedule</strong><small>Otherwise this limit applies all day.</small></span></label><div id="limit-schedule-days" class="weekday-grid"><label><input type="checkbox" value="1" checked>Mon</label><label><input type="checkbox" value="2" checked>Tue</label><label><input type="checkbox" value="3" checked>Wed</label><label><input type="checkbox" value="4" checked>Thu</label><label><input type="checkbox" value="5" checked>Fri</label><label><input type="checkbox" value="6">Sat</label><label><input type="checkbox" value="0">Sun</label></div><div class="time-grid"><label class="label"><span>Start</span><input id="limit-schedule-start" class="input" type="time" value="09:00"></label><label class="label"><span>End</span><input id="limit-schedule-end" class="input" type="time" value="17:00"></label></div></fieldset></div><div class="dialog-actions"><button id="limit-cancel-edit" class="btn" type="button" hidden>Cancel</button><button id="limit-submit" class="btn btn-primary" type="submit">Save limit</button></div></form></div>
   </div>
 
-  <div id="budget-dialog" class="dialog-backdrop" hidden aria-hidden="true">
-    <div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="budget-dialog-title"><div class="dialog-heading"><h2 id="budget-dialog-title">Daily browsing budget</h2><button class="icon-close" type="button" data-close-dialog aria-label="Close budget dialog">×</button></div>
-      <form id="total-budget-form" class="stack"><label class="check-row"><input id="total-budget-enabled" type="checkbox"><span><strong>Enable budget</strong><small>Counts active browsing across every website.</small></span></label><label class="label"><span>Minutes per day</span><input id="total-budget-minutes" class="input" type="number" min="1" max="1440" value="300" required></label><label class="label"><span>At the boundary</span><select id="total-budget-mode" class="input"><option value="warn">Warn only</option><option value="block">Block browsing</option></select></label><button class="btn btn-primary" type="submit">Save budget</button></form>
-    </div>
-  </div>
+  <div id="budget-dialog" class="dialog-backdrop" hidden aria-hidden="true"><div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="budget-dialog-title"><div class="dialog-heading"><h2 id="budget-dialog-title">Daily browsing budget</h2><button class="icon-close" type="button" data-close-dialog aria-label="Close budget dialog">×</button></div><form id="total-budget-form" class="stack"><label class="check-row"><input id="total-budget-enabled" type="checkbox"><span><strong>Enable budget</strong><small>Counts active browsing across every website.</small></span></label><label class="label"><span>Minutes per day</span><input id="total-budget-minutes" class="input" type="number" min="1" max="1440" value="300" required></label><label class="label"><span>At the boundary</span><select id="total-budget-mode" class="input"><option value="warn">Warn only</option><option value="block">Block browsing</option></select></label><button class="btn btn-primary" type="submit">Save budget</button></form></div></div>
 
-  <div id="category-dialog" class="dialog-backdrop" hidden aria-hidden="true">
-    <div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="category-dialog-title"><div class="dialog-heading"><h2 id="category-dialog-title">Add category limit</h2><button class="icon-close" type="button" data-close-dialog aria-label="Close category dialog">×</button></div>
-      <form id="category-form" class="stack"><label class="label"><span>Category name</span><input id="category-name" class="input" placeholder="Social" maxlength="80" required></label><label class="label"><span>Websites</span><textarea id="category-domains" class="input textarea" rows="3" placeholder="instagram.com, reddit.com" required></textarea></label><div class="simple-time-row"><label class="label"><span>Time</span><input id="category-value" class="input" type="number" min="1" value="60" required></label><label class="label"><span>Reset</span><select id="category-period" class="input"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label></div><label class="check-row"><input id="category-strict" type="checkbox"><span><strong>Strict</strong><small>Treat this as a firm boundary.</small></span></label><fieldset class="schedule-box"><legend>Advanced schedule</legend><label class="check-row"><input id="category-schedule-enabled" type="checkbox"><span><strong>Use a schedule</strong></span></label><div id="category-schedule-days" class="weekday-grid"><label><input type="checkbox" value="1" checked>Mon</label><label><input type="checkbox" value="2" checked>Tue</label><label><input type="checkbox" value="3" checked>Wed</label><label><input type="checkbox" value="4" checked>Thu</label><label><input type="checkbox" value="5" checked>Fri</label><label><input type="checkbox" value="6">Sat</label><label><input type="checkbox" value="0">Sun</label></div><div class="time-grid"><label class="label"><span>Start</span><input id="category-schedule-start" class="input" type="time" value="09:00"></label><label class="label"><span>End</span><input id="category-schedule-end" class="input" type="time" value="17:00"></label></div></fieldset><button class="btn btn-primary" type="submit">Save category</button></form>
-    </div>
-  </div>
+  <div id="category-dialog" class="dialog-backdrop" hidden aria-hidden="true"><div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="category-dialog-title"><div class="dialog-heading"><h2 id="category-dialog-title">Add category limit</h2><button class="icon-close" type="button" data-close-dialog aria-label="Close category dialog">×</button></div><form id="category-form" class="stack"><label class="label"><span>Category name</span><input id="category-name" class="input" placeholder="Social" maxlength="80" required></label><label class="label"><span>Websites</span><textarea id="category-domains" class="input textarea" rows="3" placeholder="instagram.com, reddit.com" required></textarea></label><div class="simple-time-row"><label class="label"><span>Time</span><input id="category-value" class="input" type="number" min="1" value="60" required></label><label class="label"><span>Reset</span><select id="category-period" class="input"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label></div><label class="check-row"><input id="category-strict" type="checkbox"><span><strong>Strict</strong><small>Treat this as a firm boundary.</small></span></label><fieldset class="schedule-box"><legend>Advanced schedule</legend><label class="check-row"><input id="category-schedule-enabled" type="checkbox"><span><strong>Use a schedule</strong></span></label><div id="category-schedule-days" class="weekday-grid"><label><input type="checkbox" value="1" checked>Mon</label><label><input type="checkbox" value="2" checked>Tue</label><label><input type="checkbox" value="3" checked>Wed</label><label><input type="checkbox" value="4" checked>Thu</label><label><input type="checkbox" value="5" checked>Fri</label><label><input type="checkbox" value="6">Sat</label><label><input type="checkbox" value="0">Sun</label></div><div class="time-grid"><label class="label"><span>Start</span><input id="category-schedule-start" class="input" type="time" value="09:00"></label><label class="label"><span>End</span><input id="category-schedule-end" class="input" type="time" value="17:00"></label></div></fieldset><button class="btn btn-primary" type="submit">Save category</button></form></div></div>
 
-  <div id="focus-settings-dialog" class="dialog-backdrop" hidden aria-hidden="true">
-    <div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="focus-settings-title"><div class="dialog-heading"><h2 id="focus-settings-title">Focus settings</h2><button class="icon-close" type="button" data-close-dialog aria-label="Close focus settings">×</button></div>
-      <form id="focus-form" class="stack"><label class="label"><span>Preset</span><select id="focus-presets" class="input"><option value="">Custom</option></select></label><label class="label"><span>Duration</span><select id="focus-minutes" class="input"><option value="25">25 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option></select></label><label class="label"><span>Mode</span><select id="focus-mode" class="input"><option value="block">Block these sites</option><option value="allow">Allow only these sites</option></select></label><label class="label"><span id="focus-domains-label">Blocked websites</span><textarea id="focus-domains" class="input textarea" rows="5">youtube.com
+  <div id="focus-settings-dialog" class="dialog-backdrop" hidden aria-hidden="true"><div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="focus-settings-title"><div class="dialog-heading"><h2 id="focus-settings-title">Focus settings</h2><button class="icon-close" type="button" data-close-dialog aria-label="Close focus settings">×</button></div><form id="focus-form" class="stack"><label class="label"><span>Preset</span><select id="focus-presets" class="input"><option value="">Custom</option></select></label><label class="label"><span>Duration</span><select id="focus-minutes" class="input"><option value="25">25 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option></select></label><label class="label"><span>Mode</span><select id="focus-mode" class="input"><option value="block">Block these sites</option><option value="allow">Allow only these sites</option></select></label><label class="label"><span id="focus-domains-label">Blocked websites</span><textarea id="focus-domains" class="input textarea" rows="5">youtube.com
 reddit.com
 instagram.com
 facebook.com
-x.com</textarea></label><button class="btn btn-primary" type="submit">Start focus session</button></form>
-      <div class="divider"></div>
-      <form id="preset-form" class="stack"><h3>Saved presets</h3><label class="label"><span>Name</span><input id="preset-name" class="input" maxlength="80" placeholder="Writing sprint" required></label><div class="simple-time-row"><label class="label"><span>Minutes</span><input id="preset-duration" class="input" type="number" min="1" max="480" value="45" required></label><label class="label"><span>Mode</span><select id="preset-mode" class="input"><option value="block">Block list</option><option value="allow">Allow only</option></select></label></div><label class="label"><span>Websites</span><textarea id="preset-domains" class="input textarea" rows="3"></textarea></label><button class="btn" type="submit">Save preset</button></form><div id="preset-list" class="preset-list"></div>
-    </div>
-  </div>
+x.com</textarea></label><button class="btn btn-primary" type="submit">Start focus session</button></form><div class="divider"></div><form id="preset-form" class="stack"><h3>Saved presets</h3><label class="label"><span>Name</span><input id="preset-name" class="input" maxlength="80" placeholder="Writing sprint" required></label><div class="simple-time-row"><label class="label"><span>Minutes</span><input id="preset-duration" class="input" type="number" min="1" max="480" value="45" required></label><label class="label"><span>Mode</span><select id="preset-mode" class="input"><option value="block">Block list</option><option value="allow">Allow only</option></select></label></div><label class="label"><span>Websites</span><textarea id="preset-domains" class="input textarea" rows="3"></textarea></label><button class="btn" type="submit">Save preset</button></form><div id="preset-list" class="preset-list"></div></div></div>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <script type="module" src="dashboard.js"></script>

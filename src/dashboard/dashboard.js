@@ -37,7 +37,8 @@ export function setDashboardView(viewName) {
   document.querySelectorAll('[data-dashboard-view]').forEach((control) => {
     const active = control.dataset.dashboardView === next;
     control.classList.toggle('is-active', active);
-    if (control.closest('[data-primary-nav]')) control.setAttribute('aria-current', active ? 'page' : 'false');
+    if (active) control.setAttribute('aria-current', 'page');
+    else control.removeAttribute('aria-current');
   });
   window.scrollTo?.({ top: 0, behavior: 'instant' });
 }

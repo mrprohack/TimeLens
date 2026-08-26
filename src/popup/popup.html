@@ -15,16 +15,24 @@
     </header>
 
     <section class="today-summary" aria-labelledby="today-label">
-      <div id="today-label" class="eyeline">Today</div>
-      <div id="today-total" class="big-number">0m</div>
+      <div class="summary-heading"><strong id="today-label">Today's Summary</strong><span class="on-track-pill">On Track</span></div>
+      <div class="summary-grid">
+        <div class="summary-ring" style="--summary-progress:0deg">
+          <span><strong id="today-total">0m</strong><small>Today</small></span>
+        </div>
+        <div class="summary-facts">
+          <div><small>Sites visited</small><strong id="popup-site-count">0</strong></div>
+          <div><small>Focus</small><strong id="popup-focus-status">Ready</strong></div>
+        </div>
+      </div>
       <div class="current-card">
         <div class="site-avatar" id="current-avatar" aria-hidden="true">—</div>
         <div class="current-copy">
           <div class="muted small">Current website</div>
           <div id="current-domain" class="current-domain">No active website</div>
           <div id="current-usage" class="muted small">0m today</div>
-          <div id="current-boundary" class="boundary-copy muted small">No limit</div>
         </div>
+        <div id="current-boundary" class="boundary-copy small">No limit</div>
       </div>
     </section>
 
@@ -39,8 +47,7 @@
     </section>
 
     <footer class="popup-footer">
-      <button id="open-dashboard" class="footer-link" type="button">Dashboard</button>
-      <span aria-hidden="true">·</span>
+      <button id="open-dashboard" class="footer-link" type="button">Open Dashboard ↗</button>
       <button id="open-side-panel" class="footer-link" type="button">Side Panel</button>
     </footer>
 

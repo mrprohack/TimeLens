@@ -6,15 +6,16 @@ import { constants } from 'node:fs';
 const root = new URL('../', import.meta.url);
 const text = (path) => readFile(new URL(path, root), 'utf8');
 
-test('manifest and package versions match the 1.4 simple home release', async () => {
+test('manifest and package versions match the 1.5 premium dashboard release', async () => {
   const manifest = JSON.parse(await text('manifest.json'));
   const pkg = JSON.parse(await text('package.json'));
-  assert.equal(manifest.version, '1.4.0');
-  assert.equal(pkg.version, '1.4.0');
-  assert.equal(pkg.scripts.package, 'node scripts/package-extension.mjs');
+  assert.equal(manifest.version, '1.5.0');
+  assert.equal(pkg.version, '1.5.0');
+  assert.match(pkg.scripts.package, /build:css/);
+  assert.match(pkg.scripts.package, /package-extension\.mjs/);
 });
 
-test('production release includes simple dashboard modules and release documentation', async () => {
+test('production release includes premium UI modules, deterministic previews, and release documentation', async () => {
   for (const path of [
     'src/dashboard/home-view.js',
     'src/dashboard/limits-view.js',
@@ -24,6 +25,9 @@ test('production release includes simple dashboard modules and release documenta
     'src/dashboard/forms.js',
     'src/sidepanel/sidepanel.html',
     'src/onboarding/onboarding.html',
+    'preview/dashboard.html',
+    'preview/popup.html',
+    'preview/blocked.html',
     'CHANGELOG.md',
     'SECURITY.md',
     'LICENSE',
@@ -33,13 +37,13 @@ test('production release includes simple dashboard modules and release documenta
   }
 });
 
-test('CI uses pinned GitHub actions and uploads the 1.4 Web Store zip', async () => {
+test('CI uses pinned GitHub actions and uploads the 1.5 Web Store zip', async () => {
   const workflow = await text('.github/workflows/ci.yml');
   assert.match(workflow, /actions\/checkout@[a-f0-9]{40}/);
   assert.match(workflow, /actions\/setup-node@[a-f0-9]{40}/);
   assert.match(workflow, /npm run package/);
   assert.match(workflow, /actions\/upload-artifact@[a-f0-9]{40}/);
-  assert.match(workflow, /timelens-1\.4\.0\.zip/);
+  assert.match(workflow, /timelens-1\.5\.0\.zip/);
 });
 
 test('validator keeps the exact approved permission model', async () => {
@@ -53,11 +57,47 @@ test('validator keeps the exact approved permission model', async () => {
   assert.match(validator, /version/i);
 });
 
-test('package script builds from production runtime paths only', async () => {
+test('package script builds from production runtime paths only and excludes preview fixtures', async () => {
   const script = await text('scripts/package-extension.mjs');
   assert.match(script, /manifest\.json/);
   assert.match(script, /icons/);
   assert.match(script, /src/);
   assert.doesNotMatch(script, /tests/);
   assert.doesNotMatch(script, /docs/);
+  assert.doesNotMatch(script, /preview/);
+});
+
+test('Tailwind v4 is compiled locally before checks and packaging', async () => {
+  const pkg = JSON.parse(await text('package.json'));
+  assert.equal(pkg.devDependencies?.tailwindcss, '4.3.3');
+  assert.equal(pkg.devDependencies?.['@tailwindcss/cli'], '4.3.3');
+  assert.match(pkg.scripts?.['build:css'] || '', /@tailwindcss\/cli/);
+  assert.match(pkg.scripts?.['build:css'] || '', /src\/styles\/tailwind\.css/);
+  assert.match(pkg.scripts?.['build:css'] || '', /src\/styles\/timelens\.css/);
+  assert.match(pkg.scripts?.check || '', /build:css/);
+  assert.match(pkg.scripts?.package || '', /build:css/);
+  await access(new URL('src/styles/tailwind.css', root), constants.R_OK);
+  await access(new URL('src/styles/timelens.css', root), constants.R_OK);
+});
+
+test('CI installs locked Tailwind dependencies before running checks', async () => {
+  const workflow = await text('.github/workflows/ci.yml');
+  assert.match(workflow, /npm ci[\s\S]*npm run check/);
+  await access(new URL('package-lock.json', root), constants.R_OK);
+});
+
+test('runtime pages consume the local Tailwind bundle through the shared compatibility bridge', async () => {
+  const bridge = await text('src/shared/theme.css');
+  assert.match(bridge, /@import\s+["']\.\.\/styles\/timelens\.css["']/);
+  assert.doesNotMatch(bridge, /https?:\/\//i);
+  for (const path of [
+    'src/dashboard/dashboard.html',
+    'src/popup/popup.html',
+    'src/sidepanel/sidepanel.html',
+    'src/blocked/blocked.html'
+  ]) {
+    const html = await text(path);
+    assert.match(html, /\.\.\/shared\/theme\.css/);
+    assert.doesNotMatch(html, /cdn\.tailwindcss\.com|https?:\/\/[^"']+\.css/i);
+  }
 });

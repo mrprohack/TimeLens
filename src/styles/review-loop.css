@@ -1,0 +1,267 @@
+/* Screenshot-driven UX review fixes. Loaded after the master-plan layer. */
+
+/* Keep all primary KPI copy inside a dedicated content column so long
+   comparison text never flows underneath the decorative TIME halo. */
+html body .kpi-primary {
+  padding-right: clamp(154px, 16vw, 196px);
+}
+
+html body .kpi-primary .kpi-meta {
+  max-width: 100%;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+
+/* Front-End Checklist contrast guard for normal-size supporting text. */
+body .kpi-head {
+  color: #5f6b7e;
+}
+
+body .kpi-meta {
+  color: #667085;
+}
+
+body .kpi-meta.positive {
+  color: #087a4c;
+}
+
+body .sidebar-status small,
+body .dashboard-shell .muted,
+body .current-strip-copy small,
+body .attention-copy small,
+body .recent-copy small,
+body .trend-label {
+  color: #667085;
+}
+
+body .dashboard-shell .btn-quiet {
+  color: #475467;
+}
+
+body [data-view="limits"] .limit-meta {
+  color: #667085;
+}
+
+body [data-view="limits"] .status-chip {
+  color: #344054;
+}
+
+body [data-view="limits"] .status-chip.warning {
+  color: #92400e;
+}
+
+body [data-view="limits"] .status-chip.active {
+  color: #087a4c;
+}
+
+body .settings-card .appearance-choice-copy small,
+body .settings-card .check-row small,
+body .settings-card .label > span {
+  color: #667085;
+}
+
+body .settings-card .appearance-choice:has(input:checked) .appearance-choice-copy small {
+  color: #344054;
+}
+
+body .settings-card .btn-danger {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #9f1239;
+}
+
+body .history-summary span,
+body .history-time {
+  color: #667085;
+}
+
+body .history-drawer .history-head {
+  color: var(--text-soft);
+}
+
+body .dialog-panel .label > span,
+body .dialog-panel .disclosure-button > span:first-child,
+body .dialog-panel .advanced-options .muted.small {
+  color: var(--text-soft);
+}
+
+body .period-context {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-raised);
+  color: #667085;
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .01em;
+  box-shadow: var(--shadow-xs);
+}
+
+body .history-context {
+  min-height: 36px;
+  margin: 2px 0 12px;
+  padding: 0 2px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+body .history-context span {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+body .history-context small {
+  color: #667085;
+  font-size: 11px;
+}
+
+body .mobile-nav {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+body .mobile-nav-item,
+body .mobile-settings {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+[data-theme="light"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+[data-theme="dark"] body:has(.popup-shell),
+[data-theme="dark"] body:has(.side-shell) {
+  background: #0b1020;
+  color: var(--text);
+}
+
+[data-theme="light"] body:has(.popup-shell),
+[data-theme="light"] body:has(.side-shell) {
+  background: #f6f8fe;
+  color: var(--text);
+}
+
+[data-theme="dark"] .dashboard-shell .muted,
+[data-theme="dark"] .current-strip-copy small,
+[data-theme="dark"] .attention-copy small,
+[data-theme="dark"] .recent-copy small,
+[data-theme="dark"] .trend-label,
+[data-theme="dark"] .history-context small,
+[data-theme="dark"] .history-summary span,
+[data-theme="dark"] .history-head,
+[data-theme="dark"] .history-time,
+[data-theme="dark"] .dashboard-shell .btn-quiet,
+[data-theme="dark"] [data-view="limits"] .limit-meta,
+[data-theme="dark"] .settings-card .appearance-choice-copy small,
+[data-theme="dark"] .settings-card .check-row small,
+[data-theme="dark"] .settings-card .label > span {
+  color: var(--text-soft);
+}
+
+[data-theme="dark"] .settings-card .appearance-choice:has(input:checked) .appearance-choice-copy small {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] [data-view="limits"] .status-chip {
+  color: var(--text);
+}
+
+[data-theme="dark"] [data-view="limits"] .status-chip.warning {
+  color: #f6c76b;
+  background: #3a2e18;
+}
+
+[data-theme="dark"] [data-view="limits"] .status-chip.active {
+  color: #6ee7b7;
+  background: #12372c;
+}
+
+[data-theme="dark"] .settings-card .btn-danger {
+  border-color: #7f1d1d;
+  background: #3b1820;
+  color: #fecdd3;
+}
+
+[data-theme="dark"] .period-context {
+  background: var(--surface-raised);
+  border-color: var(--line);
+  color: var(--text-soft);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .section-heading-row h2,
+[data-theme="dark"] .side-header .brand,
+[data-theme="dark"] .side-header .btn,
+[data-theme="dark"] .popup-header .brand {
+  color: var(--text);
+}
+
+@media (max-width: 960px) {
+  body .app-header {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  html body .kpi-primary {
+    min-height: 154px;
+    padding-right: 132px;
+  }
+
+  body .period-context {
+    width: auto;
+    min-height: auto;
+    justify-content: flex-start;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #667085;
+    box-shadow: none;
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  [data-theme="dark"] .period-context {
+    background: transparent;
+    border: 0;
+    color: var(--text-soft);
+  }
+
+  body .mobile-nav-item,
+  body .mobile-settings {
+    padding-inline: 6px;
+    font-size: 11px;
+    font-weight: 760;
+  }
+
+  body .history-context {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  body .history-row {
+    grid-template-columns: minmax(0, 1fr) 86px 76px;
+    gap: 8px;
+    align-items: center;
+  }
+
+  body .history-time {
+    grid-column: auto;
+  }
+}

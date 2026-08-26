@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TimeLens Limits Preview</title>
+  <link rel="stylesheet" href="../src/shared/theme.css">
+  <link rel="stylesheet" href="../src/dashboard/dashboard.css">
+</head>
+<body>
+  <header class="app-header"><div class="header-inner">
+    <div class="brand"><span class="brand-mark"></span><span>TimeLens</span></div>
+    <nav class="header-nav"><button class="nav-link">Home</button><button class="nav-link is-active">Limits</button><button class="nav-link">Focus</button><button class="nav-link">Settings</button></nav>
+    <div class="sidebar-secondary"><button class="nav-link secondary-link">Usage History</button></div>
+    <div class="sidebar-status"><span class="status-pulse"></span><span><strong>Local tracking</strong><small>Private on this device</small></span></div>
+  </div></header>
+  <main class="dashboard-shell">
+    <section class="dashboard-view" data-view="limits">
+      <div class="page-heading"><div><div class="eyeline">Limits</div><h1>Keep the boundaries simple.</h1><p class="muted">Start with site limits. Open extra controls only when you need them.</p></div><button class="btn btn-primary">+ Add limit</button></div>
+      <div class="panel workspace-card"><div class="workspace-heading"><div><h2>Site limits</h2><p class="muted small">Daily by default. Advanced controls stay optional.</p></div></div>
+        <div class="limit-list">
+          <div class="limit-item"><div class="limit-main"><div class="limit-title-row"><strong class="limit-domain">youtube.com</strong><span class="status-chip warning">12 min left</span></div><span class="limit-meta">Daily · resets midnight</span></div><div class="limit-progress"><strong>48m / 1h</strong><div class="progress"><span style="width:80%"></span></div></div><details class="row-menu"><summary aria-label="Actions for youtube.com">⋯</summary><div class="row-menu-popover"><button type="button">Edit</button><button type="button">Pause</button><button type="button" class="danger">Delete</button></div></details></div>
+          <div class="limit-item"><div class="limit-main"><div class="limit-title-row"><strong class="limit-domain">instagram.com</strong><span class="status-chip active">On track</span></div><span class="limit-meta">Daily · resets midnight</span></div><div class="limit-progress"><strong>17m / 45m</strong><div class="progress"><span style="width:38%"></span></div></div><details class="row-menu"><summary aria-label="Actions for instagram.com">⋯</summary><div class="row-menu-popover"><button type="button">Edit</button><button type="button">Pause</button><button type="button" class="danger">Delete</button></div></details></div>
+          <div class="limit-item"><div class="limit-main"><div class="limit-title-row"><strong class="limit-domain">reddit.com</strong><span class="status-chip">Strict</span></div><span class="limit-meta">Weekdays · 09:00–18:00</span></div><div class="limit-progress"><strong>24m / 30m</strong><div class="progress"><span style="width:80%"></span></div></div><details class="row-menu"><summary aria-label="Actions for reddit.com">⋯</summary><div class="row-menu-popover"><button type="button">Edit</button><button type="button">Pause</button><button type="button" class="danger">Delete</button></div></details></div>
+        </div>
+      </div>
+      <div class="panel workspace-card budget-summary-card"><div class="workspace-heading"><div><h2>Daily browsing budget</h2><p class="muted small">One optional boundary across all active browsing.</p></div><strong>2h 06m / 3h</strong></div><div class="summary-action-row"><span class="muted">54 minutes remain today.</span><button class="btn">Edit budget</button></div></div>
+      <div class="panel workspace-card"><button class="disclosure-row"><span><strong>Category limits</strong><small class="muted">2 optional shared limits</small></span><span>›</span></button></div>
+    </section>
+  </main>
+  <nav class="mobile-nav"><button class="mobile-nav-item">Home</button><button class="mobile-nav-item is-active">Limits</button><button class="mobile-nav-item">Focus</button><button class="mobile-nav-item">Settings</button></nav>
+</body>
+</html>

@@ -15,13 +15,176 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
       - name: Test and validate extension
         run: npm run check
       - name: Build Chrome Web Store package
         run: npm run package
+      - name: Run axe accessibility checks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Keep themed accessibility fixtures beside the source previews so
+          # their existing ../src stylesheet paths continue to resolve.
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            sed 's/<html/<html data-theme="light" data-appearance="light"/' "preview/$page" > "preview/axe-light-$page"
+            sed 's/<html/<html data-theme="dark" data-appearance="dark"/' "preview/$page" > "preview/axe-dark-$page"
+          done
+
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/timelens-axe-preview.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/preview/home.html >/dev/null; then break; fi
+            sleep 0.25
+          done
+
+          CHROMEDRIVER="$(command -v chromedriver || true)"
+          if [ -z "$CHROMEDRIVER" ] && [ -n "${CHROMEWEBDRIVER:-}" ]; then
+            CHROMEDRIVER="$CHROMEWEBDRIVER/chromedriver"
+          fi
+          test -x "$CHROMEDRIVER"
+
+          axe_page() {
+            local page_path="$1"
+            echo "axe: $page_path"
+            npx --yes @axe-core/cli@4.13.0 \
+              "http://127.0.0.1:4173/$page_path" \
+              --chromedriver-path="$CHROMEDRIVER" \
+              --chrome-options="no-sandbox,disable-dev-shm-usage" \
+              --tags=wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa \
+              --load-delay=300 \
+              --exit
+          }
+
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            axe_page "preview/$page"
+          done
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            axe_page "preview/axe-light-$page"
+          done
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            axe_page "preview/axe-dark-$page"
+          done
+      - name: Capture Master Plan UI screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p screenshots preview-light preview-dark preview-system
+
+          # Build deterministic explicit-appearance copies for every visual surface.
+          for page in home limits focus settings history popup sidepanel blocked dialog; do
+            sed 's/<html/<html data-theme="light" data-appearance="light"/' "preview/$page.html" > "preview-light/$page.html"
+            sed 's/<html/<html data-theme="dark" data-appearance="dark"/' "preview/$page.html" > "preview-dark/$page.html"
+          done
+          sed 's/<html/<html data-theme="light" data-appearance="system"/' preview/settings.html > preview-system/settings.html
+          sed -i 's/value="system" checked/value="system"/; s/value="light"/value="light" checked/' preview-light/settings.html
+          sed -i 's/value="system" checked/value="system"/; s/value="dark"/value="dark" checked/' preview-dark/settings.html
+
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/timelens-preview.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/preview/home.html >/dev/null; then break; fi
+            sleep 0.25
+          done
+
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME"
+          shot() {
+            local name="$1" size="$2" page="$3"
+            for attempt in 1 2; do
+              rm -f "screenshots/$name.png"
+              if timeout 20s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --force-device-scale-factor=1 --run-all-compositor-stages-before-draw --virtual-time-budget=1000 --window-size="$size" --screenshot="screenshots/$name.png" "http://127.0.0.1:4173/$page"; then
+                if test -s "screenshots/$name.png"; then
+                  return 0
+                fi
+              fi
+              echo "Screenshot attempt $attempt failed: $name" >&2
+            done
+            echo "Screenshot failed: $name" >&2
+            return 1
+          }
+
+          # Default/system review matrix retained for regression continuity.
+          shot home-desktop 1440,1000 preview/home.html
+          shot home-mobile 390,844 preview/home.html
+          shot limits-desktop 1440,1000 preview/limits.html
+          shot limits-mobile 390,844 preview/limits.html
+          shot focus-desktop 1440,900 preview/focus.html
+          shot focus-mobile 390,844 preview/focus.html
+          shot settings-desktop 1440,1000 preview/settings.html
+          shot settings-mobile 390,844 preview/settings.html
+          shot history-desktop 1440,900 preview/history.html
+          shot history-mobile 390,844 preview/history.html
+          shot popup 360,600 preview/popup.html
+          shot sidepanel 420,900 preview/sidepanel.html
+          shot blocked 1440,900 preview/blocked.html
+          shot blocked-mobile 390,844 preview/blocked.html
+          shot dialog-desktop 1000,850 preview/dialog.html
+          shot dialog-mobile 390,844 preview/dialog.html
+
+          # Home — desktop/mobile, explicit Light/Dark.
+          shot home-light-desktop 1440,1000 preview-light/home.html
+          shot home-dark-desktop 1440,1000 preview-dark/home.html
+          shot home-light-mobile 390,844 preview-light/home.html
+          shot home-dark-mobile 390,844 preview-dark/home.html
+
+          # Limits — desktop/mobile, explicit Light/Dark.
+          shot limits-light-desktop 1440,1000 preview-light/limits.html
+          shot limits-dark-desktop 1440,1000 preview-dark/limits.html
+          shot limits-light-mobile 390,844 preview-light/limits.html
+          shot limits-dark-mobile 390,844 preview-dark/limits.html
+
+          # Focus — desktop/mobile, explicit Light/Dark.
+          shot focus-light-desktop 1440,900 preview-light/focus.html
+          shot focus-dark-desktop 1440,900 preview-dark/focus.html
+          shot focus-light-mobile 390,844 preview-light/focus.html
+          shot focus-dark-mobile 390,844 preview-dark/focus.html
+
+          # Settings — Light/Dark/System on desktop and mobile.
+          shot settings-light-desktop 1440,1000 preview-light/settings.html
+          shot settings-dark-desktop 1440,1000 preview-dark/settings.html
+          shot settings-system-desktop 1440,1000 preview-system/settings.html
+          shot settings-light-mobile 390,844 preview-light/settings.html
+          shot settings-dark-mobile 390,844 preview-dark/settings.html
+          shot settings-system-mobile 390,844 preview-system/settings.html
+
+          # History — desktop/mobile, explicit Light/Dark inspection workspace.
+          shot history-light-desktop 1440,900 preview-light/history.html
+          shot history-dark-desktop 1440,900 preview-dark/history.html
+          shot history-light-mobile 390,844 preview-light/history.html
+          shot history-dark-mobile 390,844 preview-dark/history.html
+
+          # Compact extension surfaces and blocked recovery states.
+          shot popup-light 360,600 preview-light/popup.html
+          shot popup-dark 360,600 preview-dark/popup.html
+          shot sidepanel-light 420,900 preview-light/sidepanel.html
+          shot sidepanel-dark 420,900 preview-dark/sidepanel.html
+          shot blocked-light 1440,900 preview-light/blocked.html
+          shot blocked-dark 1440,900 preview-dark/blocked.html
+          shot blocked-light-mobile 390,844 preview-light/blocked.html
+          shot blocked-dark-mobile 390,844 preview-dark/blocked.html
+
+          # Dialogs — desktop/mobile, explicit Light/Dark.
+          shot dialog-light-desktop 1000,850 preview-light/dialog.html
+          shot dialog-dark-desktop 1000,850 preview-dark/dialog.html
+          shot dialog-light-mobile 390,844 preview-light/dialog.html
+          shot dialog-dark-mobile 390,844 preview-dark/dialog.html
+
+          ls -lh screenshots
+      - name: Upload UI screenshots
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: timelens-master-plan-screenshots
+          path: screenshots
+          if-no-files-found: error
       - name: Upload release package
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: timelens-1.4.0
-          path: dist/timelens-1.4.0.zip
+          name: timelens-1.5.0
+          path: dist/timelens-1.5.0.zip
           if-no-files-found: error

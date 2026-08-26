@@ -1,0 +1,858 @@
+/*
+ * Precision Time Instrument — final polish layer.
+ * Loaded after the locally compiled Tailwind bundle so the shared TimeLens
+ * identity stays centralized while page-specific legacy CSS remains stable.
+ */
+
+:root {
+  --surface-canvas: #f6f8fe;
+  --surface-card: #ffffff;
+  --surface-subtle: #f8faff;
+  --surface-selected: #eef3ff;
+  --line-soft: rgba(34, 48, 79, .085);
+  --shadow-card: 0 2px 8px rgba(35, 52, 95, .035), 0 12px 32px rgba(35, 52, 95, .045);
+  --shadow-hero: 0 18px 50px rgba(49, 87, 255, .10), 0 2px 10px rgba(35, 52, 95, .055);
+  --shadow-float: 0 24px 72px rgba(25, 38, 76, .16);
+}
+
+html body:has(.dashboard-shell) {
+  background:
+    radial-gradient(circle at 82% 0%, rgba(49, 87, 255, .055), transparent 26rem),
+    var(--surface-canvas);
+}
+
+/* Navigation: one strong active cue, quieter chrome everywhere else. */
+html body .app-header {
+  border-right-color: var(--line-soft);
+  box-shadow: 8px 0 34px rgba(32, 47, 88, .028);
+}
+
+html body .nav-link {
+  transition: background .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+html body .nav-link.is-active {
+  background: var(--surface-selected);
+  box-shadow: inset 3px 0 0 var(--time-blue), inset 0 0 0 1px rgba(49, 87, 255, .055);
+}
+
+html body .sidebar-status {
+  border-color: var(--line-soft);
+  background: var(--surface-subtle);
+  box-shadow: none;
+}
+
+/* Dashboard header: smaller gap, clearer period/focus grouping. */
+html body .dashboard-topbar {
+  margin-bottom: 14px;
+}
+
+html body .dashboard-topbar h1 {
+  letter-spacing: -.048em;
+}
+
+html body .period-pills {
+  border-color: var(--line-soft);
+  box-shadow: 0 2px 8px rgba(35, 52, 95, .03);
+}
+
+html body .period-pills .is-active {
+  background: var(--surface-selected);
+  color: var(--time-blue);
+  box-shadow: inset 0 0 0 1px rgba(49, 87, 255, .07);
+}
+
+/* Three deliberate surface levels: hero, cards, lightweight strips/rows. */
+html body .kpi-primary {
+  min-height: 166px;
+  overflow: hidden;
+  border-color: rgba(49, 87, 255, .14);
+  background:
+    radial-gradient(circle at 86% 44%, rgba(116, 85, 255, .07), transparent 25%),
+    linear-gradient(145deg, #ffffff 0%, #fbfcff 60%, #f2f5ff 100%);
+  box-shadow: var(--shadow-hero);
+}
+
+html body .kpi-primary::after {
+  filter: drop-shadow(0 10px 16px rgba(49, 87, 255, .11));
+}
+
+html body .kpi-primary::before {
+  color: #71809b;
+}
+
+html body .kpi-primary .kpi-value {
+  font-size: 40px;
+  font-weight: 805;
+  letter-spacing: -.06em;
+}
+
+html body .kpi-grid > .kpi-card:not(.kpi-primary) {
+  border-color: var(--line-soft);
+  background: var(--surface-card);
+  box-shadow: 0 1px 4px rgba(35, 52, 95, .025);
+}
+
+html body .kpi-grid > .kpi-card:not(.kpi-primary) .kpi-value {
+  font-size: 28px;
+}
+
+html body .current-strip {
+  border-color: var(--line-soft);
+  background: var(--surface-subtle);
+  box-shadow: none;
+}
+
+html body .current-time-pill {
+  border: 1px solid rgba(49, 87, 255, .08);
+  background: #eef3ff;
+  color: #3157ff;
+}
+
+html body .analytics-card {
+  border-color: var(--line-soft);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
+}
+
+html body .section-heading-row h2 {
+  font-size: 15px;
+  font-weight: 760;
+  letter-spacing: -.025em;
+}
+
+html body .section-heading-row .small {
+  line-height: 1.35;
+}
+
+/* Time breakdown: cleaner instrument face and tighter legend rhythm. */
+html body .breakdown-donut {
+  filter: drop-shadow(0 10px 18px rgba(35, 52, 95, .055));
+}
+
+html body .breakdown-donut::after {
+  box-shadow: inset 0 0 0 1px rgba(34, 48, 79, .075);
+}
+
+html body .breakdown-donut strong {
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: -.04em;
+}
+
+html body .breakdown-legend {
+  gap: 8px;
+}
+
+/* Ranked sites, alerts and sessions behave like one calm data table. */
+html body .usage-item,
+html body .attention-item,
+html body .recent-item {
+  margin-inline: -7px;
+  padding-inline: 7px;
+  border-radius: 10px;
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+
+html body .usage-rank {
+  color: #5d6a82;
+  background: #f1f4fa;
+  box-shadow: inset 0 0 0 1px rgba(34, 48, 79, .04);
+}
+
+html body .usage-item .progress {
+  height: 4px;
+  background: #edf1f7;
+}
+
+html body .usage-item .progress > span {
+  background: linear-gradient(90deg, var(--time-blue), #7290ff);
+  box-shadow: 0 2px 7px rgba(49, 87, 255, .12);
+}
+
+html body .attention-icon {
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, .10);
+}
+
+html body .attention-item.focus .attention-icon {
+  box-shadow: inset 0 0 0 1px rgba(116, 85, 255, .10);
+}
+
+html body .recent-dot {
+  box-shadow: 0 0 0 4px rgba(49, 87, 255, .06);
+}
+
+html body .recent-item > strong {
+  font-variant-numeric: tabular-nums;
+  font-weight: 720;
+}
+
+@media (hover: hover) {
+  html body .usage-item:hover,
+  html body .attention-item:hover,
+  html body .recent-item:hover {
+    background: var(--surface-subtle);
+  }
+
+  html body .nav-link:hover {
+    background: #f5f7fd;
+    color: #2c3852;
+    transform: none;
+  }
+
+  html body .kpi-grid > .kpi-card:not(.kpi-primary):hover,
+  html body .analytics-card:hover {
+    border-color: rgba(49, 87, 255, .12);
+  }
+}
+
+/* Usage trend: bars sit on an instrument grid instead of floating in space. */
+html body .trend-bars {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+html body .trend-bars::before {
+  content: "";
+  position: absolute;
+  inset: 8px 0 25px;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 29px,
+    rgba(116, 128, 153, .10) 29px 30px
+  );
+  pointer-events: none;
+}
+
+html body .trend-column {
+  position: relative;
+  z-index: 1;
+}
+
+html body .trend-track {
+  background: transparent;
+}
+
+html body .trend-track span {
+  border-radius: 6px 6px 3px 3px;
+  box-shadow: 0 4px 10px rgba(49, 87, 255, .10);
+}
+
+/* Popup: a compact time instrument, not a miniature dashboard. */
+html body .today-summary {
+  border-color: rgba(49, 87, 255, .12);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(49, 87, 255, .045), transparent 42%),
+    linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  box-shadow: var(--shadow-hero);
+}
+
+html body .popup-shell .summary-ring {
+  filter: drop-shadow(0 8px 18px rgba(49, 87, 255, .10));
+}
+
+html body .popup-shell .current-card {
+  border-color: var(--line-soft);
+  background: var(--surface-subtle);
+}
+
+html body .popup-shell .popup-footer {
+  border-top-color: var(--line-soft);
+}
+
+/* History reads as a focused inspection surface. */
+html body .history-drawer {
+  border-left: 1px solid rgba(34, 48, 79, .09);
+  background: var(--surface-card);
+  box-shadow: -22px 0 72px rgba(26, 38, 72, .16);
+}
+
+html body .history-summary > div {
+  border-color: var(--line-soft);
+  background: var(--surface-subtle);
+}
+
+html body .history-tabs {
+  border-bottom-color: var(--line-soft);
+}
+
+html body .history-row {
+  transition: background .16s ease;
+}
+
+@media (hover: hover) {
+  html body .history-row:hover {
+    background: var(--surface-subtle);
+  }
+}
+
+/* Blocked state: dark, calm and deliberate rather than alarm-heavy. */
+html body .blocked-shell {
+  border: 1px solid rgba(125, 148, 255, .22);
+  box-shadow: 0 30px 90px rgba(2, 8, 23, .40), inset 0 1px rgba(255, 255, 255, .055);
+}
+
+html body .blocked-shell .usage-line {
+  border-color: rgba(255, 255, 255, .08);
+  background: rgba(6, 12, 29, .22);
+}
+
+html body .blocked-shell .btn:not(.btn-primary) {
+  border-color: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .055);
+  color: #e9eefc;
+}
+
+/* Small screens: shorten the hero and reserve real space for bottom navigation. */
+@media (max-width: 600px) {
+  html body .dashboard-shell {
+    padding-bottom: calc(118px + env(safe-area-inset-bottom));
+  }
+
+  html body .dashboard-topbar {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  html body .dashboard-topbar h1 {
+    font-size: 27px;
+  }
+
+  html body .kpi-primary {
+    min-height: 146px;
+    padding: 14px 120px 14px 14px;
+  }
+
+  html body .kpi-primary .kpi-value {
+    font-size: 32px;
+  }
+
+  html body .kpi-primary::after {
+    width: 96px;
+    height: 96px;
+    right: 12px;
+    bottom: 18px;
+  }
+
+  html body .kpi-primary::before {
+    right: 37px;
+    bottom: 57px;
+  }
+
+  html body .kpi-grid > .kpi-card:not(.kpi-primary) {
+    min-height: 112px;
+    padding: 13px;
+  }
+
+  html body .kpi-grid > .kpi-card:not(.kpi-primary) .kpi-value {
+    font-size: 24px;
+  }
+
+  html body .current-strip {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+  }
+
+  html body .current-strip-copy {
+    min-width: 0;
+    gap: 7px;
+  }
+
+  html body .current-strip-copy small {
+    display: none;
+  }
+
+  html body .current-strip-copy strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  html body .site-orb {
+    width: 32px;
+    height: 32px;
+  }
+
+  html body .current-time-pill {
+    display: none;
+  }
+
+  html body .quick-actions {
+    grid-column: auto;
+    display: flex;
+    justify-content: flex-end;
+    width: auto;
+    gap: 6px;
+  }
+
+  html body .quick-actions .btn {
+    min-height: 38px;
+    padding: 8px 9px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  html body .analytics-card {
+    padding: 13px;
+  }
+
+  html body .mobile-nav {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    border-color: rgba(34, 48, 79, .10);
+    box-shadow: 0 16px 42px rgba(25, 38, 76, .16);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-canvas: #0e1422;
+    --surface-card: #151e2f;
+    --surface-subtle: #1a2436;
+    --surface-selected: #1d2b50;
+    --line-soft: rgba(183, 196, 221, .11);
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, .16);
+    --shadow-hero: 0 18px 44px rgba(0, 0, 0, .22);
+  }
+
+  html body .kpi-primary {
+    border-color: rgba(125, 148, 255, .18);
+    background:
+      radial-gradient(circle at 86% 44%, rgba(116, 85, 255, .11), transparent 25%),
+      linear-gradient(145deg, #192337 0%, #151e30 100%);
+  }
+
+  html body .current-time-pill {
+    border-color: rgba(125, 148, 255, .15);
+    background: #1c2b50;
+    color: #9fb0ff;
+  }
+
+  html body .usage-rank {
+    color: #b7c2d8;
+    background: #202b3e;
+  }
+
+  html body .today-summary,
+  html body .history-drawer {
+    background: var(--surface-card);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .usage-item,
+  html body .attention-item,
+  html body .recent-item,
+  html body .history-row,
+  html body .nav-link {
+    transition: none;
+  }
+}
+
+/* Precision Time Instrument v2 — one anchor per surface, shared geometry. */
+:root {
+  --surface-hero: #ffffff;
+  --surface-panel: #ffffff;
+  --surface-inset: #f4f7fd;
+  --line-strong: rgba(34, 48, 79, .14);
+  --shadow-compact: 0 1px 3px rgba(32, 47, 88, .04), 0 8px 20px rgba(32, 47, 88, .035);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-hero: 24px;
+  --focus-ring: 0 0 0 3px rgba(49, 87, 255, .22);
+}
+
+html body :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--time-blue);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+html body .dashboard-shell {
+  width: min(1220px, calc(100% - 48px));
+}
+
+html body .kpi-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+html body .kpi-primary {
+  grid-column: span 2;
+  min-height: 176px;
+  border-radius: var(--radius-hero);
+  padding: 20px 196px 20px 20px;
+  background:
+    radial-gradient(circle at 82% 48%, rgba(116, 85, 255, .10), transparent 24%),
+    radial-gradient(circle at 90% 15%, rgba(49, 87, 255, .08), transparent 30%),
+    linear-gradient(145deg, #ffffff 0%, #fbfcff 58%, #eef3ff 100%);
+}
+
+html body .kpi-primary .kpi-value,
+html body .current-time-pill,
+html body .usage-row strong,
+html body .breakdown-donut strong,
+html body .trend-label,
+html body .history-summary strong,
+html body .history-row > :last-child,
+html body .focus-time,
+html body .popup-shell #today-total,
+html body .side-shell .current-time {
+  font-variant-numeric: tabular-nums;
+}
+
+html body .kpi-primary .kpi-value {
+  margin-top: 12px;
+  font-size: clamp(42px, 4vw, 54px);
+  line-height: .96;
+}
+
+html body .kpi-grid > .kpi-card:not(.kpi-primary) {
+  min-height: 176px;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-compact);
+}
+
+html body .kpi-grid > .kpi-card:not(.kpi-primary) .kpi-value {
+  margin-top: 14px;
+  font-size: 26px;
+}
+
+html body .current-strip {
+  border-radius: var(--radius-md);
+  border-color: var(--line-soft);
+  padding: 12px 14px;
+}
+
+html body .analytics-card {
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+html body .analytics-grid {
+  gap: 12px;
+}
+
+html body .section-heading-row {
+  margin-bottom: 14px;
+}
+
+html body .section-heading-row h2 {
+  font-size: 16px;
+}
+
+html body .usage-row strong,
+html body .recent-item > strong {
+  color: #263149;
+}
+
+html body .usage-item,
+html body .attention-item,
+html body .recent-item {
+  min-height: 48px;
+}
+
+/* Secondary dashboard surfaces use the same calm component grammar. */
+html body .workspace-card {
+  border-radius: var(--radius-lg);
+  border-color: var(--line-soft);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-compact);
+}
+
+html body .workspace-card .workspace-heading {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+html body .limit-item {
+  border-radius: var(--radius-md);
+}
+
+html body .focus-simple {
+  max-width: 760px;
+  margin-inline: auto;
+  padding: clamp(30px, 6vw, 64px);
+  border-radius: var(--radius-hero);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(116, 85, 255, .10), transparent 28%),
+    linear-gradient(180deg, #fff 0%, #fbfcff 100%);
+  box-shadow: var(--shadow-hero);
+}
+
+html body .focus-simple::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 42px;
+  width: 190px;
+  height: 190px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(49, 87, 255, .10);
+  border-radius: 50%;
+  box-shadow: 0 0 0 20px rgba(49, 87, 255, .025), 0 0 0 42px rgba(116, 85, 255, .018);
+  pointer-events: none;
+}
+
+html body .focus-simple .duration-options,
+html body .focus-simple .preset-chips {
+  justify-content: center;
+}
+
+html body .focus-simple .focus-time {
+  font-size: clamp(62px, 9vw, 96px);
+  letter-spacing: -.07em;
+}
+
+html body .focus-simple .focus-primary {
+  min-width: min(320px, 100%);
+  min-height: 50px;
+  border-radius: var(--radius-md);
+}
+
+html body .settings-card {
+  border-radius: var(--radius-lg);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-compact);
+}
+
+html body .settings-card h2 {
+  margin-bottom: 14px;
+}
+
+html body .settings-card .check-row,
+html body .settings-card .label {
+  border-radius: var(--radius-sm);
+}
+
+html body .settings-card .data-actions .btn-danger {
+  margin-left: auto;
+}
+
+html body .history-drawer {
+  position: fixed;
+  width: min(600px, 92vw);
+  border-radius: 0;
+}
+
+html body .history-tabs .is-active {
+  color: var(--time-blue);
+  box-shadow: inset 0 -2px 0 var(--time-blue);
+}
+
+html body .history-head {
+  position: sticky;
+  top: -1px;
+  z-index: 2;
+  background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+html body .dialog-panel {
+  border-radius: var(--radius-hero);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-float);
+}
+
+html body .dialog-panel .dialog-heading {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+html body .dialog-panel .dialog-actions {
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+/* Popup: current status is the instrument, supporting facts stay quiet. */
+html body .popup-shell {
+  gap: 12px;
+}
+
+html body .popup-shell .today-summary {
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+html body .popup-shell .summary-grid {
+  align-items: center;
+}
+
+html body .popup-shell .summary-facts > div {
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+}
+
+html body .popup-shell .current-card {
+  border-radius: var(--radius-md);
+}
+
+html body .popup-shell .primary-actions .btn-primary {
+  box-shadow: 0 8px 18px rgba(49, 87, 255, .16);
+}
+
+/* Side Panel: one live current-site anchor, then compact controls. */
+html body .side-shell {
+  gap: 12px;
+}
+
+html body .side-shell .current-panel {
+  border-radius: var(--radius-hero);
+  border-color: rgba(49, 87, 255, .13);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(116, 85, 255, .08), transparent 30%),
+    linear-gradient(160deg, #fff 0%, #f6f8ff 100%);
+  box-shadow: var(--shadow-hero);
+}
+
+html body .side-shell .current-panel h1 {
+  letter-spacing: -.04em;
+}
+
+html body .side-shell .quick-panel {
+  border-radius: var(--radius-lg);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-compact);
+}
+
+html body .side-shell .quick-limit {
+  align-items: stretch;
+}
+
+html body .side-shell .quick-limit .input,
+html body .side-shell .quick-limit .btn {
+  min-height: 44px;
+}
+
+/* Blocked page: strong message, restrained alternatives. */
+html body .blocked-message {
+  max-width: 620px;
+  margin-inline: auto;
+}
+
+html body .blocked-message h1 {
+  max-width: 16ch;
+  margin-inline: auto;
+  letter-spacing: -.045em;
+}
+
+html body .blocked-shell .site-letter {
+  box-shadow: 0 16px 44px rgba(49, 87, 255, .24), inset 0 0 0 1px rgba(255,255,255,.09);
+}
+
+html body .blocked-shell .primary-actions .btn {
+  min-height: 46px;
+}
+
+html body .blocked-shell .allowance-actions {
+  opacity: .88;
+}
+
+@media (max-width: 1000px) {
+  html body .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html body .kpi-primary {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  html body .dashboard-shell {
+    width: min(100% - 24px, 100%);
+    padding-top: 18px;
+  }
+
+  html body .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  html body .kpi-primary {
+    grid-column: 1 / -1;
+    min-height: 146px;
+    border-radius: var(--radius-lg);
+    padding: 14px 120px 14px 14px;
+  }
+
+  html body .kpi-grid > .kpi-card:not(.kpi-primary) {
+    min-height: 108px;
+    border-radius: var(--radius-md);
+  }
+
+  html body .focus-simple {
+    padding: 30px 16px 24px;
+    border-radius: var(--radius-lg);
+  }
+
+  html body .focus-simple::before {
+    top: 32px;
+    width: 150px;
+    height: 150px;
+  }
+
+  html body .focus-simple .focus-time {
+    font-size: 64px;
+  }
+
+  html body .settings-card,
+  html body .workspace-card,
+  html body .analytics-card {
+    border-radius: var(--radius-md);
+  }
+
+  html body .settings-card .data-actions .btn-danger {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+
+  html body .history-drawer {
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+
+  html body .dialog-panel {
+    align-self: end;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: var(--radius-hero) var(--radius-hero) 0 0;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-hero: #182235;
+    --surface-panel: #151e2f;
+    --surface-inset: #1a2436;
+    --line-strong: rgba(183, 196, 221, .17);
+  }
+
+  html body .focus-simple,
+  html body .side-shell .current-panel {
+    background: linear-gradient(160deg, #192438 0%, #141d2d 100%);
+  }
+
+  html body .popup-shell .summary-facts > div {
+    background: var(--surface-inset);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body :is(button, a, input, select, textarea, [tabindex]) {
+    scroll-behavior: auto;
+  }
+}
