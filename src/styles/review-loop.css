@@ -2,11 +2,11 @@
 
 /* Keep all primary KPI copy inside a dedicated content column so long
    comparison text never flows underneath the decorative TIME halo. */
-body .kpi-primary {
+html body .kpi-primary {
   padding-right: clamp(154px, 16vw, 196px);
 }
 
-body .kpi-primary .kpi-meta {
+html body .kpi-primary .kpi-meta {
   max-width: 100%;
   line-height: 1.35;
   overflow-wrap: break-word;
@@ -216,7 +216,7 @@ body .mobile-settings {
 }
 
 @media (max-width: 600px) {
-  body .kpi-primary {
+  html body .kpi-primary {
     min-height: 154px;
     padding-right: 132px;
   }
