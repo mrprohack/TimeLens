@@ -1,5 +1,17 @@
 /* Screenshot-driven UX review fixes. Loaded after the master-plan layer. */
 
+/* Keep all primary KPI copy inside a dedicated content column so long
+   comparison text never flows underneath the decorative TIME halo. */
+html body .kpi-primary {
+  padding-right: clamp(154px, 16vw, 196px);
+}
+
+html body .kpi-primary .kpi-meta {
+  max-width: 100%;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+
 html body .period-context {
   min-height: 38px;
   display: inline-flex;
@@ -61,6 +73,11 @@ html[data-theme="dark"] body .period-context {
 }
 
 @media (max-width: 600px) {
+  html body .kpi-primary {
+    min-height: 154px;
+    padding-right: 132px;
+  }
+
   html body .period-context {
     width: auto;
     min-height: auto;
