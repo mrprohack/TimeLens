@@ -1,0 +1,76 @@
+/* Screenshot-driven UX review fixes. Loaded after the master-plan layer. */
+
+html body .period-context {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-raised);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .01em;
+  box-shadow: var(--shadow-xs);
+}
+
+html body .history-context {
+  min-height: 36px;
+  margin: 2px 0 12px;
+  padding: 0 2px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+html body .history-context span {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+html body .history-context small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+html body .mobile-nav {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+html body .mobile-nav-item,
+html body .mobile-settings {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+html[data-theme="dark"] body .period-context {
+  background: var(--surface-raised);
+  border-color: var(--line);
+  color: var(--text-soft);
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  html body .period-context {
+    width: 100%;
+    justify-content: center;
+    min-height: 36px;
+  }
+
+  html body .mobile-nav-item,
+  html body .mobile-settings {
+    padding-inline: 6px;
+    font-size: 11px;
+    font-weight: 760;
+  }
+
+  html body .history-context {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+}
