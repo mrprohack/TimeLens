@@ -96,8 +96,17 @@ jobs:
           test -n "$CHROME"
           shot() {
             local name="$1" size="$2" page="$3"
-            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --force-device-scale-factor=1 --run-all-compositor-stages-before-draw --virtual-time-budget=1000 --window-size="$size" --screenshot="screenshots/$name.png" "http://127.0.0.1:4173/$page"
-            test -s "screenshots/$name.png"
+            for attempt in 1 2; do
+              rm -f "screenshots/$name.png"
+              if timeout 20s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --force-device-scale-factor=1 --run-all-compositor-stages-before-draw --virtual-time-budget=1000 --window-size="$size" --screenshot="screenshots/$name.png" "http://127.0.0.1:4173/$page"; then
+                if test -s "screenshots/$name.png"; then
+                  return 0
+                fi
+              fi
+              echo "Screenshot attempt $attempt failed: $name" >&2
+            done
+            echo "Screenshot failed: $name" >&2
+            return 1
           }
 
           # Default/system review matrix retained for regression continuity.
