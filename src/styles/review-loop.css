@@ -25,8 +25,17 @@ body .kpi-meta.positive {
   color: #087a4c;
 }
 
-body .sidebar-status small {
+body .sidebar-status small,
+body .dashboard-shell .muted,
+body .current-strip-copy small,
+body .attention-copy small,
+body .recent-copy small,
+body .trend-label {
   color: #667085;
+}
+
+body .dashboard-shell .btn-quiet {
+  color: #475467;
 }
 
 body .period-context {
@@ -37,7 +46,7 @@ body .period-context {
   border: 1px solid var(--line);
   border-radius: 11px;
   background: var(--surface-raised);
-  color: var(--muted);
+  color: #667085;
   font-size: 11px;
   font-weight: 760;
   letter-spacing: .01em;
@@ -62,7 +71,7 @@ body .history-context span {
 }
 
 body .history-context small {
-  color: var(--muted);
+  color: #667085;
   font-size: 11px;
 }
 
@@ -96,6 +105,16 @@ body .mobile-settings {
 [data-theme="light"] body:has(.side-shell) {
   background: #f6f8fe;
   color: var(--text);
+}
+
+[data-theme="dark"] .dashboard-shell .muted,
+[data-theme="dark"] .current-strip-copy small,
+[data-theme="dark"] .attention-copy small,
+[data-theme="dark"] .recent-copy small,
+[data-theme="dark"] .trend-label,
+[data-theme="dark"] .history-context small,
+[data-theme="dark"] .dashboard-shell .btn-quiet {
+  color: var(--text-soft);
 }
 
 [data-theme="dark"] .period-context {
@@ -132,7 +151,7 @@ body .mobile-settings {
     border: 0;
     border-radius: 0;
     background: transparent;
-    color: var(--muted);
+    color: #667085;
     box-shadow: none;
     font-size: 10px;
     letter-spacing: .08em;
@@ -142,7 +161,7 @@ body .mobile-settings {
   [data-theme="dark"] .period-context {
     background: transparent;
     border: 0;
-    color: var(--muted);
+    color: var(--text-soft);
   }
 
   body .mobile-nav-item,
