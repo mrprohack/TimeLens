@@ -181,10 +181,12 @@ body .mobile-settings {
 
 [data-theme="dark"] [data-view="limits"] .status-chip.warning {
   color: #f6c76b;
+  background: #3a2e18;
 }
 
 [data-theme="dark"] [data-view="limits"] .status-chip.active {
   color: #6ee7b7;
+  background: #12372c;
 }
 
 [data-theme="dark"] .settings-card .btn-danger {
