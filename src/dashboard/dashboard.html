@@ -38,7 +38,7 @@
           <p class="muted">Your time at a glance</p>
         </div>
         <div class="dashboard-topbar-actions">
-          <div class="period-pills" aria-label="Usage period"><span class="is-active">Daily</span><span>Weekly</span><span>Monthly</span></div>
+          <div class="period-context" aria-label="Usage period"><span>Today</span></div>
           <button id="home-start-focus" class="btn focus-mode-button" type="button"><span class="focus-dot" aria-hidden="true"></span>Focus Mode</button>
         </div>
       </div>
@@ -139,13 +139,13 @@
     </section>
   </main>
 
-  <nav class="mobile-nav" aria-label="Mobile dashboard navigation"><button type="button" class="mobile-nav-item is-active" data-dashboard-view="home">Home</button><button type="button" class="mobile-nav-item" data-dashboard-view="limits">Limits</button><button type="button" class="mobile-nav-item" data-dashboard-view="focus">Focus</button><button type="button" class="mobile-nav-item mobile-settings" data-dashboard-view="settings" aria-label="Settings">⚙</button></nav>
+  <nav class="mobile-nav" aria-label="Mobile dashboard navigation"><button type="button" class="mobile-nav-item is-active" data-dashboard-view="home">Home</button><button type="button" class="mobile-nav-item" data-dashboard-view="limits">Limits</button><button type="button" class="mobile-nav-item" data-dashboard-view="focus">Focus</button><button type="button" class="mobile-nav-item mobile-settings" data-dashboard-view="settings">Settings</button></nav>
 
   <div id="history-drawer" class="drawer-backdrop" hidden aria-hidden="true">
     <aside class="history-drawer panel" role="dialog" aria-modal="true" aria-labelledby="history-title">
       <div class="dialog-heading"><div><div class="eyeline">Usage History</div><h2 id="history-title">Browsing sessions</h2></div><button class="icon-close" type="button" data-close-dialog aria-label="Close history">×</button></div>
       <div class="history-summary"><div><span>Total time</span><strong id="history-total-time">0m</strong></div><div><span>Sessions</span><strong id="history-session-count">0</strong></div></div>
-      <div class="history-tabs"><span class="is-active">Overview</span><span>History</span><span>Limits</span></div>
+      <div class="history-context"><span>Recent sessions</span><small>Latest browsing activity</small></div>
       <div class="history-head"><span>Website</span><span>Started</span><span>Active time</span></div>
       <div id="history-list" class="history-list"></div>
     </aside>
