@@ -70,6 +70,12 @@ body .settings-card .btn-danger {
   color: #9f1239;
 }
 
+body .history-summary span,
+body .history-head,
+body .history-time {
+  color: #667085;
+}
+
 body .period-context {
   min-height: 38px;
   display: inline-flex;
@@ -145,6 +151,9 @@ body .mobile-settings {
 [data-theme="dark"] .recent-copy small,
 [data-theme="dark"] .trend-label,
 [data-theme="dark"] .history-context small,
+[data-theme="dark"] .history-summary span,
+[data-theme="dark"] .history-head,
+[data-theme="dark"] .history-time,
 [data-theme="dark"] .dashboard-shell .btn-quiet,
 [data-theme="dark"] [data-view="limits"] .limit-meta,
 [data-theme="dark"] .settings-card .appearance-choice-copy small,
