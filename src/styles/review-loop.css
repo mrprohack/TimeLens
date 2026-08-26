@@ -60,6 +60,10 @@ body .settings-card .label > span {
   color: #667085;
 }
 
+body .settings-card .appearance-choice:has(input:checked) .appearance-choice-copy small {
+  color: #344054;
+}
+
 body .settings-card .btn-danger {
   border-color: #fecdd3;
   background: #fff1f2;
@@ -147,6 +151,10 @@ body .mobile-settings {
 [data-theme="dark"] .settings-card .check-row small,
 [data-theme="dark"] .settings-card .label > span {
   color: var(--text-soft);
+}
+
+[data-theme="dark"] .settings-card .appearance-choice:has(input:checked) .appearance-choice-copy small {
+  color: #e2e8f0;
 }
 
 [data-theme="dark"] [data-view="limits"] .status-chip {
