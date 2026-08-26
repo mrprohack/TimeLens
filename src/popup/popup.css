@@ -344,6 +344,23 @@ body {
   font-size: 12px;
 }
 
+/* Front-End Checklist: compact supporting text must remain AA-readable. */
+.tracking-status,
+.on-track-pill {
+  color: #087a4c;
+}
+
+.summary-ring small,
+.summary-facts small,
+.current-copy .muted.small,
+.popup-shell .footer-link:last-child {
+  color: #667085;
+}
+
+.boundary-copy {
+  color: #92400e;
+}
+
 html[data-theme="light"] body {
   background: var(--bg);
   color: var(--text);
@@ -394,6 +411,22 @@ html[data-theme="dark"] .popup-header .brand {
   color: var(--text);
 }
 
+html[data-theme="dark"] .tracking-status,
+html[data-theme="dark"] .on-track-pill {
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] .summary-ring small,
+html[data-theme="dark"] .summary-facts small,
+html[data-theme="dark"] .current-copy .muted.small,
+html[data-theme="dark"] .popup-shell .footer-link:last-child {
+  color: var(--text-soft);
+}
+
+html[data-theme="dark"] .boundary-copy {
+  color: #f6c76b;
+}
+
 html[data-theme="dark"] .site-item + .site-item,
 html[data-theme="dark"] .popup-footer {
   border-color: var(--line);
@@ -410,6 +443,13 @@ html[data-theme="dark"] .popup-footer {
   html:not([data-theme]) .popup-header .brand { color: #f8fafc; }
   html:not([data-theme]) .summary-facts > div,
   html:not([data-theme]) .current-card { background: #121827; border-color: #263044; }
+  html:not([data-theme]) .tracking-status,
+  html:not([data-theme]) .on-track-pill { color: #6ee7b7; }
+  html:not([data-theme]) .summary-ring small,
+  html:not([data-theme]) .summary-facts small,
+  html:not([data-theme]) .current-copy .muted.small,
+  html:not([data-theme]) .popup-shell .footer-link:last-child { color: #d7dfec; }
+  html:not([data-theme]) .boundary-copy { color: #f6c76b; }
   html:not([data-theme]) .site-item + .site-item,
   html:not([data-theme]) .popup-footer { border-color: #2a3344; }
 }
