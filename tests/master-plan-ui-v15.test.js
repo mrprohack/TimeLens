@@ -128,3 +128,9 @@ test('review screenshot matrix covers History and Blocked on mobile in both them
     assert.match(workflow, new RegExp(shot));
   }
 });
+
+test('mobile History keeps each session aligned to Website Started and Active time columns', async () => {
+  const css = await read('src/styles/review-loop.css');
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.history-row\s*\{[\s\S]{0,220}grid-template-columns:\s*minmax\(0,\s*1fr\)\s+86px\s+76px/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.history-time\s*\{[\s\S]{0,120}grid-column:\s*auto/);
+});
