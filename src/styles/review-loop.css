@@ -79,6 +79,12 @@ body .history-drawer .history-head {
   color: var(--text-soft);
 }
 
+body .dialog-panel .label > span,
+body .dialog-panel .disclosure-button > span:first-child,
+body .dialog-panel .advanced-options .muted.small {
+  color: var(--text-soft);
+}
+
 body .period-context {
   min-height: 38px;
   display: inline-flex;
