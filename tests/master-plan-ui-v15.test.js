@@ -105,3 +105,26 @@ test('explicit dark Side Panel paints the entire compact shell dark', async () =
   assert.match(css, /html\[data-theme="dark"\]\s+body \.side-shell\s*\{[\s\S]{0,180}background:\s*var\(--bg\)\s*!important/);
   assert.match(css, /html\[data-theme="dark"\]\s+body \.side-shell\s*\{[\s\S]{0,220}color:\s*var\(--text\)/);
 });
+
+test('review loop removes non-functional navigation affordances', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  assert.match(html, /class="period-context"[\s\S]{0,120}>Today</);
+  assert.doesNotMatch(html, /class="period-pills"/);
+  assert.match(html, /class="history-context"[\s\S]{0,180}Recent sessions/);
+  assert.doesNotMatch(html, /class="history-tabs"/);
+});
+
+test('mobile dashboard navigation is visibly labeled and exposes current page semantics', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  const js = await read('src/dashboard/dashboard.js');
+  assert.match(html, /class="mobile-nav-item mobile-settings"[^>]*>Settings<\/button>/);
+  assert.match(js, /if\s*\(active\)\s*control\.setAttribute\('aria-current',\s*'page'\)/);
+  assert.match(js, /else\s*control\.removeAttribute\('aria-current'\)/);
+});
+
+test('review screenshot matrix covers History and Blocked on mobile in both themes', async () => {
+  const workflow = await read('.github/workflows/ci.yml');
+  for (const shot of ['history-light-mobile','history-dark-mobile','blocked-light-mobile','blocked-dark-mobile']) {
+    assert.match(workflow, new RegExp(shot));
+  }
+});
