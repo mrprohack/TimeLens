@@ -22,6 +22,34 @@ jobs:
         run: npm run check
       - name: Build Chrome Web Store package
         run: npm run package
+      - name: Run axe accessibility checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/timelens-axe-preview.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/preview/home.html >/dev/null; then break; fi
+            sleep 0.25
+          done
+
+          CHROMEDRIVER="$(command -v chromedriver || true)"
+          if [ -z "$CHROMEDRIVER" ] && [ -n "${CHROMEWEBDRIVER:-}" ]; then
+            CHROMEDRIVER="$CHROMEWEBDRIVER/chromedriver"
+          fi
+          test -x "$CHROMEDRIVER"
+
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            echo "axe: $page"
+            npx --yes @axe-core/cli@4.13.0 \
+              "http://127.0.0.1:4173/preview/$page" \
+              --chromedriver-path="$CHROMEDRIVER" \
+              --chrome-options="no-sandbox,disable-dev-shm-usage" \
+              --tags=wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa \
+              --load-delay=300 \
+              --exit
+          done
       - name: Capture Master Plan UI screenshots
         shell: bash
         run: |
