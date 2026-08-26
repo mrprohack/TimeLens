@@ -134,3 +134,8 @@ test('mobile History keeps each session aligned to Website Started and Active ti
   assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.history-row\s*\{[\s\S]{0,220}grid-template-columns:\s*minmax\(0,\s*1fr\)\s+86px\s+76px/);
   assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.history-time\s*\{[\s\S]{0,120}grid-column:\s*auto/);
 });
+
+test('dashboard mobile header spans the viewport instead of retaining the desktop rail width', async () => {
+  const css = await read('src/styles/review-loop.css');
+  assert.match(css, /@media\s*\(max-width:\s*960px\)[\s\S]*html body \.app-header\s*\{[\s\S]{0,120}width:\s*100%/);
+});
