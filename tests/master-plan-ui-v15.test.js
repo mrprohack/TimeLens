@@ -8,7 +8,7 @@ const read = (path) => readFile(new URL(path, root), 'utf8');
 test('master plan layer is loaded last and defines the shared product shell', async () => {
   const bridge = await read('src/shared/theme.css');
   const css = await read('src/styles/master-plan.css');
-  assert.ok(bridge.indexOf('master-plan.css') > bridge.indexOf('appearance-contrast.css'));
+  assert.ok(bridge.indexOf('master-plan.css') > bridge.indexOf('appearance.css'));
   for (const token of ['--mp-page-max:', '--mp-rail-width:', '--mp-card-radius:', '--mp-card-shadow:']) {
     assert.match(css, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -131,11 +131,11 @@ test('review screenshot matrix covers History and Blocked on mobile in both them
 
 test('mobile History keeps each session aligned to Website Started and Active time columns', async () => {
   const css = await read('src/styles/review-loop.css');
-  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.history-row\s*\{[\s\S]{0,220}grid-template-columns:\s*minmax\(0,\s*1fr\)\s+86px\s+76px/);
-  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.history-time\s*\{[\s\S]{0,120}grid-column:\s*auto/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*body \.history-row\s*\{[\s\S]{0,220}grid-template-columns:\s*minmax\(0,\s*1fr\)\s+86px\s+76px/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*body \.history-time\s*\{[\s\S]{0,120}grid-column:\s*auto/);
 });
 
 test('dashboard mobile header spans the viewport instead of retaining the desktop rail width', async () => {
   const css = await read('src/styles/review-loop.css');
-  assert.match(css, /@media\s*\(max-width:\s*960px\)[\s\S]*html body \.app-header\s*\{[\s\S]{0,120}width:\s*100%/);
+  assert.match(css, /@media\s*\(max-width:\s*960px\)[\s\S]*body \.app-header\s*\{[\s\S]{0,120}width:\s*100%/);
 });
