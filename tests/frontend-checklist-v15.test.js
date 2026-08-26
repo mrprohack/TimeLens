@@ -45,3 +45,14 @@ test('usage trend exposes each value without relying on title tooltips', async (
   assert.match(js, /class="trend-column"[^>]*aria-label=/);
   assert.doesNotMatch(js, /class="trend-column"[^>]*title=/);
 });
+
+test('CI runs pinned axe-core WCAG 2.2 AA checks against every major preview surface', async () => {
+  const workflow = await read('.github/workflows/ci.yml');
+  assert.match(workflow, /Run axe accessibility checks/);
+  assert.match(workflow, /@axe-core\/cli@4\.13\.0/);
+  assert.match(workflow, /--tags[= ]+wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa/);
+  assert.match(workflow, /--exit/);
+  for (const page of ['home.html','limits.html','focus.html','settings.html','history.html','popup.html','sidepanel.html','blocked.html','dialog.html']) {
+    assert.match(workflow, new RegExp(page.replace('.', '\\.')));
+  }
+});
