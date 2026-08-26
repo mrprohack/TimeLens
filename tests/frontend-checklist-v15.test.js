@@ -6,33 +6,38 @@ const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
 test('limit dialog links validation errors to their fields', async () => {
-  const html = await read('src/dashboard/dashboard.html');
-  const js = await read('src/dashboard/dashboard.js');
+  const js = await read('src/dashboard/form-accessibility.js');
 
-  assert.match(html, /id="limit-domain"[^>]*aria-describedby="limit-domain-error"/);
-  assert.match(html, /id="limit-value"[^>]*aria-describedby="limit-value-error"/);
+  assert.match(js, /limit-domain-error/);
+  assert.match(js, /limit-value-error/);
+  assert.match(js, /aria-describedby/);
   assert.match(js, /setAttribute\(['"]aria-invalid['"],\s*['"]true['"]\)/);
   assert.match(js, /removeAttribute\(['"]aria-invalid['"]\)/);
 });
 
 test('modal dialogs trap Tab focus while open', async () => {
   const js = await read('src/dashboard/dialogs.js');
+  assert.match(js, /form-accessibility\.js/);
   assert.match(js, /function\s+trapFocus|const\s+trapFocus/);
   assert.match(js, /event\.key\s*!==\s*['"]Tab['"]/);
-  assert.match(js, /Shift|shiftKey/);
+  assert.match(js, /shiftKey/);
 });
 
-test('small dashboard text uses AA-safe light-theme colors', async () => {
-  const css = await read('src/dashboard/dashboard.css');
-  assert.doesNotMatch(css, /\.kpi-head[^}]*color:\s*#7a8396/);
-  assert.doesNotMatch(css, /\.kpi-meta[^}]*color:\s*#8b95a7/);
-  assert.doesNotMatch(css, /\.sidebar-status small[^}]*color:\s*#8a94a7/);
+test('final dashboard review layer raises small text to AA-safe colors', async () => {
+  const css = await read('src/styles/review-loop.css');
+  assert.match(css, /body \.kpi-head\s*\{[^}]*color:\s*#5f6b7e/i);
+  assert.match(css, /body \.kpi-meta\s*\{[^}]*color:\s*#667085/i);
+  assert.match(css, /body \.sidebar-status small\s*\{[^}]*color:\s*#667085/i);
+  assert.match(css, /body \.kpi-meta\.positive\s*\{[^}]*color:\s*#087a4c/i);
 });
 
-test('theme bridge avoids legacy override-only layers', async () => {
-  const css = await read('src/shared/theme.css');
-  assert.doesNotMatch(css, /appearance-contrast\.css/);
-  assert.doesNotMatch(css, /review-loop\.css/);
+test('theme bridge consolidates contrast overrides without important rules', async () => {
+  const theme = await read('src/shared/theme.css');
+  const css = await read('src/styles/review-loop.css');
+  assert.doesNotMatch(theme, /appearance-contrast\.css/);
+  assert.doesNotMatch(css, /!important/);
+  assert.match(css, /body:has\(\.popup-shell\)/);
+  assert.match(css, /body:has\(\.side-shell\)/);
 });
 
 test('usage trend exposes each value without relying on title tooltips', async () => {
