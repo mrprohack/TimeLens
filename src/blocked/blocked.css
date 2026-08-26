@@ -19,4 +19,6 @@ h1 { margin: 0; max-width: 560px; color: #fff; font-size: clamp(38px,7vw,56px); 
 .allowance-actions p { margin: 0; color: #aeb9cb; }
 .allowance-buttons .btn { border-color: rgba(255,255,255,.13); background: rgba(255,255,255,.06); color: #dbe4f3; }
 .error-message { padding: 11px 13px; border-radius: 12px; color: #fecdd3; background: rgba(190,24,93,.20); border: 1px solid rgba(251,113,133,.22); }
+html[data-theme="light"] .blocked-message .eyeline { color: #92400e; }
+html[data-theme="light"] .allowance-actions p { color: #475467; }
 @media (max-width: 480px) { body { padding: 14px; align-items: stretch; } .blocked-shell { align-content: center; min-height: calc(100vh - 28px); padding: 26px 20px; border-radius: 22px; } .primary-actions,.allowance-buttons { display: grid; grid-template-columns: 1fr; } .primary-actions .btn,.allowance-buttons .btn { width: 100%; min-height: var(--touch-target); } h1 { font-size: 40px; } }
