@@ -73,4 +73,14 @@ html[data-theme="dark"] body .period-context {
     flex-direction: column;
     gap: 2px;
   }
+
+  html body .history-row {
+    grid-template-columns: minmax(0, 1fr) 86px 76px;
+    gap: 8px;
+    align-items: center;
+  }
+
+  html body .history-time {
+    grid-column: auto;
+  }
 }
