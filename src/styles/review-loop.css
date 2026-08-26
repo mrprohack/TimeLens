@@ -62,9 +62,24 @@ html[data-theme="dark"] body .period-context {
 
 @media (max-width: 600px) {
   html body .period-context {
-    width: 100%;
-    justify-content: center;
-    min-height: 36px;
+    width: auto;
+    min-height: auto;
+    justify-content: flex-start;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--muted);
+    box-shadow: none;
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  html[data-theme="dark"] body .period-context {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
   }
 
   html body .mobile-nav-item,
