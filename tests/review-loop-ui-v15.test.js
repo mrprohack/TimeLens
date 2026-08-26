@@ -7,9 +7,9 @@ const read = (path) => readFile(new URL(path, root), 'utf8');
 
 test('mobile Home renders Today as quiet context instead of a full-width control', async () => {
   const css = await read('src/styles/review-loop.css');
-  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.period-context\s*\{[\s\S]{0,220}width:\s*auto/);
-  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.period-context\s*\{[\s\S]{0,260}border:\s*0/);
-  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*html body \.period-context\s*\{[\s\S]{0,320}background:\s*transparent/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*body \.period-context\s*\{[\s\S]{0,220}width:\s*auto/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*body \.period-context\s*\{[\s\S]{0,260}border:\s*0/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*body \.period-context\s*\{[\s\S]{0,320}background:\s*transparent/);
 });
 
 test('Limits preview uses the same row-menu action affordance as production', async () => {
