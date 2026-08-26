@@ -56,3 +56,11 @@ test('CI runs pinned axe-core WCAG 2.2 AA checks against every major preview sur
     assert.match(workflow, new RegExp(page.replace('.', '\\.')));
   }
 });
+
+test('CI runs axe against explicit light and dark appearance previews', async () => {
+  const workflow = await read('.github/workflows/ci.yml');
+  assert.ok(workflow.includes('preview/axe-light-$page'));
+  assert.ok(workflow.includes('preview/axe-dark-$page'));
+  assert.ok(workflow.includes('data-theme="light"'));
+  assert.ok(workflow.includes('data-theme="dark"'));
+});
