@@ -54,6 +54,18 @@ body [data-view="limits"] .status-chip.active {
   color: #087a4c;
 }
 
+body .settings-card .appearance-choice-copy small,
+body .settings-card .check-row small,
+body .settings-card .label > span {
+  color: #667085;
+}
+
+body .settings-card .btn-danger {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #9f1239;
+}
+
 body .period-context {
   min-height: 38px;
   display: inline-flex;
@@ -130,7 +142,10 @@ body .mobile-settings {
 [data-theme="dark"] .trend-label,
 [data-theme="dark"] .history-context small,
 [data-theme="dark"] .dashboard-shell .btn-quiet,
-[data-theme="dark"] [data-view="limits"] .limit-meta {
+[data-theme="dark"] [data-view="limits"] .limit-meta,
+[data-theme="dark"] .settings-card .appearance-choice-copy small,
+[data-theme="dark"] .settings-card .check-row small,
+[data-theme="dark"] .settings-card .label > span {
   color: var(--text-soft);
 }
 
@@ -144,6 +159,12 @@ body .mobile-settings {
 
 [data-theme="dark"] [data-view="limits"] .status-chip.active {
   color: #6ee7b7;
+}
+
+[data-theme="dark"] .settings-card .btn-danger {
+  border-color: #7f1d1d;
+  background: #3b1820;
+  color: #fecdd3;
 }
 
 [data-theme="dark"] .period-context {
