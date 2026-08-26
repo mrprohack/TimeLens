@@ -43,15 +43,18 @@ test('settings exposes an immediate Light Dark System appearance chooser', async
   assert.match(source, /name=[\\"']appearance[\\"']/);
 });
 
-test('final appearance layer explicitly fixes v2 dark surfaces after legacy page CSS', async () => {
+test('final appearance layers explicitly fix v2 dark surfaces after legacy page CSS', async () => {
   const bridge = await read('src/shared/theme.css');
   const css = await read('src/styles/appearance.css');
+  const review = await read('src/styles/review-loop.css');
   assert.match(bridge, /appearance\.css/);
-  assert.match(bridge, /appearance-contrast\.css/);
+  assert.match(bridge, /review-loop\.css/);
+  assert.doesNotMatch(bridge, /appearance-contrast\.css/);
   assert.match(css, /html\[data-theme=["']dark["']\]/);
   for (const selector of ['.app-header', '.kpi-primary', '.analytics-card', '.focus-simple', '.settings-card', '.history-drawer', '.dialog-panel', '.today-summary', '.side-shell']) {
     assert.match(css, new RegExp(selector.replace('.', '\\.')));
   }
+  assert.match(review, /\[data-theme=["']dark["']\] body/);
   assert.match(css, /--surface-raised:/);
   assert.match(css, /--text:/);
   assert.match(css, /--line:/);
@@ -67,16 +70,17 @@ test('manual light mode wins over OS-dark media styles and blocked page has a li
 });
 
 test('dark mode forces page chrome and analytics headings onto readable dark colors', async () => {
-  const css = `${await read('src/styles/appearance.css')}\n${await read('src/styles/appearance-contrast.css')}`;
-  assert.match(css, /html\[data-theme=["']dark["']\] body\s*\{[\s\S]{0,240}background:\s*var\(--bg\)[\s\S]{0,160}color:\s*var\(--text\)/);
-  assert.match(css, /html\[data-theme=["']dark["']\] body \.section-heading-row h2\s*\{[\s\S]{0,120}color:\s*var\(--text\)/);
+  const css = `${await read('src/styles/appearance.css')}\n${await read('src/styles/review-loop.css')}`;
+  assert.match(css, /\[data-theme=["']dark["']\] body\s*\{[\s\S]{0,240}background:\s*var\(--bg\)[\s\S]{0,160}color:\s*var\(--text\)/);
+  assert.match(css, /\[data-theme=["']dark["']\] \.section-heading-row h2\s*,|\[data-theme=["']dark["']\] \.section-heading-row h2\s*\{/);
 });
 
-test('dark popup and side panel force a dark page canvas around their dark cards', async () => {
-  const css = await read('src/styles/appearance-contrast.css');
-  assert.match(css, /html\[data-theme=["']dark["']\] body:has\(\.popup-shell\)/);
-  assert.match(css, /html\[data-theme=["']dark["']\] body:has\(\.side-shell\)/);
-  assert.match(css, /background:\s*#0b1020\s*!important/);
+test('dark popup and side panel force a dark page canvas without important overrides', async () => {
+  const css = await read('src/styles/review-loop.css');
+  assert.match(css, /\[data-theme=["']dark["']\] body:has\(\.popup-shell\)/);
+  assert.match(css, /\[data-theme=["']dark["']\] body:has\(\.side-shell\)/);
+  assert.match(css, /background:\s*#0b1020/);
+  assert.doesNotMatch(css, /!important/);
 });
 
 test('settings preview includes the three appearance choices for screenshot review', async () => {
