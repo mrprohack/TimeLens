@@ -6,12 +6,12 @@ const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
 test('Home primary KPI reserves the TIME halo area for long comparison copy', async () => {
-  const css = await read('src/styles/master-plan.css');
+  const css = await read('src/styles/review-loop.css');
 
   assert.match(
     css,
     /html body \.kpi-primary\s*\{[\s\S]{0,360}padding-right:\s*clamp\(154px,\s*16vw,\s*196px\)/,
-    'desktop hero must keep a dedicated right-side safe area for the TIME halo'
+    'the final review layer must restore a dedicated right-side safe area for the TIME halo'
   );
 
   assert.match(
