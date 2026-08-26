@@ -6,7 +6,7 @@ const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
 test('limit dialog links validation errors to their fields', async () => {
-  const js = await read('src/dashboard/form-accessibility.js');
+  const js = await read('src/dashboard/form-accessibility.js').catch(() => '');
 
   assert.match(js, /limit-domain-error/);
   assert.match(js, /limit-value-error/);
