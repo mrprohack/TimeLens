@@ -2,17 +2,34 @@
 
 /* Keep all primary KPI copy inside a dedicated content column so long
    comparison text never flows underneath the decorative TIME halo. */
-html body .kpi-primary {
+body .kpi-primary {
   padding-right: clamp(154px, 16vw, 196px);
 }
 
-html body .kpi-primary .kpi-meta {
+body .kpi-primary .kpi-meta {
   max-width: 100%;
   line-height: 1.35;
   overflow-wrap: break-word;
 }
 
-html body .period-context {
+/* Front-End Checklist contrast guard for normal-size supporting text. */
+body .kpi-head {
+  color: #5f6b7e;
+}
+
+body .kpi-meta {
+  color: #667085;
+}
+
+body .kpi-meta.positive {
+  color: #087a4c;
+}
+
+body .sidebar-status small {
+  color: #667085;
+}
+
+body .period-context {
   min-height: 38px;
   display: inline-flex;
   align-items: center;
@@ -27,7 +44,7 @@ html body .period-context {
   box-shadow: var(--shadow-xs);
 }
 
-html body .history-context {
+body .history-context {
   min-height: 36px;
   margin: 2px 0 12px;
   padding: 0 2px 10px;
@@ -38,47 +55,76 @@ html body .history-context {
   border-bottom: 1px solid var(--line);
 }
 
-html body .history-context span {
+body .history-context span {
   color: var(--text);
   font-size: 12px;
   font-weight: 780;
 }
 
-html body .history-context small {
+body .history-context small {
   color: var(--muted);
   font-size: 11px;
 }
 
-html body .mobile-nav {
+body .mobile-nav {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-html body .mobile-nav-item,
-html body .mobile-settings {
+body .mobile-nav-item,
+body .mobile-settings {
   min-width: 0;
   white-space: nowrap;
 }
 
-html[data-theme="dark"] body .period-context {
+[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+[data-theme="light"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+[data-theme="dark"] body:has(.popup-shell),
+[data-theme="dark"] body:has(.side-shell) {
+  background: #0b1020;
+  color: var(--text);
+}
+
+[data-theme="light"] body:has(.popup-shell),
+[data-theme="light"] body:has(.side-shell) {
+  background: #f6f8fe;
+  color: var(--text);
+}
+
+[data-theme="dark"] .period-context {
   background: var(--surface-raised);
   border-color: var(--line);
   color: var(--text-soft);
   box-shadow: none;
 }
 
+[data-theme="dark"] .section-heading-row h2,
+[data-theme="dark"] .side-header .brand,
+[data-theme="dark"] .side-header .btn,
+[data-theme="dark"] .popup-header .brand {
+  color: var(--text);
+}
+
 @media (max-width: 960px) {
-  html body .app-header {
+  body .app-header {
     width: 100%;
   }
 }
 
 @media (max-width: 600px) {
-  html body .kpi-primary {
+  body .kpi-primary {
     min-height: 154px;
     padding-right: 132px;
   }
 
-  html body .period-context {
+  body .period-context {
     width: auto;
     min-height: auto;
     justify-content: flex-start;
@@ -93,32 +139,32 @@ html[data-theme="dark"] body .period-context {
     text-transform: uppercase;
   }
 
-  html[data-theme="dark"] body .period-context {
+  [data-theme="dark"] .period-context {
     background: transparent;
     border: 0;
     color: var(--muted);
   }
 
-  html body .mobile-nav-item,
-  html body .mobile-settings {
+  body .mobile-nav-item,
+  body .mobile-settings {
     padding-inline: 6px;
     font-size: 11px;
     font-weight: 760;
   }
 
-  html body .history-context {
+  body .history-context {
     align-items: flex-start;
     flex-direction: column;
     gap: 2px;
   }
 
-  html body .history-row {
+  body .history-row {
     grid-template-columns: minmax(0, 1fr) 86px 76px;
     gap: 8px;
     align-items: center;
   }
 
-  html body .history-time {
+  body .history-time {
     grid-column: auto;
   }
 }
