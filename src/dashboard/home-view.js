@@ -115,7 +115,9 @@ function renderTrend(snapshot) {
   const max = Math.max(...series.map((item) => Number(item.totalMs) || 0), 1);
   node.innerHTML = series.map((item, index) => {
     const value = Number(item.totalMs) || 0;
-    return `<div class="trend-column" title="${escapeHtml(formatDuration(value, true))}"><div class="trend-track"><span style="--bar:${percent(value, max)}%"></span></div><small>${escapeHtml(dayLabel(item, index))}</small></div>`;
+    const label = dayLabel(item, index);
+    const duration = formatDuration(value, true);
+    return `<div class="trend-column" aria-label="${escapeHtml(`${label}: ${duration}`)}"><div class="trend-track" aria-hidden="true"><span style="--bar:${percent(value, max)}%"></span></div><small>${escapeHtml(label)}</small></div>`;
   }).join('');
 }
 
