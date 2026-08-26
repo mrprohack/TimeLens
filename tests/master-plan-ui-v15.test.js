@@ -139,3 +139,11 @@ test('dashboard mobile header spans the viewport instead of retaining the deskto
   const css = await read('src/styles/review-loop.css');
   assert.match(css, /@media\s*\(max-width:\s*960px\)[\s\S]*body \.app-header\s*\{[\s\S]{0,120}width:\s*100%/);
 });
+
+test('CI bounds and retries each headless screenshot capture', async () => {
+  const workflow = await read('.github/workflows/ci.yml');
+  assert.match(workflow, /for attempt in 1 2/);
+  assert.match(workflow, /timeout\s+20s\s+"\$CHROME"/);
+  assert.match(workflow, /rm -f\s+"screenshots\/\$name\.png"/);
+  assert.match(workflow, /Screenshot failed: \$name/);
+});
