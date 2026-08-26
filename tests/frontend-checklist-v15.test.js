@@ -27,7 +27,7 @@ test('final dashboard review layer raises small text to AA-safe colors', async (
   const css = await read('src/styles/review-loop.css');
   assert.match(css, /body \.kpi-head\s*\{[^}]*color:\s*#5f6b7e/i);
   assert.match(css, /body \.kpi-meta\s*\{[^}]*color:\s*#667085/i);
-  assert.match(css, /body \.sidebar-status small\s*\{[^}]*color:\s*#667085/i);
+  assert.match(css, /body \.sidebar-status small,[\s\S]{0,320}body \.trend-label\s*\{[^}]*color:\s*#667085/i);
   assert.match(css, /body \.kpi-meta\.positive\s*\{[^}]*color:\s*#087a4c/i);
 });
 
