@@ -26,6 +26,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          # Keep themed accessibility fixtures beside the source previews so
+          # their existing ../src stylesheet paths continue to resolve.
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            sed 's/<html/<html data-theme="light" data-appearance="light"/' "preview/$page" > "preview/axe-light-$page"
+            sed 's/<html/<html data-theme="dark" data-appearance="dark"/' "preview/$page" > "preview/axe-dark-$page"
+          done
+
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/timelens-axe-preview.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
@@ -40,15 +48,26 @@ jobs:
           fi
           test -x "$CHROMEDRIVER"
 
-          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
-            echo "axe: $page"
+          axe_page() {
+            local page_path="$1"
+            echo "axe: $page_path"
             npx --yes @axe-core/cli@4.13.0 \
-              "http://127.0.0.1:4173/preview/$page" \
+              "http://127.0.0.1:4173/$page_path" \
               --chromedriver-path="$CHROMEDRIVER" \
               --chrome-options="no-sandbox,disable-dev-shm-usage" \
               --tags=wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa \
               --load-delay=300 \
               --exit
+          }
+
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            axe_page "preview/$page"
+          done
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            axe_page "preview/axe-light-$page"
+          done
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            axe_page "preview/axe-dark-$page"
           done
       - name: Capture Master Plan UI screenshots
         shell: bash
