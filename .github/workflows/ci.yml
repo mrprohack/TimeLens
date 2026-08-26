@@ -63,9 +63,11 @@ jobs:
           shot settings-desktop 1440,1000 preview/settings.html
           shot settings-mobile 390,844 preview/settings.html
           shot history-desktop 1440,900 preview/history.html
+          shot history-mobile 390,844 preview/history.html
           shot popup 360,600 preview/popup.html
           shot sidepanel 420,900 preview/sidepanel.html
           shot blocked 1440,900 preview/blocked.html
+          shot blocked-mobile 390,844 preview/blocked.html
           shot dialog-desktop 1000,850 preview/dialog.html
           shot dialog-mobile 390,844 preview/dialog.html
 
@@ -95,17 +97,21 @@ jobs:
           shot settings-dark-mobile 390,844 preview-dark/settings.html
           shot settings-system-mobile 390,844 preview-system/settings.html
 
-          # History — explicit Light/Dark inspection workspace.
+          # History — desktop/mobile, explicit Light/Dark inspection workspace.
           shot history-light-desktop 1440,900 preview-light/history.html
           shot history-dark-desktop 1440,900 preview-dark/history.html
+          shot history-light-mobile 390,844 preview-light/history.html
+          shot history-dark-mobile 390,844 preview-dark/history.html
 
-          # Compact extension surfaces.
+          # Compact extension surfaces and blocked recovery states.
           shot popup-light 360,600 preview-light/popup.html
           shot popup-dark 360,600 preview-dark/popup.html
           shot sidepanel-light 420,900 preview-light/sidepanel.html
           shot sidepanel-dark 420,900 preview-dark/sidepanel.html
           shot blocked-light 1440,900 preview-light/blocked.html
           shot blocked-dark 1440,900 preview-dark/blocked.html
+          shot blocked-light-mobile 390,844 preview-light/blocked.html
+          shot blocked-dark-mobile 390,844 preview-dark/blocked.html
 
           # Dialogs — desktop/mobile, explicit Light/Dark.
           shot dialog-light-desktop 1000,850 preview-light/dialog.html
