@@ -38,6 +38,22 @@ body .dashboard-shell .btn-quiet {
   color: #475467;
 }
 
+body [data-view="limits"] .limit-meta {
+  color: #667085;
+}
+
+body [data-view="limits"] .status-chip {
+  color: #344054;
+}
+
+body [data-view="limits"] .status-chip.warning {
+  color: #92400e;
+}
+
+body [data-view="limits"] .status-chip.active {
+  color: #087a4c;
+}
+
 body .period-context {
   min-height: 38px;
   display: inline-flex;
@@ -113,8 +129,21 @@ body .mobile-settings {
 [data-theme="dark"] .recent-copy small,
 [data-theme="dark"] .trend-label,
 [data-theme="dark"] .history-context small,
-[data-theme="dark"] .dashboard-shell .btn-quiet {
+[data-theme="dark"] .dashboard-shell .btn-quiet,
+[data-theme="dark"] [data-view="limits"] .limit-meta {
   color: var(--text-soft);
+}
+
+[data-theme="dark"] [data-view="limits"] .status-chip {
+  color: var(--text);
+}
+
+[data-theme="dark"] [data-view="limits"] .status-chip.warning {
+  color: #f6c76b;
+}
+
+[data-theme="dark"] [data-view="limits"] .status-chip.active {
+  color: #6ee7b7;
 }
 
 [data-theme="dark"] .period-context {
