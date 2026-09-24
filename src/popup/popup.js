@@ -1,4 +1,5 @@
 import { escapeHtml, formatDuration, send, setBusy, setText } from '../shared/ui.js';
+import { trackState } from '../core/track-state.js';
 
 let snapshot = null;
 let ticker = null;
@@ -33,11 +34,26 @@ function renderTopSites() {
   node.innerHTML = sites.map((site) => `<div class="site-item"><span class="site-name">${escapeHtml(site.domain)}</span><span class="site-time">${escapeHtml(formatDuration(site.durationMs, true))}</span></div>`).join('');
 }
 
+function focusButtonCopy() {
+  if (!snapshot?.focus) return 'Start Focus';
+  const remainingMs = Math.max(0, snapshot.focus.endsAt - Date.now());
+  return remainingMs > 0 ? `End Focus · ${formatDuration(remainingMs, true)} left` : 'Focus finishing…';
+}
+
+function renderTrackPill() {
+  const pill = document.getElementById('on-track-pill');
+  if (!pill) return;
+  const state = trackState(snapshot);
+  pill.textContent = state.label;
+  pill.dataset.tone = state.tone;
+}
+
 function render() {
   setText('today-total', formatDuration(snapshot?.todayTotalMs || 0, true));
   setText('popup-site-count', String((snapshot?.todayTop || []).length));
   setText('popup-focus-status', snapshot?.focus ? 'Active' : 'Ready');
   document.querySelector('.summary-ring')?.style.setProperty('--summary-progress', `${summaryProgress() * 3.6}deg`);
+  renderTrackPill();
 
   setText('current-domain', snapshot?.currentDomain || 'No active website');
   setText('current-usage', snapshot?.currentDomain ? `${formatDuration(snapshot.currentDomainMs || 0, true)} today` : '0m today');
@@ -49,14 +65,8 @@ function render() {
     : 'No limit');
 
   const focus = document.getElementById('focus-toggle');
-  if (snapshot?.focus) {
-    const remainingMs = Math.max(0, snapshot.focus.endsAt - Date.now());
-    focus.textContent = remainingMs > 0 ? `End Focus · ${formatDuration(remainingMs, true)} left` : 'Focus finishing…';
-    focus.classList.remove('btn-primary');
-  } else {
-    focus.textContent = 'Start Focus';
-    focus.classList.add('btn-primary');
-  }
+  focus.textContent = focusButtonCopy();
+  focus.classList.toggle('btn-primary', !snapshot?.focus);
 
   const limitButton = document.getElementById('limit-current-site');
   limitButton.disabled = !snapshot?.currentDomain || Boolean(limit);
@@ -84,17 +94,24 @@ async function refresh() {
   } catch (error) { showError(error); }
 }
 
+// Tick cheaply: only the time-sensitive bits update every second, while
+// full list renders happen on real data refreshes.
+function renderLive() {
+  document.querySelector('.summary-ring')?.style.setProperty('--summary-progress', `${summaryProgress() * 3.6}deg`);
+  if (!snapshot?.focus) return;
+  document.getElementById('focus-toggle').textContent = focusButtonCopy();
+}
+
 // Keep the Focus countdown and summary ring live while the popup is open.
 function startTicker() {
   clearInterval(ticker);
   ticker = setInterval(() => {
     if (!snapshot?.focus) return;
-    const remainingMs = snapshot.focus.endsAt - Date.now();
-    if (remainingMs <= 0) {
+    if (snapshot.focus.endsAt - Date.now() <= 0) {
       refresh();
       return;
     }
-    render();
+    renderLive();
   }, 1_000);
 }
 

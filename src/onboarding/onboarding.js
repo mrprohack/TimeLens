@@ -1,11 +1,11 @@
-import { send } from '../shared/ui.js';
+import { send, setBusy } from '../shared/ui.js';
 
 const form = document.getElementById('onboarding-form');
 const status = document.getElementById('onboarding-status');
 
 function setStatus(message, isError = false) {
   status.textContent = message;
-  status.style.color = isError ? 'var(--danger)' : 'var(--muted)';
+  status.dataset.tone = isError ? 'error' : 'info';
 }
 
 function alertSettings() {
@@ -19,7 +19,7 @@ function alertSettings() {
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = document.getElementById('finish-onboarding');
-  submit.disabled = true;
+  setBusy(submit);
   setStatus('Saving your setup…');
 
   try {
@@ -45,6 +45,6 @@ form.addEventListener('submit', async (event) => {
     location.replace(chrome.runtime.getURL('src/dashboard/dashboard.html'));
   } catch (error) {
     setStatus(error.message || 'TimeLens could not save your setup.', true);
-    submit.disabled = false;
+    setBusy(submit, false);
   }
 });

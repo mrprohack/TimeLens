@@ -141,6 +141,11 @@ html body .toast[data-tone="error"] {
   gap: 10px;
 }
 
+/* Tone-driven status text (onboarding, compact surfaces). */
+#onboarding-status[data-tone="error"] {
+  color: var(--danger);
+}
+
 .error-message .btn-small {
   flex: 0 0 auto;
 }

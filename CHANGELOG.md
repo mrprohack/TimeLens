@@ -10,6 +10,8 @@ All notable changes to TimeLens are documented here.
 - Busy affordances on every action (focus, limits, presets, budgets, exports): buttons disable, expose `aria-busy`, and show an inline spinner while work runs.
 - Dashboard initial-load recovery panel (`Try again`) so a sleeping or restarted worker never leaves a silent page of placeholder zeros; later refresh failures keep the last good data and report via toast.
 - Live popup: the Focus countdown and summary ring update every second while the popup is open and refresh automatically when a Focus session ends.
+- Honest popup status pill: the header pill now reflects the strongest active boundary — “On Track”, “Almost up” (≤20% remaining), or “Limit reached” — instead of a static label (`src/core/track-state.js`).
+- Onboarding uses the shared busy-state and tone-driven status patterns.
 - Side Panel polling now backs off exponentially on failure (15 s → 60 s cap) and resets when the panel becomes visible again.
 - Blocked page degradation: when live block status cannot be fetched, the page still explains the boundary from the request context (extra-time actions stay safely hidden) and offers a `Try again` retry.
 
