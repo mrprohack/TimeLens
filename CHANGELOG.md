@@ -2,6 +2,27 @@
 
 All notable changes to TimeLens are documented here.
 
+## 1.6.0 — 2026-09-24
+
+### Added
+- Resilient shared messaging: every UI request now has a 10-second timeout, one automatic retry for transient service-worker wake-up failures, and human-readable error copy (including reload hints when the extension context is invalidated).
+- Smooth motion polish: the popup summary ring and dashboard budget ring animate via registered angle custom properties; progress bars, trend bars, toasts, and buttons transition smoothly. All motion is disabled under `prefers-reduced-motion: reduce`.
+- Busy affordances on every action (focus, limits, presets, budgets, exports): buttons disable, expose `aria-busy`, and show an inline spinner while work runs.
+- Dashboard initial-load recovery panel (`Try again`) so a sleeping or restarted worker never leaves a silent page of placeholder zeros; later refresh failures keep the last good data and report via toast.
+- Live popup: the Focus countdown and summary ring update every second while the popup is open and refresh automatically when a Focus session ends.
+- Side Panel polling now backs off exponentially on failure (15 s → 60 s cap) and resets when the panel becomes visible again.
+- Blocked page degradation: when live block status cannot be fetched, the page still explains the boundary from the request context (extra-time actions stay safely hidden) and offers a `Try again` retry.
+
+### Changed
+- Saving a limit from the popup confirms with “30 min/day saved ✓”; an existing limit reads “Limit active ✓” instead of the colder “Limit already set”.
+- Error surfaces use `role="alert"` where they announce failures; dashboard error toasts stay visible longer than informational ones.
+- Snapshot health now estimates storage size with a single serialization pass instead of stringify + UTF-8 encode, reducing per-poll CPU on slow devices.
+
+### Compatibility and privacy
+- Schema remains version 4; all usage, limits, categories, budgets, schedules, Focus presets, diagnostics, and backups remain compatible.
+- Chrome permissions are unchanged: `tabs`, `storage`, `idle`, `alarms`, `notifications`, and `sidePanel`.
+- No host permissions, content scripts, backend, accounts, cloud sync, analytics, or remote runtime code were added.
+
 ## 1.5.0 — 2026-08-19
 
 ### Changed

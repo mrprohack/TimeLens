@@ -1,4 +1,4 @@
-import { formatDuration, send, setText } from '../shared/ui.js';
+import { formatDuration, send, setBusy, setText } from '../shared/ui.js';
 
 const params = new URLSearchParams(location.search);
 const domain = params.get('domain') || '';
@@ -30,9 +30,38 @@ function hideAllowance() {
   document.getElementById('allowance-actions').hidden = true;
 }
 
+const REASON_LABEL = Object.freeze({
+  focus: 'Focus mode',
+  budget: 'Browsing budget reached',
+  category: 'Category limit reached',
+  limit: 'Daily limit reached'
+});
+
+// The boundary still applies even when live status cannot be fetched.
+// Safe default: extra-time actions stay hidden until live status confirms them.
+function renderFallback() {
+  setText('site-letter', domain ? domain[0].toUpperCase() : 'T');
+  setText('reason-label', REASON_LABEL[reason] || 'Time boundary reached');
+  setText('blocked-title', 'Time’s up — don’t waste your time.');
+  setText('blocked-copy', `${domain || 'This site'} is paused by a TimeLens boundary you set.`);
+  setText('usage-line', 'Live details could not be refreshed. Your boundary is still active.');
+  hideAllowance();
+}
+
+function showError(error) {
+  const node = document.getElementById('error-message');
+  node.hidden = false;
+  setText('error-text', error?.message || String(error));
+}
+
+function clearError() {
+  document.getElementById('error-message').hidden = true;
+}
+
 async function load() {
   setText('site-letter', domain ? domain[0].toUpperCase() : 'T');
   blockStatus = await send('GET_BLOCK_STATUS', { domain });
+  clearError();
 
   if (reason === 'focus' || blockStatus.focusActive) {
     setText('reason-label', 'Focus mode');
@@ -107,16 +136,25 @@ document.querySelectorAll('.allowance').forEach((button) => {
       const tab = await chrome.tabs.getCurrent();
       if (tab?.id) await chrome.tabs.update(tab.id, { url: target });
     } catch (error) {
-      const node = document.getElementById('error-message');
-      node.hidden = false;
-      node.textContent = error.message;
+      showError(error);
       document.querySelectorAll('.allowance').forEach((item) => { item.disabled = false; });
     }
   });
 });
 
+document.getElementById('error-retry').addEventListener('click', async () => {
+  const button = document.getElementById('error-retry');
+  setBusy(button);
+  try {
+    await load();
+  } catch (error) {
+    showError(error);
+  } finally {
+    setBusy(button, false);
+  }
+});
+
 load().catch((error) => {
-  const node = document.getElementById('error-message');
-  node.hidden = false;
-  node.textContent = error.message;
+  renderFallback();
+  showError(error);
 });

@@ -1,6 +1,7 @@
-import { escapeHtml, formatDuration, send, setText } from '../shared/ui.js';
+import { escapeHtml, formatDuration, send, setBusy, setText } from '../shared/ui.js';
 
 let snapshot = null;
+let ticker = null;
 const DEFAULT_FOCUS_DOMAINS = ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'];
 
 function initial(domain) {
@@ -49,7 +50,8 @@ function render() {
 
   const focus = document.getElementById('focus-toggle');
   if (snapshot?.focus) {
-    focus.textContent = `End Focus · ${formatDuration(Math.max(0, snapshot.focus.endsAt - Date.now()), true)} left`;
+    const remainingMs = Math.max(0, snapshot.focus.endsAt - Date.now());
+    focus.textContent = remainingMs > 0 ? `End Focus · ${formatDuration(remainingMs, true)} left` : 'Focus finishing…';
     focus.classList.remove('btn-primary');
   } else {
     focus.textContent = 'Start Focus';
@@ -58,8 +60,14 @@ function render() {
 
   const limitButton = document.getElementById('limit-current-site');
   limitButton.disabled = !snapshot?.currentDomain || Boolean(limit);
-  limitButton.textContent = !snapshot?.currentDomain ? 'No active site' : limit ? 'Limit already set' : 'Limit this site';
+  limitButton.textContent = !snapshot?.currentDomain ? 'No active site' : limit ? 'Limit active ✓' : 'Limit this site';
   renderTopSites();
+}
+
+function clearError() {
+  const node = document.getElementById('error-message');
+  node.hidden = true;
+  node.textContent = '';
 }
 
 function showError(error) {
@@ -71,30 +79,49 @@ function showError(error) {
 async function refresh() {
   try {
     snapshot = await send('GET_SNAPSHOT', { rangeDays: 7 });
+    clearError();
     render();
   } catch (error) { showError(error); }
 }
 
+// Keep the Focus countdown and summary ring live while the popup is open.
+function startTicker() {
+  clearInterval(ticker);
+  ticker = setInterval(() => {
+    if (!snapshot?.focus) return;
+    const remainingMs = snapshot.focus.endsAt - Date.now();
+    if (remainingMs <= 0) {
+      refresh();
+      return;
+    }
+    render();
+  }, 1_000);
+}
+
 document.getElementById('focus-toggle').addEventListener('click', async () => {
   const button = document.getElementById('focus-toggle');
-  button.disabled = true;
+  setBusy(button);
   try {
     if (snapshot?.focus) await send('STOP_FOCUS');
     else await send('START_FOCUS', { minutes: 25, domains: DEFAULT_FOCUS_DOMAINS, mode: 'block', name: 'Focus' });
     await refresh();
   } catch (error) { showError(error); }
-  finally { button.disabled = false; }
+  finally { setBusy(button, false); }
 });
 
 document.getElementById('limit-current-site').addEventListener('click', async () => {
   if (!snapshot?.currentDomain || currentLimit()) return;
   const button = document.getElementById('limit-current-site');
-  button.disabled = true;
+  setBusy(button);
   try {
     await send('SAVE_LIMIT', { limit: { domain: snapshot.currentDomain, minutes: 30, period: 'daily', strict: false, enabled: true } });
     await refresh();
+    button.textContent = '30 min/day saved ✓';
   } catch (error) { showError(error); }
-  finally { button.disabled = false; }
+  finally {
+    setBusy(button, false);
+    button.disabled = !snapshot?.currentDomain || Boolean(currentLimit());
+  }
 });
 
 document.getElementById('open-side-panel').addEventListener('click', async () => {
@@ -110,3 +137,4 @@ document.getElementById('open-dashboard').addEventListener('click', () => {
 });
 
 refresh();
+startTicker();

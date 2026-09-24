@@ -1,4 +1,4 @@
-import { escapeHtml, formatDuration, send, setText } from '../shared/ui.js';
+import { escapeHtml, formatDuration, send, setBusy, setText } from '../shared/ui.js';
 
 const DEFAULT_DOMAINS = ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'];
 let selectedMinutes = 25;
@@ -64,13 +64,13 @@ export function wireFocusView(getSnapshot, actions = {}) {
 
   document.getElementById('simple-start-focus')?.addEventListener('click', async () => {
     const button = document.getElementById('simple-start-focus');
-    button.disabled = true;
+    setBusy(button);
     try {
       await send('START_FOCUS', focusPayload(getSnapshot()));
       actions.showToast?.('Focus started.');
       await actions.refresh?.();
     } catch (error) { actions.showToast?.(error.message, true); }
-    finally { button.disabled = false; }
+    finally { setBusy(button, false); }
   });
 
   document.getElementById('stop-focus')?.addEventListener('click', async () => {
