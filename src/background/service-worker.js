@@ -311,6 +311,8 @@ function snapshotFromData(data, rangeDays = 7, now = Date.now()) {
   const limits = data.settings.limits.map((limit) => limitView(data, limit.domain, now));
   const categories = (data.settings.categories || []).map((category) => categoryView(data, category, now));
   const diagnostics = Array.isArray(data.diagnostics) ? data.diagnostics : [];
+  // Approximate by contract: one stringify pass, no UTF-8 encode copy on every snapshot.
+  const storageBytesApprox = JSON.stringify(data).length;
 
   return {
     now,
@@ -340,7 +342,7 @@ function snapshotFromData(data, rangeDays = 7, now = Date.now()) {
       status: diagnostics.length ? 'attention' : 'healthy',
       diagnosticCount: diagnostics.length,
       lastDiagnostic: diagnostics.at(-1) || null,
-      storageBytesApprox: new TextEncoder().encode(JSON.stringify(data)).length
+      storageBytesApprox
     }
   };
 }
