@@ -1,7 +1,13 @@
-import { escapeHtml, formatDuration, send, setText } from '../shared/ui.js';
+import { escapeHtml, formatDuration, send, setBusy, setText } from '../shared/ui.js';
 
 let state = null;
 const DEFAULT_FOCUS_DOMAINS = ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'];
+
+// Poll gently when healthy, back off when the worker is busy or restarting.
+const BASE_POLL_MS = 15_000;
+const MAX_POLL_MS = 60_000;
+let pollTimer = null;
+let consecutiveFailures = 0;
 
 function status(message = '') {
   setText('side-status', message);
@@ -63,32 +69,53 @@ function render() {
 async function refresh() {
   try {
     state = await send('GET_SNAPSHOT', { rangeDays: 7 });
+    consecutiveFailures = 0;
     render();
-  } catch (error) { status(error.message); }
+  } catch (error) {
+    consecutiveFailures += 1;
+    status(error.message);
+  }
+}
+
+function schedulePoll() {
+  clearTimeout(pollTimer);
+  const delayMs = Math.min(MAX_POLL_MS, BASE_POLL_MS * 2 ** consecutiveFailures);
+  pollTimer = setTimeout(tick, delayMs);
+}
+
+async function tick() {
+  if (!document.hidden) await refresh();
+  schedulePoll();
 }
 
 document.getElementById('side-limit-site').addEventListener('click', async () => {
   if (!state?.currentDomain || currentLimit()) return;
   const button = document.getElementById('side-limit-site');
   const minutes = Number(document.getElementById('side-limit-minutes').value) || 30;
-  button.disabled = true;
+  setBusy(button);
   try {
     await send('SAVE_LIMIT', { limit: { domain: state.currentDomain, minutes, period: 'daily', strict: false, enabled: true } });
     status(`${state.currentDomain} limited to ${minutes} minutes per day.`);
     await refresh();
   } catch (error) { status(error.message); }
-  finally { button.disabled = false; }
+  finally {
+    setBusy(button, false);
+    render();
+  }
 });
 
 document.getElementById('side-focus-action').addEventListener('click', async () => {
   const button = document.getElementById('side-focus-action');
-  button.disabled = true;
+  setBusy(button);
   try {
     if (state?.focus) await send('STOP_FOCUS');
     else await send('START_FOCUS', { minutes: 25, domains: DEFAULT_FOCUS_DOMAINS, mode: 'block', name: 'Focus' });
     await refresh();
   } catch (error) { status(error.message); }
-  finally { button.disabled = false; }
+  finally {
+    setBusy(button, false);
+    render();
+  }
 });
 
 document.getElementById('side-focus-presets').addEventListener('click', async (event) => {
@@ -96,19 +123,26 @@ document.getElementById('side-focus-presets').addEventListener('click', async (e
   if (!button) return;
   const preset = state?.settings?.focusPresets?.find((item) => item.id === button.dataset.preset);
   if (!preset) return;
-  button.disabled = true;
+  setBusy(button);
   try {
     await send('START_FOCUS', { minutes: preset.minutes, domains: preset.domains, mode: preset.mode, name: preset.name });
     status(`${preset.name} started.`);
     await refresh();
   } catch (error) { status(error.message); }
-  finally { button.disabled = false; }
+  finally {
+    setBusy(button, false);
+    render();
+  }
 });
 
 document.getElementById('side-open-dashboard').addEventListener('click', () => {
   chrome.tabs.create({ url: chrome.runtime.getURL('src/dashboard/dashboard.html') });
 });
 
-document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
-setInterval(() => { if (!document.hidden) refresh(); }, 15_000);
-refresh();
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) return;
+  consecutiveFailures = 0;
+  refresh();
+  schedulePoll();
+});
+tick();

@@ -6,11 +6,11 @@ import { constants } from 'node:fs';
 const root = new URL('../', import.meta.url);
 const text = (path) => readFile(new URL(path, root), 'utf8');
 
-test('manifest and package versions match the 1.5 premium dashboard release', async () => {
+test('manifest and package versions match the 1.6 UX polish release', async () => {
   const manifest = JSON.parse(await text('manifest.json'));
   const pkg = JSON.parse(await text('package.json'));
-  assert.equal(manifest.version, '1.5.0');
-  assert.equal(pkg.version, '1.5.0');
+  assert.equal(manifest.version, '1.6.0');
+  assert.equal(pkg.version, '1.6.0');
   assert.match(pkg.scripts.package, /build:css/);
   assert.match(pkg.scripts.package, /package-extension\.mjs/);
 });
@@ -37,13 +37,13 @@ test('production release includes premium UI modules, deterministic previews, an
   }
 });
 
-test('CI uses pinned GitHub actions and uploads the 1.5 Web Store zip', async () => {
+test('CI uses pinned GitHub actions and uploads the 1.6 Web Store zip', async () => {
   const workflow = await text('.github/workflows/ci.yml');
   assert.match(workflow, /actions\/checkout@[a-f0-9]{40}/);
   assert.match(workflow, /actions\/setup-node@[a-f0-9]{40}/);
   assert.match(workflow, /npm run package/);
   assert.match(workflow, /actions\/upload-artifact@[a-f0-9]{40}/);
-  assert.match(workflow, /timelens-1\.5\.0\.zip/);
+  assert.match(workflow, /timelens-1\.6\.0\.zip/);
 });
 
 test('validator keeps the exact approved permission model', async () => {

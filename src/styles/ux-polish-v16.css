@@ -1,0 +1,173 @@
+/* TimeLens 1.6 — smooth motion, busy states, and resilient-load surfaces. */
+
+/* Registered angle properties let the conic-gradient rings animate
+   instead of snapping between values. Chrome 85+ (TimeLens requires 116). */
+@property --summary-progress {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --budget-progress {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+html body .summary-ring {
+  transition: --summary-progress .6s cubic-bezier(.22, .8, .32, 1);
+}
+
+html body .budget-ring {
+  transition: --budget-progress .6s cubic-bezier(.22, .8, .32, 1);
+}
+
+/* Progress bars and trend columns ease between refreshes. */
+html body .progress > span {
+  transition: width .5s ease;
+}
+
+html body .trend-track > span {
+  transition: height .5s cubic-bezier(.22, .8, .32, 1);
+}
+
+/* Buttons and quiet controls get consistent hover/press feedback. */
+html body .btn {
+  transition: background .16s ease, border-color .16s ease, color .16s ease,
+    box-shadow .16s ease, transform .12s ease, opacity .16s ease;
+}
+
+html body .btn:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+html body .preset-chip,
+html body .duration-chip {
+  transition: background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+html body .footer-link {
+  transition: background .16s ease, color .16s ease;
+}
+
+/* Busy state: inline spinner keeps the label readable while the action runs. */
+html body .btn.is-busy {
+  position: relative;
+  cursor: progress;
+  opacity: .78;
+}
+
+html body .btn.is-busy::after {
+  content: "";
+  display: inline-block;
+  width: .9em;
+  height: .9em;
+  margin-left: .5em;
+  vertical-align: -.12em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: timelens-spin .7s linear infinite;
+}
+
+/* Popup + blocked page action buttons share the same busy affordance. */
+html body .btn[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* Toast slides in; error tone uses the danger surface instead of inline styles. */
+html body .toast {
+  animation: timelens-toast-in .28s cubic-bezier(.22, .8, .32, 1);
+}
+
+html body .toast[data-tone="error"] {
+  background: var(--danger, #d9485a);
+}
+
+/* Dashboard initial-load failure: never leave a silent wall of zeros. */
+.load-failed {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+}
+
+.load-failed-card {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: 380px;
+  padding: 26px 24px;
+  text-align: center;
+  animation: timelens-toast-in .3s cubic-bezier(.22, .8, .32, 1);
+}
+
+.load-failed-card strong {
+  font-size: 15px;
+}
+
+.load-failed-card .btn {
+  min-width: 140px;
+  margin-top: 6px;
+}
+
+/* Keyed entrance used by toasts and the retry panel. */
+@keyframes timelens-toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.load-failed-card {
+  animation-name: timelens-fade-up;
+}
+
+@keyframes timelens-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes timelens-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error blocks can host a retry action without visual noise. */
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Tone-driven status text (onboarding, compact surfaces). */
+#onboarding-status[data-tone="error"] {
+  color: var(--danger);
+}
+
+.error-message .btn-small {
+  flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .summary-ring,
+  html body .budget-ring,
+  html body .progress > span,
+  html body .trend-track > span,
+  html body .btn,
+  html body .preset-chip,
+  html body .duration-chip,
+  html body .footer-link {
+    transition: none;
+  }
+
+  html body .toast,
+  .load-failed-card {
+    animation: none;
+  }
+
+  html body .btn.is-busy::after {
+    animation-duration: 1.6s;
+  }
+}

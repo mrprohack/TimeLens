@@ -1,4 +1,4 @@
-import { escapeHtml, formatDuration, send, setText } from '../shared/ui.js';
+import { escapeHtml, formatDuration, send, setBusy, setText } from '../shared/ui.js';
 import { closeDialog, openDialog, setDisclosure, wireDialog, wireEscapeToClose } from './dialogs.js';
 import { DEFAULT_SCHEDULE, buildLimitPayload, readSchedule, setSchedule, splitDomains } from './forms.js';
 import { renderHome, renderHistoryDrawer } from './home-view.js';
@@ -23,9 +23,18 @@ function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
   toast.hidden = false;
   toast.textContent = message;
-  toast.style.background = isError ? 'var(--danger)' : 'var(--text)';
+  toast.dataset.tone = isError ? 'error' : 'info';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast.hidden = true; }, 3200);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, isError ? 5_200 : 3_200);
+}
+
+function showLoadFailure(error) {
+  document.getElementById('load-failed').hidden = false;
+  setText('load-failed-reason', error?.message || 'Unknown error.');
+}
+
+function hideLoadFailure() {
+  document.getElementById('load-failed').hidden = true;
 }
 
 export function setDashboardView(viewName) {
@@ -207,8 +216,15 @@ function renderAll() {
 }
 
 async function refresh() {
-  snapshot = await send('GET_SNAPSHOT', { rangeDays: 7 });
-  renderAll();
+  try {
+    snapshot = await send('GET_SNAPSHOT', { rangeDays: 7 });
+    hideLoadFailure();
+    renderAll();
+  } catch (error) {
+    // Keep the last good data on screen; only the first empty load gets a retry panel.
+    if (snapshot) showToast(error.message, true);
+    else showLoadFailure(error);
+  }
 }
 
 function openSidePanel() {
@@ -252,7 +268,7 @@ document.getElementById('limit-form').addEventListener('submit', async (event) =
   const value = document.getElementById('limit-value').value;
   if (!validateLimitFields(domain, value)) return;
   const submit = event.submitter;
-  submit.disabled = true;
+  setBusy(submit);
   try {
     const existing = editingDomain ? snapshot.limits.find((item) => item.domain === editingDomain) : null;
     const limit = buildLimitPayload({
@@ -277,7 +293,7 @@ document.getElementById('limit-form').addEventListener('submit', async (event) =
 document.getElementById('total-budget-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = event.submitter;
-  submit.disabled = true;
+  setBusy(submit);
   try {
     await send('SAVE_TOTAL_BUDGET', { budget: {
       enabled: document.getElementById('total-budget-enabled').checked,
@@ -295,7 +311,7 @@ document.getElementById('total-budget-form').addEventListener('submit', async (e
 document.getElementById('category-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = event.submitter;
-  submit.disabled = true;
+  setBusy(submit);
   try {
     await send('SAVE_CATEGORY', { category: {
       id: editingCategoryId || undefined,
@@ -321,7 +337,7 @@ document.getElementById('focus-presets').addEventListener('change', (event) => {
 document.getElementById('focus-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = event.submitter;
-  submit.disabled = true;
+  setBusy(submit);
   try {
     const preset = snapshot.settings.focusPresets?.find((item) => item.id === document.getElementById('focus-presets').value);
     await send('START_FOCUS', {
@@ -339,7 +355,7 @@ document.getElementById('focus-form').addEventListener('submit', async (event) =
 document.getElementById('preset-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = event.submitter;
-  submit.disabled = true;
+  setBusy(submit);
   try {
     await send('SAVE_FOCUS_PRESET', { preset: {
       name: document.getElementById('preset-name').value.trim(),
@@ -363,9 +379,16 @@ wireFocusView(() => snapshot, {
 });
 wireSettingsView({ refresh, showToast });
 
+document.getElementById('load-retry').addEventListener('click', async (event) => {
+  const button = event.currentTarget;
+  setBusy(button);
+  await refresh();
+  setBusy(button, false);
+});
+
 resetLimitDialog();
 resetCategoryDialog();
 updateFocusModeLabel();
 setDashboardView('home');
-refresh().catch((error) => showToast(error.message, true));
-setInterval(() => { if (snapshot?.focus) renderFocusView(snapshot, { render: renderAll }); }, 30_000);
+refresh();
+setInterval(() => { if (!document.hidden && snapshot?.focus) renderFocusView(snapshot, { render: renderAll }); }, 30_000);

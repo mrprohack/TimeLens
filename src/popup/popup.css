@@ -99,6 +99,16 @@ body {
   line-height: 1;
 }
 
+.on-track-pill[data-tone="warn"] {
+  background: var(--popup-boundary-bg);
+  color: var(--popup-boundary-fg);
+}
+
+.on-track-pill[data-tone="reached"] {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: 118px minmax(0, 1fr);

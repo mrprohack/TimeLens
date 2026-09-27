@@ -165,6 +165,14 @@ instagram.com
 facebook.com
 x.com</textarea></label><button class="btn btn-primary" type="submit">Start focus session</button></form><div class="divider"></div><form id="preset-form" class="stack"><h3>Saved presets</h3><label class="label"><span>Name</span><input id="preset-name" class="input" maxlength="80" placeholder="Writing sprint" required></label><div class="simple-time-row"><label class="label"><span>Minutes</span><input id="preset-duration" class="input" type="number" min="1" max="480" value="45" required></label><label class="label"><span>Mode</span><select id="preset-mode" class="input"><option value="block">Block list</option><option value="allow">Allow only</option></select></label></div><label class="label"><span>Websites</span><textarea id="preset-domains" class="input textarea" rows="3"></textarea></label><button class="btn" type="submit">Save preset</button></form><div id="preset-list" class="preset-list"></div></div></div>
 
+  <div id="load-failed" class="load-failed" hidden>
+    <div class="load-failed-card panel" role="alert">
+      <strong>TimeLens couldn’t load your data.</strong>
+      <p id="load-failed-reason" class="muted small">The background worker may be waking up.</p>
+      <button id="load-retry" class="btn btn-primary" type="button">Try again</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <script type="module" src="dashboard.js"></script>
 </body>
