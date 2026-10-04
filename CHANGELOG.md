@@ -2,6 +2,15 @@
 
 All notable changes to TimeLens are documented here.
 
+## Unreleased
+
+### Developer workflow
+- Grouped tests by area: `tests/core`, `tests/background`, `tests/ui`, `tests/release`.
+- Moved docs from `docs/superpowers/{specs,plans}` to `docs/design` and `docs/plans`, with a `docs/README.md` index.
+- `npm run package` now uses a built-in zip writer and works on Windows without a system `zip` binary.
+- CI reads the artifact version dynamically from `manifest.json`.
+- Added `CONTRIBUTING.md`, PR and issue templates, `.editorconfig`, and `.gitattributes`. `dist/` is now git-ignored.
+
 ## 1.6.0 — 2026-09-24
 
 ### Added

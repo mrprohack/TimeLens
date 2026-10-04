@@ -2,10 +2,16 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
@@ -182,9 +188,12 @@ jobs:
           name: timelens-master-plan-screenshots
           path: screenshots
           if-no-files-found: error
+      - name: Read extension version from manifest.json
+        id: version
+        run: echo "version=$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
       - name: Upload release package
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: timelens-1.6.0
-          path: dist/timelens-1.6.0.zip
+          name: timelens-${{ steps.version.outputs.version }}
+          path: dist/timelens-${{ steps.version.outputs.version }}.zip
           if-no-files-found: error
