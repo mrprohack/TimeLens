@@ -151,6 +151,31 @@ The automated suite covers:
 - remote runtime code and dynamic-code (`eval` / `new Function`) rejection
 - version parity and Chrome Web Store package contracts
 
+## Repository layout
+
+```text
+TimeLens/
+├── manifest.json           # Manifest V3 entry point (load this folder unpacked)
+├── icons/                  # extension icons (shipped)
+├── src/                    # extension runtime (shipped), see Architecture below
+├── tests/
+│   ├── core/               # pure logic: activity, limits, schedules, focus, ...
+│   ├── background/         # service worker, store, migrations
+│   ├── ui/                 # page contracts: popup, side panel, dashboard, blocked
+│   └── release/            # manifest, permissions, CI, packaging, security
+├── scripts/
+│   ├── validate-extension.mjs  # permission/syntax/remote-code validator
+│   ├── package-extension.mjs   # builds dist/timelens-<version>.zip
+│   └── lib/zip.mjs             # dependency-free zip writer
+├── docs/
+│   ├── design/             # design specs per release
+│   └── plans/              # implementation plans per release
+├── .github/                # CI workflow, PR and issue templates
+└── dist/                   # build output (git-ignored)
+```
+
+Only `manifest.json`, `icons/`, `src/`, `PRIVACY.md`, and `LICENSE` are packaged into the Chrome Web Store zip.
+
 ## Architecture
 
 ```text
@@ -189,19 +214,23 @@ Core policy logic is kept independent of Chrome APIs where practical so timing a
 
 ## Release pipeline
 
-GitHub Actions runs the full checks, creates `dist/timelens-1.4.0.zip`, and uploads it as a workflow artifact. The validator requires the exact approved permissions, checks required runtime pages/assets and JavaScript syntax, verifies unique HTML IDs, and rejects remote or dynamically evaluated runtime code.
+## Release pipeline
+
+GitHub Actions runs the full checks on Ubuntu and Windows for every pull request and push to `main`. It then reads the version from `manifest.json`, creates `dist/timelens-<version>.zip`, and uploads it as a workflow artifact. The validator requires the exact approved permissions, checks required runtime pages/assets and JavaScript syntax, verifies unique HTML IDs, and rejects remote or dynamically evaluated runtime code.
 
 ## Project docs
 
-- [V1 design](docs/superpowers/specs/2026-08-15-timelens-v1-design.md)
-- [V1 implementation plan](docs/superpowers/plans/2026-08-15-timelens-v1.md)
-- [Period limits & alerts design](docs/superpowers/specs/2026-08-16-period-limits-alerts-design.md)
-- [Period limits & alerts plan](docs/superpowers/plans/2026-08-16-period-limits-alerts.md)
-- [1.2 production-hardening design](docs/superpowers/specs/2026-08-16-production-hardening-v1.2-design.md)
-- [1.2 production-hardening plan](docs/superpowers/plans/2026-08-16-production-hardening-v1.2.md)
-- [1.3 Focus Assistant plan](docs/superpowers/plans/2026-08-16-focus-assistant-v1.3.md)
-- [1.4 Simple Home UX design](docs/superpowers/specs/2026-08-17-simple-home-ux-v1.4-design.md)
-- [1.4 Simple Home UX plan](docs/superpowers/plans/2026-08-17-simple-home-ux-v1.4.md)
+- [Docs index: design specs and implementation plans](docs/README.md)
+- [V1 design](docs/design/2026-08-15-timelens-v1-design.md)
+- [V1 implementation plan](docs/plans/2026-08-15-timelens-v1.md)
+- [Period limits & alerts design](docs/design/2026-08-16-period-limits-alerts-design.md)
+- [Period limits & alerts plan](docs/plans/2026-08-16-period-limits-alerts.md)
+- [1.2 production-hardening design](docs/design/2026-08-16-production-hardening-v1.2-design.md)
+- [1.2 production-hardening plan](docs/plans/2026-08-16-production-hardening-v1.2.md)
+- [1.3 Focus Assistant plan](docs/plans/2026-08-16-focus-assistant-v1.3.md)
+- [1.4 Simple Home UX design](docs/design/2026-08-17-simple-home-ux-v1.4-design.md)
+- [1.4 Simple Home UX plan](docs/plans/2026-08-17-simple-home-ux-v1.4.md)
+- [Contributing](CONTRIBUTING.md)
 - [Privacy](PRIVACY.md)
 - [Security](SECURITY.md)
 - [Changelog](CHANGELOG.md)

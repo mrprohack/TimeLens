@@ -1,23 +1,36 @@
-import { cp, mkdir, readFile, rm } from 'node:fs/promises';
-import { execFileSync } from 'node:child_process';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { createZip } from './lib/zip.mjs';
 
-const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
-const packageRoot = path.resolve('dist', 'timelens');
-const zipPath = path.resolve('dist', `timelens-${manifest.version}.zip`);
+// Builds dist/timelens-<version>.zip for Chrome Web Store upload.
+// Only the runtime paths below are shipped; everything else stays in the repo.
 const productionPaths = ['manifest.json', 'icons', 'src', 'PRIVACY.md', 'LICENSE'];
 
-await rm(path.resolve('dist'), { recursive: true, force: true });
-await mkdir(packageRoot, { recursive: true });
+const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
+const distDir = path.resolve('dist');
+const zipPath = path.join(distDir, `timelens-${manifest.version}.zip`);
 
-for (const source of productionPaths) {
-  await cp(source, path.join(packageRoot, source), { recursive: true });
+async function collect(entryPath) {
+  const entries = await readdir(entryPath, { withFileTypes: true }).catch((error) => {
+    if (error.code === 'ENOTDIR') return null;
+    throw error;
+  });
+  if (!entries) return [entryPath];
+  const files = [];
+  for (const entry of entries) files.push(...await collect(path.join(entryPath, entry.name)));
+  return files;
 }
 
-try {
-  execFileSync('zip', ['-qr', zipPath, '.'], { cwd: packageRoot, stdio: 'pipe' });
-} catch (error) {
-  throw new Error(`Could not create ${path.basename(zipPath)}. Ensure the zip command is installed. ${error.message}`);
-}
+const files = [];
+for (const source of productionPaths) files.push(...await collect(source));
 
-console.log(`Created ${path.relative(process.cwd(), zipPath)}`);
+const archiveEntries = await Promise.all(files.map(async (file) => ({
+  name: file.split(path.sep).join('/'),
+  data: await readFile(file)
+})));
+
+await rm(distDir, { recursive: true, force: true });
+await mkdir(distDir, { recursive: true });
+await writeFile(zipPath, createZip(archiveEntries));
+
+console.log(`Created ${path.relative(process.cwd(), zipPath)} (${archiveEntries.length} files)`);
