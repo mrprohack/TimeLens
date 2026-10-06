@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TimeLens Brand Kit</title>
+<style>
+  :root { --ink:#0e1117; --panel:#161b24; --line:#262d3a; --blue:#3157ff; --blue-soft:#8da2ff; --mist:#eaf0ff; --green:#2f9e6b; --text:#e9edf5; --dim:#7d8799;
+    --font: "Segoe UI Variable Display","SF Pro Display","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:#0a0c10; color:var(--text); font-family:var(--font); padding:24px; min-height:100dvh; }
+  .board { max-width:1280px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .p { position:relative; aspect-ratio:4/3; background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden; display:grid; place-items:center; padding:28px; }
+  .p small.n { position:absolute; left:18px; bottom:14px; font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:uppercase; }
+  .p small.pg { position:absolute; right:18px; bottom:14px; font-size:10px; color:var(--dim); font-variant-numeric:tabular-nums; }
+  .cover { background:var(--blue); } .cover .word { font-size:34px; font-weight:700; letter-spacing:-.04em; margin-top:14px; color:#fff; }
+  .stack { display:grid; justify-items:center; }
+  .grid-bg { background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px); background-size:28px 28px; }
+  .browser { width:100%; background:#0e1117; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .bar { display:flex; gap:6px; align-items:center; padding:10px 12px; border-bottom:1px solid var(--line); font-size:11px; color:var(--dim); }
+  .bar i { width:8px; height:8px; border-radius:50%; background:var(--line); }
+  .bar span { margin-left:10px; padding:3px 10px; border-radius:6px; background:var(--panel); }
+  .ui { padding:18px; display:flex; align-items:center; gap:16px; }
+  .ring { width:74px; height:74px; border-radius:50%; background:conic-gradient(var(--blue) 0 232deg,#222a38 0); display:grid; place-items:center; }
+  .ring b { width:58px; height:58px; border-radius:50%; background:#0e1117; display:grid; place-items:center; font-size:15px; font-variant-numeric:tabular-nums; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:99px; font-size:11px; font-weight:600; background:#12301f; color:#6fd6a2; }
+  .chip i { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2.4s ease-out infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(47,158,107,.5)} 70%,100%{box-shadow:0 0 0 7px transparent} }
+  .tag { font-size:clamp(26px,3.2vw,40px); line-height:1.05; letter-spacing:-.04em; font-weight:700; max-width:11ch; } .tag em { font-style:normal; color:var(--blue-soft); }
+  .sw { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; width:100%; height:62%; }
+  .sw div { border-radius:10px; display:flex; align-items:flex-end; padding:8px; font-size:10px; font-variant-numeric:tabular-nums; }
+  .type { width:100%; } .type .big { font-size:64px; font-weight:700; letter-spacing:-.05em; line-height:1; } .type p { margin-top:10px; color:var(--dim); font-size:12px; letter-spacing:.04em; }
+  .card { width:78%; aspect-ratio:1.6; border-radius:14px; background:linear-gradient(150deg,#1d2433,#10141c); border:1px solid var(--line); padding:18px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 24px 40px -20px rgba(0,0,0,.6); transform:rotate(-3deg); }
+  .card span { font-size:11px; color:var(--dim); font-variant-numeric:tabular-nums; }
+  .img { background:radial-gradient(circle at 70% 30%,rgba(141,162,255,.55),transparent 38%),linear-gradient(180deg,#0e1117 30%,#1b2a66 100%); }
+  .img::before { content:""; position:absolute; inset:0; background:radial-gradient(#fff2 1px,transparent 1.2px) 0 0/7px 7px; mask-image:linear-gradient(180deg,transparent,#000); }
+  .img .tagline { position:relative; font-size:13px; color:var(--mist); letter-spacing:.06em; align-self:end; }
+  .cmd { width:100%; display:grid; gap:10px; font-family:ui-monospace,"Cascadia Mono",Consolas,monospace; font-size:12px; }
+  .cmd div { padding:11px 14px; border:1px solid var(--line); border-radius:10px; background:#0e1117; display:flex; justify-content:space-between; }
+  .cmd b { color:var(--blue-soft); font-weight:600; }
+  @media (max-width:860px){ .board{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){ .chip i{animation:none} }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="mark" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="9" opacity=".28"/><path d="M50 12 A38 38 0 1 1 14.4 63.5" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round"/><circle cx="50" cy="50" r="9" fill="currentColor"/></symbol>
+</defs></svg>
+<main class="board">
+  <section class="p cover"><div class="stack"><svg width="120" height="120" style="color:#fff"><use href="#mark"/></svg><div class="word">TimeLens</div></div><small class="n" style="color:#cfd9ff">Logo</small><small class="pg" style="color:#cfd9ff">01</small></section>
+
+  <section class="p grid-bg"><svg width="230" height="230" viewBox="0 0 100 100" style="color:var(--blue-soft)"><use href="#mark"/><g stroke="#8da2ff55" stroke-width=".4"><path d="M50 0V100M0 50H100"/><circle cx="50" cy="50" r="38" fill="none"/><circle cx="50" cy="50" r="9" fill="none"/></g></svg><small class="n">Construction: one open ring, one dot</small><small class="pg">02</small></section>
+
+  <section class="p"><div class="browser"><div class="bar"><i></i><i></i><i></i><span>TimeLens</span></div><div class="ui"><div class="ring"><b>4h 12m</b></div><div><div style="font-size:13px;font-weight:600">Today</div><div style="margin:6px 0 10px;font-size:11px;color:var(--dim)">17 sites visited</div><span class="chip"><i></i>Tracking</span></div></div></div><small class="n">Digital application</small><small class="pg">03</small></section>
+
+  <section class="p"><div class="tag">See where the day <em>went.</em></div><small class="n">Brand essence</small><small class="pg">04</small></section>
+
+  <section class="p"><div class="sw"><div style="background:#3157ff">#3157ff</div><div style="background:#8da2ff;color:#0e1117">#8da2ff</div><div style="background:#eaf0ff;color:#0e1117">#eaf0ff</div><div style="background:#2f9e6b">#2f9e6b</div><div style="background:#0e1117;border:1px solid var(--line)">#0e1117</div></div><small class="n">One accent, one signal green</small><small class="pg">05</small></section>
+
+  <section class="p"><div class="type"><div class="big">Aa 0123</div><p>SEGOE UI VARIABLE / SF PRO · TABULAR NUMERALS FOR TIME</p></div><small class="n">Typography: system stack, no network fonts</small><small class="pg">06</small></section>
+
+  <section class="p"><div class="card"><svg width="34" height="34" style="color:var(--blue-soft)"><use href="#mark"/></svg><span>Focus session · 25:00</span></div><small class="n">Physical application</small><small class="pg">07</small></section>
+
+  <section class="p img"><div class="tagline" style="position:relative;z-index:1">Quiet data. Honest time.</div><small class="n">Image direction</small><small class="pg">08</small></section>
+
+  <section class="p"><div class="cmd"><div><span>youtube.com</span><b>1h 04m</b></div><div><span>github.com</span><b>52m</b></div><div><span>Limit reached</span><b>Paused</b></div></div><small class="n">System detail</small><small class="pg">09</small></section>
+</main>
+</body>
+</html>
