@@ -6,6 +6,7 @@ All notable changes to TimeLens are documented here.
 
 ### UX polish
 - Pulsing live-tracking dot, 44px popup footer tap targets, balanced heading wraps, and card hover lift.
+- Removed purple/indigo accents (dashboard icons, focus card glow, blocked-page button) in favour of the single brand blue, with a softer tinted shadow.
 - Windows high-contrast (`forced-colors`) borders and focus rings; all motion respects reduced-motion.
 
 ### Developer workflow

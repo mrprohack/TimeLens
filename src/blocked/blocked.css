@@ -13,7 +13,7 @@ h1 { margin: 0; max-width: 560px; color: #fff; font-size: clamp(38px,7vw,56px); 
 .primary-actions,.allowance-buttons { position: relative; z-index: 1; display: flex; gap: 10px; flex-wrap: wrap; }
 .primary-actions { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); }
 .primary-actions .btn { min-width: 150px; min-height: var(--touch-target); border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.07); color: #f8fafc; box-shadow: none; }
-.primary-actions .btn-primary { border-color: #6366f1; background: #6366f1; color: #fff; box-shadow: 0 14px 34px rgba(79,70,229,.28); }
+.primary-actions .btn-primary { border-color: #3157ff; background: #3157ff; color: #fff; box-shadow: 0 14px 34px rgba(49,87,255,.18); }
 .allowance-actions { position: relative; z-index: 1; display: grid; gap: 14px; }
 .allowance-actions .divider { background: rgba(255,255,255,.10); }
 .allowance-actions p { margin: 0; color: #aeb9cb; }
