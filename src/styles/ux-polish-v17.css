@@ -1,0 +1,66 @@
+/* TimeLens 1.7 — liveness cues, larger tap targets, and high-contrast support. */
+
+html body h1,
+html body h2,
+html body h3 {
+  text-wrap: balance;
+}
+
+/* The tracking dot pulses so "Tracking" reads as live, not static. */
+html body .tracking-status .status-dot {
+  animation: timelens-pulse 2.4s ease-out infinite;
+}
+
+@keyframes timelens-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--popup-tracking-dot, #2f9e6b) 45%, transparent); }
+  70%, 100% { box-shadow: 0 0 0 7px transparent; }
+}
+
+/* Popup footer links were 40px tall; meet the 44px touch minimum. */
+html body .popup-footer .footer-link {
+  min-height: 44px;
+}
+
+/* Cards respond to pointer hover without shifting layout. */
+@media (hover: hover) {
+  html body .kpi-card,
+  html body .analytics-card {
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+
+  html body .kpi-card:hover,
+  html body .analytics-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Windows high contrast: keep boundaries and focus visible. */
+@media (forced-colors: active) {
+  html body .btn,
+  html body .kpi-card,
+  html body .analytics-card,
+  html body .today-summary {
+    border: 1px solid CanvasText;
+  }
+
+  html body :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .tracking-status .status-dot {
+    animation: none;
+  }
+
+  html body .kpi-card,
+  html body .analytics-card {
+    transition: none;
+  }
+
+  html body .kpi-card:hover,
+  html body .analytics-card:hover {
+    transform: none;
+  }
+}
