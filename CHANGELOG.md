@@ -4,6 +4,10 @@ All notable changes to TimeLens are documented here.
 
 ## Unreleased
 
+### UX polish
+- Pulsing live-tracking dot, 44px popup footer tap targets, balanced heading wraps, and card hover lift.
+- Windows high-contrast (`forced-colors`) borders and focus rings; all motion respects reduced-motion.
+
 ### Developer workflow
 - Grouped tests by area: `tests/core`, `tests/background`, `tests/ui`, `tests/release`.
 - Moved docs from `docs/superpowers/{specs,plans}` to `docs/design` and `docs/plans`, with a `docs/README.md` index.
