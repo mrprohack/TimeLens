@@ -54,21 +54,51 @@ function renderSiteLimits(snapshot, actions) {
   }));
 
   node.querySelectorAll('.menu-toggle').forEach((button) => button.addEventListener('click', async () => {
+    const domain = button.dataset.domain;
+    const enabled = button.dataset.enabled === 'true';
     try {
-      await send('TOGGLE_LIMIT', { domain: button.dataset.domain, enabled: button.dataset.enabled === 'true' });
-      actions.showToast?.(button.dataset.enabled === 'true' ? 'Limit resumed.' : 'Limit paused.');
+      await send('TOGGLE_LIMIT', { domain, enabled });
+      actions.showToast?.(enabled ? 'Limit resumed.' : 'Limit paused.', false, {
+        label: 'Undo',
+        run: async () => {
+          await send('TOGGLE_LIMIT', { domain, enabled: !enabled });
+          await actions.refresh?.();
+          return enabled ? 'Limit paused again.' : 'Limit resumed again.';
+        }
+      });
       await actions.refresh?.();
     } catch (error) { actions.showToast?.(error.message, true); }
   }));
 
+  // Delete is instant and undoable: faster than a confirm dialog and just as safe.
   node.querySelectorAll('.menu-delete').forEach((button) => button.addEventListener('click', async () => {
-    if (!confirm(`Delete the limit for ${button.dataset.domain}?`)) return;
+    const domain = button.dataset.domain;
+    const removed = limits.find((item) => item.domain === domain);
     try {
-      await send('DELETE_LIMIT', { domain: button.dataset.domain });
-      actions.showToast?.('Limit removed.');
+      await send('DELETE_LIMIT', { domain });
+      actions.showToast?.(`Limit for ${domain} removed.`, false, removed && {
+        label: 'Undo',
+        run: async () => {
+          await send('SAVE_LIMIT', { limit: restorableLimit(removed) });
+          await actions.refresh?.();
+          return `Limit for ${domain} restored.`;
+        }
+      });
       await actions.refresh?.();
     } catch (error) { actions.showToast?.(error.message, true); }
   }));
+}
+
+// Only the saved settings, not the computed usage fields that the view adds.
+function restorableLimit(limit) {
+  return {
+    domain: limit.domain,
+    minutes: limit.minutes,
+    period: limit.period,
+    enabled: limit.enabled !== false,
+    strict: Boolean(limit.strict),
+    schedule: limit.schedule
+  };
 }
 
 function renderBudget(snapshot) {

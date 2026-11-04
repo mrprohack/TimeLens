@@ -1,5 +1,8 @@
 import './sidebar-history.js';
 import { escapeHtml, formatClock, formatDuration, setText } from '../shared/ui.js';
+import { quickFocusPayload } from '../core/focus.js';
+import { formatMinutesShort } from '../core/time.js';
+import { getLastFocusPresetId } from '../shared/quick-actions.js';
 
 const BREAKDOWN_COLORS = ['#2563eb', '#7c3aed', '#10b981', '#f59e0b', '#94a3b8'];
 
@@ -53,7 +56,10 @@ function attentionItems(snapshot) {
 }
 
 function focusSummary(snapshot) {
-  if (!snapshot.focus) return { value: 'Ready', meta: '25 minute quick start' };
+  if (!snapshot.focus) {
+    const quick = quickFocusPayload(snapshot.settings?.focusPresets, getLastFocusPresetId());
+    return { value: 'Ready', meta: `${quick.name} · ${formatMinutesShort(quick.minutes)} quick start` };
+  }
   const remaining = Math.max(0, Number(snapshot.focus.endsAt || 0) - Date.now());
   return { value: 'Active', meta: `${formatDuration(remaining, true)} left` };
 }

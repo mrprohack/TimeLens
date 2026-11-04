@@ -21,13 +21,31 @@ const dialogs = [
   'focus-settings-dialog'
 ].map((id) => document.getElementById(id));
 
-function showToast(message, isError = false) {
+// `action` ({ label, run }) adds a one-tap button, typically Undo. `run` may return
+// a short confirmation message.
+function showToast(message, isError = false, action = null) {
   const toast = document.getElementById('toast');
   toast.hidden = false;
-  toast.textContent = message;
+  toast.replaceChildren(document.createTextNode(message));
   toast.dataset.tone = isError ? 'error' : 'info';
+  if (action) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'toast-action';
+    button.textContent = action.label;
+    button.addEventListener('click', async () => {
+      setBusy(button);
+      try {
+        const done = await action.run();
+        showToast(done || 'Done.');
+      } catch (error) {
+        showToast(error?.message || 'Could not undo that.', true);
+      }
+    });
+    toast.append(button);
+  }
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast.hidden = true; }, isError ? 5_200 : 3_200);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, isError ? 5_200 : action ? 8_000 : 3_200);
 }
 
 function showLoadFailure(error) {

@@ -4,6 +4,14 @@ All notable changes to TimeLens are documented here.
 
 ## Unreleased
 
+### Workflow
+- One-tap **Start Focus** now uses your own presets: the one you used last, else your first saved preset, else the built-in default. The button says what it will do ("Start Work · 1h"). The popup, side panel and dashboard follow the same rule, and the default site list is defined once instead of copied into four places.
+- Popup: other Focus presets are one-tap chips under Start Focus, and 15m / 30m / 1h chips under Limit this site pick the daily time. Both choices are remembered.
+- **Undo** replaces most confirmations: saving a limit in the popup or side panel, deleting a limit in the dashboard (no more confirm dialog), and pausing or resuming a limit can all be undone for a few seconds.
+- Quick actions only run on live data. If TimeLens cannot reach its background worker, they say so instead of starting a Focus with default sites or limiting a stale site.
+- A block-list preset with no sites no longer starts a Focus that blocks nothing; it uses the default list.
+- Durations you chose read naturally ("1h", not "1h 0m").
+
 ### Speed and smoothness
 - Background reads and saves no longer re-validate TimeLens's own stored history on every event. Measured per event: 14× faster for a typical history (84 → 6 ms), 7× heavy, 8× at max retention. Older data, imports and backups are still fully validated. Opening the popup or dashboard now reads storage once instead of twice.
 - The popup paints instantly from a short-lived in-memory cache (`chrome.storage.session`) and then swaps in live data. A true cold start shows neutral "—" placeholders instead of fake zeros and a green "On Track". Actions wait for live data, so a click can never act on a stale site. See `PRIVACY.md`.
