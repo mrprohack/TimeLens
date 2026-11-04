@@ -7,6 +7,8 @@ import { renderFocusView, wireFocusView } from './focus-view.js';
 import { renderSettingsView, wireSettingsView } from './settings-view.js';
 
 let snapshot = null;
+let refreshSeq = 0;
+let lastRefreshAt = 0;
 let toastTimer = null;
 let editingDomain = null;
 let editingCategoryId = null;
@@ -195,14 +197,16 @@ function loadPreset(id) {
   updateFocusModeLabel();
 }
 
+const homeOptions = {
+  openLimit: (domain, trigger) => {
+    const limit = snapshot.limits?.find((item) => item.domain === domain) || null;
+    openLimitDialog({ domain, limit, trigger });
+  }
+};
+
 function renderAll() {
   if (!snapshot) return;
-  renderHome(snapshot, {
-    openLimit: (domain, trigger) => {
-      const limit = snapshot.limits?.find((item) => item.domain === domain) || null;
-      openLimitDialog({ domain, limit, trigger });
-    }
-  });
+  renderHome(snapshot, homeOptions);
   renderHistoryDrawer(snapshot);
   renderLimitsView(snapshot, {
     openLimit: (limit, trigger) => openLimitDialog({ limit, trigger }),
@@ -215,16 +219,63 @@ function renderAll() {
   renderFocusSettings();
 }
 
+// Only the newest request may render: a slow response that was started before a
+// newer one (or before the user's own change) must never overwrite fresher data.
 async function refresh() {
+  const seq = ++refreshSeq;
   try {
-    snapshot = await send('GET_SNAPSHOT', { rangeDays: 7 });
+    const next = await send('GET_SNAPSHOT', { rangeDays: 7 });
+    if (seq !== refreshSeq) return;
+    snapshot = next;
+    lastRefreshAt = Date.now();
     hideLoadFailure();
     renderAll();
   } catch (error) {
+    if (seq !== refreshSeq) return;
     // Keep the last good data on screen; only the first empty load gets a retry panel.
     if (snapshot) showToast(error.message, true);
     else showLoadFailure(error);
   }
+}
+
+// Keeps an open dashboard live without disturbing the user. It only touches Home,
+// which has no inputs, never runs behind an open dialog, and fails silently
+// (the next tick or the user's next action retries). GET_SNAPSHOT itself writes
+// storage, so this is deliberately timer/visibility driven, not storage.onChanged.
+const LIVE_REFRESH_MS = 30_000;
+const STALE_AFTER_MS = 3_000;
+
+function activeViewName() {
+  return document.querySelector('[data-view]:not([hidden])')?.dataset.view || 'home';
+}
+
+// Dashboard dialogs are custom panels toggled with `hidden`, not native <dialog>.
+function anyDialogOpen() {
+  return dialogs.some((dialog) => dialog && !dialog.hidden);
+}
+
+function homeIsSafeToRefresh() {
+  return !document.hidden && activeViewName() === 'home' && !anyDialogOpen();
+}
+
+async function refreshHomeQuietly() {
+  if (!homeIsSafeToRefresh()) return;
+  const seq = ++refreshSeq;
+  try {
+    const next = await send('GET_SNAPSHOT', { rangeDays: 7 });
+    if (seq !== refreshSeq || !homeIsSafeToRefresh()) return;
+    snapshot = next;
+    lastRefreshAt = Date.now();
+    hideLoadFailure();
+    renderHome(snapshot, homeOptions);
+  } catch {
+    // Quiet by design: the last good data stays on screen.
+  }
+}
+
+function refreshIfStale() {
+  if (!snapshot || document.hidden || Date.now() - lastRefreshAt < STALE_AFTER_MS) return;
+  if (activeViewName() === 'home') refreshHomeQuietly();
 }
 
 function openSidePanel() {
@@ -233,7 +284,11 @@ function openSidePanel() {
 
 // Primary navigation.
 document.querySelectorAll('[data-dashboard-view]').forEach((button) => {
-  button.addEventListener('click', () => setDashboardView(button.dataset.dashboardView));
+  button.addEventListener('click', () => {
+    setDashboardView(button.dataset.dashboardView);
+    // The view being opened may have been rendered long ago; bring it up to date.
+    if (snapshot && Date.now() - lastRefreshAt >= STALE_AFTER_MS) refresh();
+  });
 });
 
 // Dialogs and secondary surfaces.
@@ -392,3 +447,6 @@ updateFocusModeLabel();
 setDashboardView('home');
 refresh();
 setInterval(() => { if (!document.hidden && snapshot?.focus) renderFocusView(snapshot, { render: renderAll }); }, 30_000);
+setInterval(refreshHomeQuietly, LIVE_REFRESH_MS);
+document.addEventListener('visibilitychange', refreshIfStale);
+window.addEventListener('focus', refreshIfStale);
