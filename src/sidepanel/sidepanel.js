@@ -1,7 +1,17 @@
 import { escapeHtml, formatDuration, send, setBusy, setText } from '../shared/ui.js';
+import { focusStartLabel, quickFocusPayload } from '../core/focus.js';
+import { formatMinutesShort } from '../core/time.js';
+import { createNotice } from '../shared/notice.js';
+import {
+  getLastFocusPresetId,
+  getLastLimitMinutes,
+  rememberFocusPreset,
+  rememberLimitMinutes
+} from '../shared/quick-actions.js';
 
+// `state` only ever comes from the worker, so every action below runs on live data.
 let state = null;
-const DEFAULT_FOCUS_DOMAINS = ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'];
+const notice = createNotice(document.getElementById('side-notice'));
 
 // Poll gently when healthy, back off when the worker is busy or restarting.
 const BASE_POLL_MS = 15_000;
@@ -9,8 +19,23 @@ const MAX_POLL_MS = 60_000;
 let pollTimer = null;
 let consecutiveFailures = 0;
 
-function status(message = '') {
-  setText('side-status', message);
+function status(message = '', options = {}) {
+  if (!message) notice.clear();
+  else notice.show(message, { timeoutMs: 6_000, ...options });
+}
+
+function statusError(message) {
+  status(message, { tone: 'error', timeoutMs: 7_000 });
+}
+
+function quickPayload() {
+  return quickFocusPayload(state?.settings?.focusPresets, getLastFocusPresetId());
+}
+
+async function startFocus(payload) {
+  const { presetId, ...session } = payload;
+  await send('START_FOCUS', session);
+  rememberFocusPreset(presetId);
 }
 
 function currentLimit() {
@@ -34,7 +59,7 @@ function strongestBoundary() {
 function renderPresets() {
   const node = document.getElementById('side-focus-presets');
   const presets = state?.settings?.focusPresets || [];
-  node.innerHTML = presets.slice(0, 4).map((preset) => `<button class="preset-chip" type="button" data-preset="${escapeHtml(preset.id)}">${escapeHtml(preset.name)} · ${escapeHtml(formatDuration(preset.minutes * 60_000, true))}</button>`).join('');
+  node.innerHTML = presets.slice(0, 4).map((preset) => `<button class="preset-chip" type="button" data-preset="${escapeHtml(preset.id)}">${escapeHtml(preset.name)} · ${escapeHtml(formatMinutesShort(preset.minutes))}</button>`).join('');
   node.hidden = Boolean(state?.focus) || !presets.length;
 }
 
@@ -60,7 +85,7 @@ function render() {
     focusButton.classList.remove('btn-primary');
   } else {
     setText('side-focus-state', 'Ready');
-    focusButton.textContent = 'Start 25 min Focus';
+    focusButton.textContent = focusStartLabel(quickPayload());
     focusButton.classList.add('btn-primary');
   }
   renderPresets();
@@ -73,7 +98,7 @@ async function refresh() {
     render();
   } catch (error) {
     consecutiveFailures += 1;
-    status(error.message);
+    statusError(error.message);
   }
 }
 
@@ -88,16 +113,29 @@ async function tick() {
   schedulePoll();
 }
 
+const limitSelect = document.getElementById('side-limit-minutes');
+limitSelect.value = String(getLastLimitMinutes());
+limitSelect.addEventListener('change', () => rememberLimitMinutes(limitSelect.value));
+
 document.getElementById('side-limit-site').addEventListener('click', async () => {
   if (!state?.currentDomain || currentLimit()) return;
   const button = document.getElementById('side-limit-site');
-  const minutes = Number(document.getElementById('side-limit-minutes').value) || 30;
+  const domain = state.currentDomain;
+  const minutes = Number(limitSelect.value) || 30;
   setBusy(button);
   try {
-    await send('SAVE_LIMIT', { limit: { domain: state.currentDomain, minutes, period: 'daily', strict: false, enabled: true } });
-    status(`${state.currentDomain} limited to ${minutes} minutes per day.`);
+    await send('SAVE_LIMIT', { limit: { domain, minutes, period: 'daily', strict: false, enabled: true } });
+    rememberLimitMinutes(minutes);
+    status(`${domain} limited to ${minutes} minutes per day.`, {
+      actionLabel: 'Undo',
+      onAction: async () => {
+        await send('DELETE_LIMIT', { domain });
+        await refresh();
+        return `Limit for ${domain} removed.`;
+      }
+    });
     await refresh();
-  } catch (error) { status(error.message); }
+  } catch (error) { statusError(error.message); }
   finally {
     setBusy(button, false);
     render();
@@ -106,12 +144,16 @@ document.getElementById('side-limit-site').addEventListener('click', async () =>
 
 document.getElementById('side-focus-action').addEventListener('click', async () => {
   const button = document.getElementById('side-focus-action');
+  if (!state) {
+    statusError('TimeLens is still loading. Try again in a moment.');
+    return;
+  }
   setBusy(button);
   try {
-    if (state?.focus) await send('STOP_FOCUS');
-    else await send('START_FOCUS', { minutes: 25, domains: DEFAULT_FOCUS_DOMAINS, mode: 'block', name: 'Focus' });
+    if (state.focus) await send('STOP_FOCUS');
+    else await startFocus(quickPayload());
     await refresh();
-  } catch (error) { status(error.message); }
+  } catch (error) { statusError(error.message); }
   finally {
     setBusy(button, false);
     render();
@@ -125,10 +167,10 @@ document.getElementById('side-focus-presets').addEventListener('click', async (e
   if (!preset) return;
   setBusy(button);
   try {
-    await send('START_FOCUS', { minutes: preset.minutes, domains: preset.domains, mode: preset.mode, name: preset.name });
+    await startFocus(quickFocusPayload([preset], preset.id));
     status(`${preset.name} started.`);
     await refresh();
-  } catch (error) { status(error.message); }
+  } catch (error) { statusError(error.message); }
   finally {
     setBusy(button, false);
     render();

@@ -34,11 +34,14 @@
 
     <section class="panel quick-panel" aria-labelledby="side-focus-title">
       <div class="section-row"><div><div class="eyeline">Focus</div><h2 id="side-focus-title">Protect your attention</h2></div><span id="side-focus-state" class="muted small">Ready</span></div>
-      <button id="side-focus-action" class="btn btn-primary" type="button">Start 25 min Focus</button>
+      <button id="side-focus-action" class="btn btn-primary" type="button">Start Focus</button>
       <div id="side-focus-presets" class="preset-chips" aria-label="Focus presets"></div>
     </section>
 
-    <p id="side-status" class="status-line muted" role="status" aria-live="polite"></p>
+    <div id="side-notice" class="notice" role="status" aria-live="polite" hidden>
+      <span id="side-status" data-notice-text></span>
+      <button class="undo-link" type="button" data-notice-action hidden></button>
+    </div>
   </main>
   <script type="module" src="sidepanel.js"></script>
 </body>

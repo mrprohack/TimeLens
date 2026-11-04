@@ -461,3 +461,4 @@ html body .blocked-shell .btn-primary { background: var(--time-blue); border-col
 @import "./review-loop.css";
 @import "./ux-polish-v16.css";
 @import "./ux-polish-v17.css";
+@import "./notice.css";

@@ -110,7 +110,8 @@ const STYLE_LAYERS = [
   { file: 'master-plan', marker: '--mp-card-radius' },
   { file: 'review-loop', marker: '.history-context' },
   { file: 'ux-polish-v16', marker: '.load-failed' },
-  { file: 'ux-polish-v17', marker: 'timelens-pulse' }
+  { file: 'ux-polish-v17', marker: 'timelens-pulse' },
+  { file: 'notice', marker: '.undo-link' }
 ];
 
 test('every page loads one compiled stylesheet instead of a chain of @imports', async () => {
