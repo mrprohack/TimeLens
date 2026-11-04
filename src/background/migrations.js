@@ -1,5 +1,6 @@
 import { createActivityState } from '../core/activity.js';
 import { normalizeDomain } from '../core/domain.js';
+import { DEFAULT_FOCUS_DOMAINS } from '../core/focus.js';
 import { limitPeriodKey, normalizeLimitPeriod } from '../core/limits.js';
 import { normalizeSchedule } from '../core/schedule.js';
 
@@ -15,9 +16,9 @@ export const DEFAULT_TOTAL_BUDGET = Object.freeze({
   mode: 'warn'
 });
 export const DEFAULT_FOCUS_PRESETS = Object.freeze([
-  Object.freeze({ id: 'work', name: 'Work', minutes: 60, mode: 'block', domains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'] }),
-  Object.freeze({ id: 'study', name: 'Study', minutes: 45, mode: 'block', domains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'] }),
-  Object.freeze({ id: 'deep-work', name: 'Deep Work', minutes: 90, mode: 'block', domains: ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'] })
+  Object.freeze({ id: 'work', name: 'Work', minutes: 60, mode: 'block', domains: [...DEFAULT_FOCUS_DOMAINS] }),
+  Object.freeze({ id: 'study', name: 'Study', minutes: 45, mode: 'block', domains: [...DEFAULT_FOCUS_DOMAINS] }),
+  Object.freeze({ id: 'deep-work', name: 'Deep Work', minutes: 90, mode: 'block', domains: [...DEFAULT_FOCUS_DOMAINS] })
 ]);
 
 export const DEFAULT_SETTINGS = Object.freeze({

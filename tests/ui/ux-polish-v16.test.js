@@ -95,7 +95,7 @@ test('popup stays live with a ticker, busy actions, and an alert-level error sur
   const html = await read('src/popup/popup.html');
   assert.match(js, /setInterval\([\s\S]*?1_000\)/);
   assert.match(js, /setBusy/);
-  assert.match(js, /30 min\/day saved/);
+  assert.match(js, /min\/day saved/);
   assert.match(js, /Limit active/);
   assert.match(html, /id=["']error-message["'][^>]*role=["']alert["']/);
 });

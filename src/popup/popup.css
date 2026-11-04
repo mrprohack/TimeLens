@@ -511,3 +511,124 @@ html[data-theme="dark"] .popup-footer {
   html:not([data-theme]) .site-item + .site-item,
   html:not([data-theme]) .popup-footer { border-color: #2a3344; }
 }
+
+/* One-tap alternatives sit directly under the button they belong to:
+   Focus presets under Start, limit durations under Limit. */
+.quick-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.quick-options[hidden] {
+  display: none;
+}
+
+.chip-row {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chip-row[hidden] {
+  display: none;
+}
+
+#focus-presets {
+  grid-column: 1;
+  flex-direction: column;
+}
+
+#limit-choices {
+  grid-column: 2;
+}
+
+.chip-row .preset-chip {
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip-row .preset-chip:hover {
+  border-color: var(--time-blue);
+  color: var(--time-blue);
+}
+
+.chip-row .preset-chip.is-selected {
+  border-color: var(--time-blue);
+  background: var(--brand-soft);
+  color: var(--time-blue);
+}
+
+.chip-row .preset-chip:focus-visible {
+  outline: 2px solid var(--time-blue);
+  outline-offset: 2px;
+}
+
+.chip-row .preset-chip:disabled {
+  opacity: .6;
+  cursor: progress;
+}
+
+.primary-actions .btn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 38px;
+  padding: 4px 6px 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice[data-tone="error"] {
+  border-color: transparent;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.undo-link {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--time-blue);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.undo-link:hover {
+  background: var(--brand-soft);
+}

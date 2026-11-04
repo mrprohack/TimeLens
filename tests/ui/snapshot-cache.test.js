@@ -20,7 +20,7 @@ function fullSnapshot(overrides = {}) {
     limits: [{ domain: 'youtube.com', enabled: true, period: 'daily', effectiveMs: 3_600_000, remainingMs: 0, reached: true, scheduleActive: true, minutes: 60, schedule: { enabled: false } }],
     totalBudget: { enabled: true, effectiveMs: 18_000_000, remainingMs: 9_000_000, reached: false, mode: 'warn', minutes: 300 },
     sessions: [{ domain: 'secret.example', start: 1, end: 2 }],
-    settings: { limits: [], categories: [] },
+    settings: { limits: [], categories: [], focusPresets: [{ id: 'work', name: 'Work', minutes: 60, mode: 'block', domains: ['private-site.example'] }] },
     categories: [{ name: 'Social' }],
     health: { storageBytesApprox: 12345 },
     ...overrides
@@ -38,12 +38,13 @@ function fakeStorage(initial = {}) {
 
 test('slimSnapshot keeps only what the popup renders and drops history and settings', () => {
   const slim = slimSnapshot(fullSnapshot());
-  assert.deepEqual(Object.keys(slim).sort(), ['currentDomain', 'currentDomainMs', 'focus', 'limits', 'todayTop', 'todayTotalMs', 'totalBudget']);
+  assert.deepEqual(Object.keys(slim).sort(), ['currentDomain', 'currentDomainMs', 'focus', 'focusPresets', 'limits', 'todayTop', 'todayTotalMs', 'totalBudget']);
   assert.deepEqual(slim.todayTop[0], { domain: 'youtube.com', durationMs: 3_600_000 });
   assert.deepEqual(slim.focus, { name: 'Deep work', endsAt: NOW + 600_000 });
   assert.deepEqual(slim.limits[0], { domain: 'youtube.com', enabled: true, period: 'daily', effectiveMs: 3_600_000, remainingMs: 0, reached: true, scheduleActive: true });
   assert.deepEqual(slim.totalBudget, { enabled: true, effectiveMs: 18_000_000, remainingMs: 9_000_000, reached: false });
-  assert.doesNotMatch(JSON.stringify(slim), /secret\.example/);
+  assert.deepEqual(slim.focusPresets, [{ id: 'work', name: 'Work', minutes: 60, mode: 'block' }], 'presets keep names and durations only');
+  assert.doesNotMatch(JSON.stringify(slim), /secret\.example|private-site\.example/);
 });
 
 test('slimSnapshot tolerates missing or malformed snapshots', () => {
@@ -53,6 +54,7 @@ test('slimSnapshot tolerates missing or malformed snapshots', () => {
   assert.equal(slim.todayTotalMs, 0);
   assert.deepEqual(slim.todayTop, []);
   assert.deepEqual(slim.limits, []);
+  assert.deepEqual(slim.focusPresets, []);
   assert.equal(slim.focus, null);
   assert.equal(slim.currentDomain, null);
 });

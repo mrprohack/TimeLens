@@ -15,6 +15,16 @@ export function formatDuration(ms = 0, compact = false) {
   return `${minutes} min`;
 }
 
+// "1h" instead of "1h 0m": for presets and durations a person chose, where a
+// trailing "0m" is noise. formatDuration stays as is for elapsed/remaining time.
+export function formatMinutesShort(minutes) {
+  const total = Math.max(0, Math.round(Number(minutes) || 0));
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  if (!hours) return `${rest}m`;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
+}
+
 export function recentDayKeys(count, now = Date.now()) {
   const keys = [];
   const cursor = new Date(now);

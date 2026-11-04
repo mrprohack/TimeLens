@@ -1,3 +1,5 @@
+import { formatMinutesShort } from './time.js';
+
 const MINUTE_MS = 60_000;
 const FOCUS_MODES = new Set(['block', 'allow']);
 
@@ -33,4 +35,32 @@ export function isDomainFocusBlocked(focus, domain, now = Date.now()) {
   const domains = focusDomains(focus);
   const mode = normalizeMode(focus?.mode);
   return mode === 'allow' ? !domains.includes(domain) : domains.includes(domain);
+}
+
+// The one place that decides what a one-tap "Start Focus" does, so the popup, side
+// panel and dashboard can never disagree: the preset used last, else the first
+// saved preset, else the built-in default.
+export const DEFAULT_FOCUS_DOMAINS = Object.freeze(['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com']);
+
+export function quickFocusPayload(presets, lastPresetId) {
+  const list = Array.isArray(presets) ? presets.filter((preset) => preset && typeof preset === 'object') : [];
+  const preset = list.find((item) => item.id === lastPresetId) || list[0] || null;
+  if (!preset) {
+    return { presetId: null, minutes: 25, domains: [...DEFAULT_FOCUS_DOMAINS], mode: 'block', name: 'Focus' };
+  }
+  const mode = preset.mode === 'allow' ? 'allow' : 'block';
+  const domains = Array.isArray(preset.domains) ? [...preset.domains] : [];
+  return {
+    presetId: preset.id,
+    minutes: Number(preset.minutes) || 25,
+    // A block-list Focus with no sites would start "successfully" and block nothing.
+    // Allow-only is left as is: the worker rejects an empty list instead of guessing.
+    domains: mode === 'block' && !domains.length ? [...DEFAULT_FOCUS_DOMAINS] : domains,
+    mode,
+    name: String(preset.name || 'Focus')
+  };
+}
+
+export function focusStartLabel({ name, minutes }) {
+  return `Start ${name} · ${formatMinutesShort(minutes)}`;
 }

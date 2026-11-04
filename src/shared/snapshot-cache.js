@@ -9,6 +9,7 @@ export const POPUP_CACHE_KEY = 'timelensPopupSnapshot';
 export const POPUP_CACHE_MAX_AGE_MS = 30 * 60_000;
 const MAX_TOP_SITES = 50;
 const MAX_LIMITS = 100;
+const MAX_PRESETS = 12;
 
 const number = (value) => (Number.isFinite(Number(value)) ? Number(value) : 0);
 const isObject = (value) => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -22,6 +23,7 @@ export function slimSnapshot(snapshot) {
   if (!isObject(snapshot)) return null;
   const focusEndsAt = Number(snapshot.focus?.endsAt);
   const budget = snapshot.totalBudget;
+  const presetSource = snapshot.settings?.focusPresets ?? snapshot.focusPresets;
   return {
     todayTotalMs: number(snapshot.todayTotalMs),
     todayTop: (Array.isArray(snapshot.todayTop) ? snapshot.todayTop : [])
@@ -41,6 +43,16 @@ export function slimSnapshot(snapshot) {
       reached: Boolean(limit?.reached),
       scheduleActive: limit?.scheduleActive !== false
     })),
+    // Names and durations only (no site lists): enough to label the one-tap buttons
+    // from the cache. Actions always wait for live data before using a preset.
+    focusPresets: (Array.isArray(presetSource) ? presetSource : []).slice(0, MAX_PRESETS)
+      .filter((preset) => preset && typeof preset === 'object' && preset.id)
+      .map((preset) => ({
+        id: String(preset.id),
+        name: String(preset.name || 'Focus'),
+        minutes: number(preset.minutes) || 25,
+        mode: preset.mode === 'allow' ? 'allow' : 'block'
+      })),
     totalBudget: isObject(budget)
       ? {
         enabled: Boolean(budget.enabled),

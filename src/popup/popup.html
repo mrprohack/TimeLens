@@ -42,6 +42,16 @@
       <button id="limit-current-site" class="btn" type="button">Limit this site</button>
     </div>
 
+    <div id="quick-options" class="quick-options" hidden>
+      <div id="focus-presets" class="chip-row" role="group" aria-label="Start another Focus preset" hidden></div>
+      <div id="limit-choices" class="chip-row" role="group" aria-label="Daily time for the site limit" hidden></div>
+    </div>
+
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden>
+      <span data-notice-text></span>
+      <button class="undo-link" type="button" data-notice-action hidden></button>
+    </div>
+
     <section id="top-sites-section" class="sites-section" aria-labelledby="top-sites-heading">
       <div class="section-heading"><h2 id="top-sites-heading">Top sites</h2><span class="muted">Today</span></div>
       <div id="top-sites" class="site-list"></div>
