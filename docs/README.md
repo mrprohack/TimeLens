@@ -17,6 +17,7 @@ docs/
 | 1.2 Production hardening | [design](design/2026-08-16-production-hardening-v1.2-design.md) | [plan](plans/2026-08-16-production-hardening-v1.2.md) |
 | 1.3 Focus Assistant | — | [plan](plans/2026-08-16-focus-assistant-v1.3.md) |
 | 1.4 Simple Home UX | [design](design/2026-08-17-simple-home-ux-v1.4-design.md) | [plan](plans/2026-08-17-simple-home-ux-v1.4.md) |
+| Speed and smoothness (phase 1 of 3) | [design](design/2026-11-04-speed-and-smoothness-design.md) | — |
 
 ## Adding a new doc
 

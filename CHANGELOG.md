@@ -4,6 +4,13 @@ All notable changes to TimeLens are documented here.
 
 ## Unreleased
 
+### Speed and smoothness
+- Background reads and saves no longer re-validate TimeLens's own stored history on every event. Measured per event: 14× faster for a typical history (84 → 6 ms), 7× heavy, 8× at max retention. Older data, imports and backups are still fully validated. Opening the popup or dashboard now reads storage once instead of twice.
+- The popup paints instantly from a short-lived in-memory cache (`chrome.storage.session`) and then swaps in live data. A true cold start shows neutral "—" placeholders instead of fake zeros and a green "On Track". Actions wait for live data, so a click can never act on a stale site. See `PRIVACY.md`.
+- An open dashboard stays current: Home refreshes every 30 s while visible, when you return to the tab or window, and other views refresh when opened. It never refreshes behind an open dialog and a slow old response can no longer overwrite newer data.
+- A saved Light or Dark choice that differs from your OS theme is now applied before the first paint, removing the wrong-theme flash on the popup, dashboard, side panel and onboarding.
+- Every page now loads one compiled stylesheet instead of a nine-request `@import` chain (first paint ~12 ms faster on loopback). Rendering is unchanged, verified against the previous build (0 of 40 screenshots and 0 of 864 interactive states differ). Tailwind no longer auto-scans docs, so the build is deterministic, and a test fails if `timelens.css` is stale.
+
 ### UX polish
 - Pulsing live-tracking dot, 44px popup footer tap targets, balanced heading wraps, and card hover lift.
 - Removed purple/indigo accents (dashboard icons, focus card glow, blocked-page button) in favour of the single brand blue, with a softer tinted shadow.
