@@ -8,31 +8,31 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <main class="popup-shell" aria-live="polite">
+  <main class="popup-shell" aria-live="polite" data-loading="true">
     <header class="popup-header">
       <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>TimeLens</span></div>
       <span id="tracking-status" class="tracking-status"><span class="status-dot"></span>Tracking</span>
     </header>
 
     <section class="today-summary" aria-labelledby="today-label">
-      <div class="summary-heading"><strong id="today-label">Today's Summary</strong><span id="on-track-pill" class="on-track-pill" data-tone="ok">On Track</span></div>
+      <div class="summary-heading"><strong id="today-label">Today's Summary</strong><span id="on-track-pill" class="on-track-pill" data-tone="loading">—</span></div>
       <div class="summary-grid">
         <div class="summary-ring" style="--summary-progress:0deg">
-          <span><strong id="today-total">0m</strong><small>Today</small></span>
+          <span><strong id="today-total">—</strong><small>Today</small></span>
         </div>
         <div class="summary-facts">
-          <div><small>Sites visited</small><strong id="popup-site-count">0</strong></div>
-          <div><small>Focus</small><strong id="popup-focus-status">Ready</strong></div>
+          <div><small>Sites visited</small><strong id="popup-site-count">—</strong></div>
+          <div><small>Focus</small><strong id="popup-focus-status">—</strong></div>
         </div>
       </div>
       <div class="current-card">
         <div class="site-avatar" id="current-avatar" aria-hidden="true">—</div>
         <div class="current-copy">
           <div class="muted small">Current website</div>
-          <div id="current-domain" class="current-domain">No active website</div>
-          <div id="current-usage" class="muted small">0m today</div>
+          <div id="current-domain" class="current-domain">—</div>
+          <div id="current-usage" class="muted small">—</div>
         </div>
-        <div id="current-boundary" class="boundary-copy small">No limit</div>
+        <div id="current-boundary" class="boundary-copy small">—</div>
       </div>
     </section>
 

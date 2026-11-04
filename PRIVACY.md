@@ -35,6 +35,8 @@ TimeLens does not intentionally persist:
 
 For a non-strict site limit, TimeLens may temporarily keep the tab's full return URL in `chrome.storage.session` so an approved +5/+15 minute allowance can return that same tab to the page the user was visiting. The return URL is not placed in the TimeLens blocked-page query string, is not added to usage history, is removed when consumed, and is cleared with Chrome's extension session storage. Strict site limits, category limits, total-budget blocks, and Focus blocks do not store or expose an allowance return URL.
 
+So the toolbar popup can open instantly, TimeLens also keeps its last rendered summary (today's total, the top websites, the current website, and the status of its limit, budget and Focus session) in `chrome.storage.session`. This is Chrome's in-memory extension session storage: it is never synced, is cleared when the browser restarts, holds no page titles, URLs, or session history, and is ignored when it is older than 30 minutes or from a previous day.
+
 ## Network use
 
 TimeLens does not send browsing-usage data, diagnostics, limits, categories, schedules, budgets, Focus Mode choices, imports, or exported data to a TimeLens server. The extension does not include runtime analytics, advertising SDKs, remote scripts, remotely hosted executable code, or a TimeLens backend.
@@ -84,7 +86,7 @@ TimeLens does not upload the chosen file to a TimeLens service.
 ## Permissions
 
 - `tabs`: identify the active website and redirect a tab to the local blocked page when a user-created rule requires it.
-- `storage`: persist TimeLens local data and use Chrome's session-scoped extension storage for a temporary non-strict allowance return URL.
+- `storage`: persist TimeLens local data and use Chrome's session-scoped extension storage for a temporary non-strict allowance return URL and the popup's last rendered summary.
 - `idle`: stop active-time counting when the machine is idle or locked.
 - `alarms`: reconcile active time while respecting Manifest V3 service-worker lifecycle behavior.
 - `notifications`: display user-configured TimeLens boundary warnings.

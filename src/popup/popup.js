@@ -1,8 +1,13 @@
 import { escapeHtml, formatDuration, send, setBusy, setText } from '../shared/ui.js';
 import { trackState } from '../core/track-state.js';
+import { readCachedSnapshot, writeCachedSnapshot } from '../shared/snapshot-cache.js';
 
 let snapshot = null;
 let ticker = null;
+// Resolves once the first live snapshot attempt settles. Actions wait on it so a
+// click on the instantly-painted cached state can never act on stale data (for
+// example limiting a site the user has already navigated away from).
+let livePromise = Promise.resolve();
 const DEFAULT_FOCUS_DOMAINS = ['youtube.com', 'reddit.com', 'instagram.com', 'facebook.com', 'x.com'];
 
 function initial(domain) {
@@ -49,6 +54,7 @@ function renderTrackPill() {
 }
 
 function render() {
+  document.querySelector('.popup-shell')?.removeAttribute('data-loading');
   setText('today-total', formatDuration(snapshot?.todayTotalMs || 0, true));
   setText('popup-site-count', String((snapshot?.todayTop || []).length));
   setText('popup-focus-status', snapshot?.focus ? 'Active' : 'Ready');
@@ -91,6 +97,7 @@ async function refresh() {
     snapshot = await send('GET_SNAPSHOT', { rangeDays: 7 });
     clearError();
     render();
+    writeCachedSnapshot(snapshot);
   } catch (error) { showError(error); }
 }
 
@@ -119,6 +126,7 @@ document.getElementById('focus-toggle').addEventListener('click', async () => {
   const button = document.getElementById('focus-toggle');
   setBusy(button);
   try {
+    await livePromise;
     if (snapshot?.focus) await send('STOP_FOCUS');
     else await send('START_FOCUS', { minutes: 25, domains: DEFAULT_FOCUS_DOMAINS, mode: 'block', name: 'Focus' });
     await refresh();
@@ -127,10 +135,11 @@ document.getElementById('focus-toggle').addEventListener('click', async () => {
 });
 
 document.getElementById('limit-current-site').addEventListener('click', async () => {
-  if (!snapshot?.currentDomain || currentLimit()) return;
   const button = document.getElementById('limit-current-site');
   setBusy(button);
   try {
+    await livePromise;
+    if (!snapshot?.currentDomain || currentLimit()) return;
     await send('SAVE_LIMIT', { limit: { domain: snapshot.currentDomain, minutes: 30, period: 'daily', strict: false, enabled: true } });
     await refresh();
     button.textContent = '30 min/day saved ✓';
@@ -153,5 +162,17 @@ document.getElementById('open-dashboard').addEventListener('click', () => {
   chrome.tabs.create({ url: chrome.runtime.getURL('src/dashboard/dashboard.html') });
 });
 
-refresh();
-startTicker();
+// Paint the last known state at once (a cheap in-memory read) while the live
+// snapshot loads, instead of showing placeholders until the worker answers.
+async function boot() {
+  startTicker();
+  livePromise = refresh();
+  const cached = await readCachedSnapshot();
+  if (cached && !snapshot) {
+    snapshot = cached;
+    render();
+  }
+  await livePromise;
+}
+
+boot();

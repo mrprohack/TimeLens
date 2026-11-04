@@ -99,6 +99,16 @@ body {
   line-height: 1;
 }
 
+.popup-shell[data-loading] .boundary-copy {
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+
+.on-track-pill[data-tone="loading"] {
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+
 .on-track-pill[data-tone="warn"] {
   background: var(--popup-boundary-bg);
   color: var(--popup-boundary-fg);
