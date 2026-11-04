@@ -284,18 +284,30 @@ export function createDefaultData() {
   };
 }
 
-export function migrateData(raw) {
+// Re-validating every stored session and daily total is by far the most expensive
+// step (tens of milliseconds for a normal history, hundreds at max retention) and
+// it used to run on every read and save. History that TimeLens itself saved at the
+// current schema was already validated when it was written, so `trustHistory` lets
+// the hot path reuse it as-is. Settings, allowances, diagnostics and activity state
+// are cheap and are always normalized. Older schema versions, imports and backups
+// never opt in, so untrusted data is always fully validated.
+export function migrateData(raw, { trustHistory = false } = {}) {
   const base = createDefaultData();
   if (!isPlainObject(raw)) return base;
 
   const settings = normalizeSettings(raw.settings);
+  const reuseHistory = trustHistory && raw.version === CURRENT_DATA_VERSION;
   return {
     ...base,
     ...raw,
     version: CURRENT_DATA_VERSION,
     settings,
-    dailyUsage: normalizeDailyUsage(raw.dailyUsage),
-    sessions: normalizeSessions(raw.sessions),
+    dailyUsage: reuseHistory
+      ? (isPlainObject(raw.dailyUsage) ? raw.dailyUsage : {})
+      : normalizeDailyUsage(raw.dailyUsage),
+    sessions: reuseHistory
+      ? (Array.isArray(raw.sessions) ? raw.sessions : [])
+      : normalizeSessions(raw.sessions),
     activityState: createActivityState(isPlainObject(raw.activityState) ? raw.activityState : {}),
     focus: isPlainObject(raw.focus) ? raw.focus : null,
     allowances: normalizeAllowances(raw.allowances, settings.limits),

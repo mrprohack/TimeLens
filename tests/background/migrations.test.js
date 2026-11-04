@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CURRENT_DATA_VERSION, migrateData, validateImport } from '../../src/background/migrations.js';
+import { CURRENT_DATA_VERSION, createDefaultData, migrateData, validateImport } from '../../src/background/migrations.js';
 
 test('migrates version 3 data to schema v4 without losing existing usage or limits', () => {
   const migrated = migrateData({
@@ -74,4 +74,57 @@ test('validateImport rejects non-object payloads and accepts older migratable ex
   assert.throws(() => validateImport([]), /valid TimeLens export/i);
   const restored = validateImport({ version: 2, settings: { limits: [] }, dailyUsage: {}, sessions: [] });
   assert.equal(restored.version, 4);
+});
+
+test('trustHistory reuses current-version history without re-walking it but still sanitizes settings', () => {
+  const data = createDefaultData();
+  data.sessions.push({ id: 'a', domain: 'youtube.com', start: 1, end: 2, durationMs: 1 });
+  data.dailyUsage['2026-08-15'] = { 'youtube.com': 1 };
+  data.settings.retentionDays = 9999;
+
+  const result = migrateData(data, { trustHistory: true });
+
+  assert.equal(result.sessions, data.sessions, 'sessions are reused, not copied and re-validated');
+  assert.equal(result.dailyUsage, data.dailyUsage, 'daily usage is reused, not copied and re-validated');
+  assert.equal(result.settings.retentionDays, 180, 'settings are always clamped');
+});
+
+test('trusted fast path is equivalent to full validation for data TimeLens wrote itself', () => {
+  const data = createDefaultData();
+  data.sessions.push(
+    { id: 'a', domain: 'youtube.com', start: 1, end: 2, durationMs: 1 },
+    { id: 'b', domain: 'github.com', start: 5, end: 9, durationMs: 4 }
+  );
+  data.dailyUsage['2026-08-15'] = { 'youtube.com': 1, 'github.com': 4 };
+  data.settings.limits.push({ domain: 'youtube.com', minutes: 30, period: 'daily', enabled: true, strict: false });
+
+  assert.deepEqual(migrateData(data, { trustHistory: true }), migrateData(data));
+});
+
+test('trustHistory never skips validation for older schema versions or malformed history', () => {
+  const older = migrateData({
+    version: 3,
+    settings: {},
+    dailyUsage: { '2026-08-15': { 'WWW.YouTube.com': 5, 'not a domain': 9 } },
+    sessions: [
+      { domain: '', start: 1, end: 2, durationMs: 1 },
+      { domain: 'm.reddit.com', start: 1, end: 2, durationMs: 1 }
+    ]
+  }, { trustHistory: true });
+  assert.deepEqual(older.dailyUsage, { '2026-08-15': { 'youtube.com': 5 } });
+  assert.deepEqual(older.sessions.map((session) => session.domain), ['reddit.com']);
+
+  const malformed = migrateData({ ...createDefaultData(), sessions: 'nope', dailyUsage: [] }, { trustHistory: true });
+  assert.deepEqual(malformed.sessions, []);
+  assert.deepEqual(malformed.dailyUsage, {});
+});
+
+test('imports are always fully validated even when the payload claims the current version', () => {
+  const imported = validateImport({
+    ...createDefaultData(),
+    sessions: [{ domain: 'not a domain', start: 1, end: 2, durationMs: 1 }, { domain: 'github.com', start: 1, end: 2, durationMs: 1 }],
+    dailyUsage: { '2026-08-15': { 'WWW.GitHub.com': 3, '???': 4 } }
+  });
+  assert.deepEqual(imported.sessions.map((session) => session.domain), ['github.com']);
+  assert.deepEqual(imported.dailyUsage, { '2026-08-15': { 'github.com': 3 } });
 });

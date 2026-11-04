@@ -19,11 +19,11 @@ export function defaultData() {
 
 export async function readData() {
   const result = await chrome.storage.local.get(STORAGE_KEY);
-  return migrateData(result[STORAGE_KEY]);
+  return migrateData(result[STORAGE_KEY], { trustHistory: true });
 }
 
 export async function saveData(data) {
-  const normalized = migrateData(data);
+  const normalized = migrateData(data, { trustHistory: true });
   await chrome.storage.local.set({ [STORAGE_KEY]: normalized });
   return normalized;
 }

@@ -7,7 +7,9 @@ import {
   defaultData,
   getAllowanceMs,
   pruneData,
-  recordDiagnostic
+  readData,
+  recordDiagnostic,
+  saveData
 } from '../../src/background/store.js';
 import { dayKey } from '../../src/core/time.js';
 
@@ -111,4 +113,51 @@ test('pruning removes expired detailed sessions but keeps recent data and valid 
   assert.equal(data.dailyUsage[dayKey(now)]['new.com'], 1000);
   assert.equal(data.allowances['weekly:2026-08-10']['youtube.com'], 1000);
   assert.equal(data.allowances['daily:2026-01-01'], undefined);
+});
+
+function useFakeStorage(initial = {}) {
+  const stored = { ...initial };
+  const counts = { get: 0, set: 0 };
+  globalThis.chrome = {
+    storage: {
+      local: {
+        async get(key) { counts.get += 1; return { [key]: structuredClone(stored[key]) }; },
+        async set(value) { counts.set += 1; Object.assign(stored, structuredClone(value)); }
+      }
+    }
+  };
+  return { stored, counts };
+}
+
+test('readData and saveData round-trip current-version history unchanged', async () => {
+  const { stored } = useFakeStorage();
+  try {
+    const data = defaultData();
+    addCompletedSessions(data, [{ domain: 'youtube.com', start: 1_000, end: 61_000, durationMs: 60_000 }]);
+    const saved = await saveData(data);
+    assert.equal(stored.timelensData.sessions.length, 1);
+    assert.deepEqual(await readData(), saved);
+  } finally {
+    delete globalThis.chrome;
+  }
+});
+
+test('readData still fully migrates stored data from an older schema version', async () => {
+  const { stored } = useFakeStorage({
+    timelensData: {
+      version: 3,
+      settings: {},
+      dailyUsage: { '2026-08-15': { 'WWW.YouTube.com': 7 } },
+      sessions: [{ domain: '', start: 1, end: 2, durationMs: 1 }, { domain: 'github.com', start: 1, end: 2, durationMs: 1 }]
+    }
+  });
+  try {
+    const data = await readData();
+    assert.equal(data.version, 4);
+    assert.deepEqual(data.dailyUsage, { '2026-08-15': { 'youtube.com': 7 } });
+    assert.deepEqual(data.sessions.map((session) => session.domain), ['github.com']);
+    assert.equal(stored.timelensData.version, 3, 'reading never writes');
+  } finally {
+    delete globalThis.chrome;
+  }
 });

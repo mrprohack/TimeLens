@@ -424,6 +424,23 @@ test('allow-only focus blocks a domain that is not on the allowed list', async (
   assert.equal(data.focus.name, 'Code');
 });
 
+test('a snapshot request reads storage once and writes at most one flush', async () => {
+  const local = fake.chrome.storage.local;
+  const { get, set } = local;
+  let reads = 0;
+  let writes = 0;
+  local.get = async (...args) => { reads += 1; return get.apply(local, args); };
+  local.set = async (...args) => { writes += 1; return set.apply(local, args); };
+  try {
+    await snapshot();
+  } finally {
+    local.get = get;
+    local.set = set;
+  }
+  assert.equal(reads, 1, 'flushAndRead must reuse the flushed data instead of re-reading storage');
+  assert.equal(writes, 1);
+});
+
 test.after(() => {
   Date.now = originalNow;
   delete globalThis.chrome;

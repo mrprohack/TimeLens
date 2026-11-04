@@ -255,8 +255,9 @@ async function reconcile({ resetTimer = false } = {}) {
 }
 
 async function flushAndRead() {
-  await processActivityEvent({ type: 'FLUSH', at: Date.now() }, { enforce: false });
-  return readData();
+  // The flush already returns the data it just saved; reading storage again would
+  // only repeat the same work.
+  return processActivityEvent({ type: 'FLUSH', at: Date.now() }, { enforce: false });
 }
 
 function limitView(data, domain, now = Date.now()) {
