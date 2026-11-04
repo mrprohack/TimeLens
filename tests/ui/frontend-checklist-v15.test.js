@@ -33,8 +33,10 @@ test('final dashboard review layer raises small text to AA-safe colors', async (
 
 test('theme bridge consolidates contrast overrides without important rules', async () => {
   const theme = await read('src/shared/theme.css');
+  const source = await read('src/styles/tailwind.css');
   const css = await read('src/styles/review-loop.css');
   assert.doesNotMatch(theme, /appearance-contrast\.css/);
+  assert.doesNotMatch(source, /appearance-contrast\.css/);
   assert.doesNotMatch(css, /!important/);
   assert.match(css, /body:has\(\.popup-shell\)/);
   assert.match(css, /body:has\(\.side-shell\)/);

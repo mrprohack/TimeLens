@@ -44,7 +44,7 @@ test('settings exposes an immediate Light Dark System appearance chooser', async
 });
 
 test('final appearance layers explicitly fix v2 dark surfaces after legacy page CSS', async () => {
-  const bridge = await read('src/shared/theme.css');
+  const bridge = await read('src/styles/tailwind.css');
   const css = await read('src/styles/appearance.css');
   const review = await read('src/styles/review-loop.css');
   assert.match(bridge, /appearance\.css/);

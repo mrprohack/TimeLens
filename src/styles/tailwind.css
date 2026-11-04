@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 
 @source "../dashboard/**/*.{html,js}";
 @source "../popup/**/*.{html,js}";
@@ -449,3 +449,15 @@ html body .blocked-shell .btn-primary { background: var(--time-blue); border-col
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+/*
+ * Hand-written polish layers, inlined by the Tailwind build in cascade order so
+ * every page loads ONE compiled stylesheet (timelens.css) instead of a chain of
+ * @imports. Order matters: each layer overrides the ones above it.
+ */
+@import "./precision-polish.css";
+@import "./appearance.css";
+@import "./master-plan.css";
+@import "./review-loop.css";
+@import "./ux-polish-v16.css";
+@import "./ux-polish-v17.css";

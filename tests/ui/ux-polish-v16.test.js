@@ -134,7 +134,7 @@ test('blocked page degrades safely and can retry live status', async () => {
 });
 
 test('shared theme loads the 1.6 polish layer with animatable rings and busy styles', async () => {
-  const bridge = await read('src/shared/theme.css');
+  const bridge = await read('src/styles/tailwind.css');
   assert.match(bridge, /ux-polish-v16\.css/);
   const css = await read('src/styles/ux-polish-v16.css');
   assert.match(css, /@property --summary-progress/);

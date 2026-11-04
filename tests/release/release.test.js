@@ -104,3 +104,39 @@ test('runtime pages consume the local Tailwind bundle through the shared compati
     assert.doesNotMatch(html, /cdn\.tailwindcss\.com|https?:\/\/[^"']+\.css/i);
   }
 });
+const STYLE_LAYERS = [
+  { file: 'precision-polish', marker: '--radius-hero' },
+  { file: 'appearance', marker: '.appearance-preview' },
+  { file: 'master-plan', marker: '--mp-card-radius' },
+  { file: 'review-loop', marker: '.history-context' },
+  { file: 'ux-polish-v16', marker: '.load-failed' },
+  { file: 'ux-polish-v17', marker: 'timelens-pulse' }
+];
+
+test('every page loads one compiled stylesheet instead of a chain of @imports', async () => {
+  const bridge = await text('src/shared/theme.css');
+  assert.deepEqual(bridge.match(/@import\s+[^;]+;/g), ['@import "../styles/timelens.css";']);
+});
+
+test('style layers are inlined in cascade order by the Tailwind build', async () => {
+  const source = await text('src/styles/tailwind.css');
+  const positions = STYLE_LAYERS.map(({ file }) => source.indexOf(`@import "./${file}.css";`));
+  assert.ok(positions.every((position) => position > 0), 'every layer must be imported');
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions, 'layers must keep their cascade order');
+  assert.ok(positions[0] > source.indexOf('@layer components'), 'layers must come after the Tailwind source rules');
+});
+
+test('compiled timelens.css is fresh: it contains every layer (run npm run build:css)', async () => {
+  const compiled = await text('src/styles/timelens.css');
+  for (const { file, marker } of STYLE_LAYERS) {
+    assert.ok(compiled.includes(marker), `timelens.css is stale: missing ${file} (${marker}). Run npm run build:css.`);
+  }
+});
+
+test('Tailwind scans only the declared page sources so unrelated docs cannot change the build', async () => {
+  const source = await text('src/styles/tailwind.css');
+  assert.match(source.split('\n')[0], /@import\s+"tailwindcss"\s+source\(none\);/);
+  for (const dir of ['dashboard', 'popup', 'sidepanel', 'blocked', 'onboarding', 'options']) {
+    assert.match(source, new RegExp(`@source "\\.\\./${dir}/\\*\\*/\\*\\.\\{html,js\\}";`));
+  }
+});

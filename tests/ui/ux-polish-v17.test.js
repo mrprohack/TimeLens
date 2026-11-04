@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 const read = (p) => readFile(new URL(`../../${p}`, import.meta.url), 'utf8');
 
 test('1.7 polish layer is loaded and respects motion, touch, and contrast needs', async () => {
-  assert.match(await read('src/shared/theme.css'), /ux-polish-v17\.css/);
+  assert.match(await read('src/styles/tailwind.css'), /ux-polish-v17\.css/);
   const css = await read('src/styles/ux-polish-v17.css');
   assert.match(css, /timelens-pulse/);
   assert.match(css, /min-height:\s*44px/);

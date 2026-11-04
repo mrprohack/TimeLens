@@ -7,12 +7,12 @@ const read = (path) => readFile(new URL(path, root), 'utf8');
 
 const polish = () => read('src/styles/precision-polish.css');
 
-test('runtime bridge loads Tailwind first and the centralized polish layer second', async () => {
-  const theme = await read('src/shared/theme.css');
-  const tailwindIndex = theme.indexOf('../styles/timelens.css');
-  const polishIndex = theme.indexOf('../styles/precision-polish.css');
-  assert.ok(tailwindIndex >= 0, 'compiled Tailwind import missing');
-  assert.ok(polishIndex > tailwindIndex, 'polish layer must load after Tailwind');
+test('Tailwind build loads Tailwind first and the centralized polish layer second', async () => {
+  const source = await read('src/styles/tailwind.css');
+  const tailwindIndex = source.indexOf('@import "tailwindcss"');
+  const polishIndex = source.indexOf('./precision-polish.css');
+  assert.ok(tailwindIndex >= 0, 'Tailwind import missing');
+  assert.ok(polishIndex > tailwindIndex, 'polish layer must be inlined after Tailwind');
 });
 
 test('polish introduces three deliberate surface levels and restrained elevation', async () => {

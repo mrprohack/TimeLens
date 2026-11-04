@@ -6,7 +6,7 @@ const root = new URL('../../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
 test('master plan layer is loaded last and defines the shared product shell', async () => {
-  const bridge = await read('src/shared/theme.css');
+  const bridge = await read('src/styles/tailwind.css');
   const css = await read('src/styles/master-plan.css');
   assert.ok(bridge.indexOf('master-plan.css') > bridge.indexOf('appearance.css'));
   for (const token of ['--mp-page-max:', '--mp-rail-width:', '--mp-card-radius:', '--mp-card-shadow:']) {

@@ -1,8 +1,4 @@
-/* Compatibility bridge: shared TimeLens design primitives are compiled locally from Tailwind. */
+/* Compatibility bridge: one compiled stylesheet. The cascade-ordered layers
+   (Tailwind, precision-polish, appearance, master-plan, review-loop, ux-polish-v16,
+   ux-polish-v17) are inlined by `npm run build:css` from src/styles/tailwind.css. */
 @import "../styles/timelens.css";
-@import "../styles/precision-polish.css";
-@import "../styles/appearance.css";
-@import "../styles/master-plan.css";
-@import "../styles/review-loop.css";
-@import "../styles/ux-polish-v16.css";
-@import "../styles/ux-polish-v17.css";
