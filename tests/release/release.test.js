@@ -6,11 +6,11 @@ import { constants } from 'node:fs';
 const root = new URL('../../', import.meta.url);
 const text = (path) => readFile(new URL(path, root), 'utf8');
 
-test('manifest and package versions match the 1.7 workflow speed release', async () => {
+test('manifest and package versions match the 1.8 continuous delivery release', async () => {
   const manifest = JSON.parse(await text('manifest.json'));
   const pkg = JSON.parse(await text('package.json'));
-  assert.equal(manifest.version, '1.7.0');
-  assert.equal(pkg.version, '1.7.0');
+  assert.equal(manifest.version, '1.8.0');
+  assert.equal(pkg.version, '1.8.0');
   assert.match(pkg.scripts.package, /build:css/);
   assert.match(pkg.scripts.package, /package-extension\.mjs/);
   assert.equal(pkg.scripts.test, 'node --test "tests/**/*.test.js"');

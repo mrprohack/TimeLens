@@ -2,7 +2,7 @@
 
 All notable changes to TimeLens are documented here.
 
-## Unreleased
+## 1.8.0 — 2026-11-06
 
 ### Added
 - **Quick Focus Extension:** Active Focus sessions now include a 1-click `+15 min` extension affordance with dedicated `EXTEND_FOCUS` service-worker support, allowing users to extend their focus flow seamlessly.
