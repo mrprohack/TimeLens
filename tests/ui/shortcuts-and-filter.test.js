@@ -44,3 +44,13 @@ test('dashboard css styles keyboard shortcuts and search filter input', async ()
   assert.match(css, /\.limit-search-input/);
   assert.match(css, /\.shortcuts-link/);
 });
+
+test('active focus surface provides quick extension control and wires EXTEND_FOCUS', async () => {
+  const html = await read('src/dashboard/dashboard.html');
+  assert.match(html, /id=["']extend-focus["']/);
+  const js = await read('src/dashboard/focus-view.js');
+  assert.match(js, /extend-focus/);
+  assert.match(js, /EXTEND_FOCUS/);
+  const css = await read('src/dashboard/dashboard.css');
+  assert.match(css, /\.focus-active-actions/);
+});

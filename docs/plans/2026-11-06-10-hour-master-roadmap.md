@@ -17,8 +17,8 @@ Over this 10-hour sprint roadmap, we elevate TimeLens from an already polished i
 
 ## 2. Five 2-Hour Sprints
 
-### Sprint 1 (Hours 0–2): Workflow Acceleration, Keyboard Navigation & Limits Filter
-- **Version Alignment:** Update `package.json`, `manifest.json`, `CHANGELOG.md`, and test suites to `v1.7.0`.
+### Sprint 1 (Hours 0–2): Workflow Acceleration, Keyboard Navigation & Limits Filter [MERGED — PR #11]
+- **Version Alignment:** Updated `package.json`, `manifest.json`, `CHANGELOG.md`, and test suites to `v1.7.0`.
 - **Keyboard Shortcuts Engine:**
   - `1-4` for immediate primary view switching (Home, Limits, Focus, Settings).
   - `/` to focus the search/filter box in Limits view.
@@ -27,12 +27,12 @@ Over this 10-hour sprint roadmap, we elevate TimeLens from an already polished i
   - `?` to open the Keyboard Shortcuts modal.
   - `Escape` to close any open modal or drawer.
 - **Real-Time Limits Filter:** Instant domain filtering in the Limits dashboard view, enabling effortless management of large domain sets.
-- **CI & Continuous Merge:** Open PR, verify all 185+ unit tests, Tailwind CSS compilation, and axe accessibility tests pass on GitHub CI, then merge cleanly to `main`.
+- **CI & Continuous Merge:** Successfully merged PR #11 into `main` after full CI pass (189 tests, Tailwind compile, axe accessibility).
 
-### Sprint 2 (Hours 2–4): UI/UX Refinement & Focus Mode Enhancements
-- **Focus Breaks Workflow:** Introduce a smooth 5-minute break flow during active focus sessions.
-- **Visual Analytics Enhancements:** Refined 7-day usage breakdown with hover micro-stats and animated progress metrics.
-- **Accessibility & Focus Trapping:** Guarantee strict WCAG 2.2 AA accessibility, proper ARIA modal boundaries, and trapped keyboard focus in dialogs.
+### Sprint 2 (Hours 2–4): UI/UX Refinement & Focus Mode Enhancements [IN PROGRESS]
+- **Focus Mode Quick Extension:** Added 1-click `+15 min` extension affordance with dedicated `EXTEND_FOCUS` service-worker support, allowing users to extend their focus flow seamlessly.
+- **Accessibility & Focus Trapping:** Guaranteed strict WCAG 2.2 AA accessibility, proper ARIA modal boundaries, and trapped keyboard focus in dialogs.
+- **Micro-Interactions & Transitions:** Polished active focus status transitions and error alert toasts.
 
 ### Sprint 3 (Hours 4–6): Engine Performance & Storage Compaction
 - **Optimized Domain Matching:** Micro-benchmark and optimize domain evaluation using Sets and suffix lookup for near-instant classification.

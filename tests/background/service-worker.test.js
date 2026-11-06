@@ -175,6 +175,18 @@ test('focus mode immediately blocks a selected active domain and can be stopped'
   assert.equal(data.focus, null);
 });
 
+test('active focus session can be extended with extra time', async () => {
+  await sendMessage({ type: 'CLEAR_DATA' });
+  await sendMessage({ type: 'START_FOCUS', minutes: 25, blockedDomains: ['reddit.com'] });
+  const before = await snapshot();
+  const initialEndsAt = before.focus.endsAt;
+
+  const extended = await sendMessage({ type: 'EXTEND_FOCUS', minutes: 15 });
+  assert.equal(extended.ok, true);
+  const after = await snapshot();
+  assert.equal(after.focus.endsAt, initialEndsAt + (15 * 60_000));
+});
+
 test('strict limits reject temporary allowance', async () => {
   await sendMessage({ type: 'SAVE_LIMIT', limit: { domain: 'example.com', minutes: 1, strict: true, enabled: true } });
   const response = await sendMessage({ type: 'ADD_ALLOWANCE', domain: 'example.com', minutes: 5 });

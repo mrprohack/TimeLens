@@ -36,7 +36,7 @@ TimeLens 1.7 introduces instant keyboard navigation, live limit filtering, and p
 - **Simple Home & Four Destinations:** Home, Limits, Focus, and Settings.
 - **Fast Add Limit flow:** website + time is enough for a normal daily limit. Weekly/monthly reset, Strict mode, and schedules live under Advanced options.
 - **Clean Limits screen** with compact site rows, overflow actions, a summarized daily browsing budget, and category limits collapsed by default.
-- **Action-first Focus** with 25/45/60/90-minute choices and saved presets. Raw website lists and Block/Allow-only settings stay behind Change/Focus settings.
+- **Action-first Focus** with 25/45/60/90-minute choices, saved presets, and 1-click **+15 min** session extension during active focus. Raw website lists and Block/Allow-only settings stay behind Change/Focus settings.
 - **Quiet Settings** groups notifications, tracking, data, privacy, and extension health; diagnostics stay collapsed when not needed.
 - **Compact popup** for Today, current website, Start/End Focus, and one-click 30-minute daily limit creation for the current site.
 - **Compact Side Panel** for current-site usage, the most relevant active boundary, a quick limit, Focus, and dashboard access.

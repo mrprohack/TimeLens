@@ -506,6 +506,14 @@ async function handleMessage(message) {
       await saveData(data);
       return { ok: true };
     }
+    case 'EXTEND_FOCUS': {
+      const minutes = Math.max(1, Math.min(120, Number(message.minutes) || 15));
+      const data = await readData();
+      if (!isFocusActive(data.focus)) throw new Error('No active Focus session to extend.');
+      data.focus.endsAt = Math.max(Date.now(), data.focus.endsAt) + (minutes * 60_000);
+      const saved = await saveData(data);
+      return { ok: true, focus: saved.focus };
+    }
     case 'ADD_ALLOWANCE': {
       const domain = normalizeDomain(message.domain || '');
       const minutes = Math.max(1, Math.min(60, Number(message.minutes) || 5));
