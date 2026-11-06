@@ -32,6 +32,8 @@ test('production release includes premium UI modules, deterministic previews, an
     'CHANGELOG.md',
     'SECURITY.md',
     'LICENSE',
+    'docs/ARCHITECTURE.md',
+    'docs/DEVELOPMENT.md',
     'scripts/package-extension.mjs'
   ]) {
     await access(new URL(path, root), constants.R_OK);

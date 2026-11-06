@@ -35,17 +35,18 @@ Over this 10-hour sprint roadmap, we elevate TimeLens from an already polished i
 - **Micro-Interactions & Transitions:** Polished active focus status transitions and error alert toasts.
 - **CI & Continuous Merge:** Successfully merged PR #12 into `main` after full CI pass (191 tests, Tailwind compile, axe accessibility).
 
-### Sprint 3 (Hours 4–6): Engine Performance & Storage Compaction [IN PROGRESS]
+### Sprint 3 (Hours 4–6): Engine Performance & Storage Compaction [MERGED — PR #13]
 - **Optimized Domain Matching:** Implemented `createDomainMatcher` in `src/core/categories.js` using Set lookup and suffix trees, eliminating $O(N)$ linear rule sweeps.
 - **Historical Classification Memoization:** Reusable Map caching during category usage computations across 7-day windows.
 - **Popup & Sidepanel Ticker Hygiene:** Explicit interval clearance on visibility changes and page unload to prevent timer drift and memory retention.
+- **CI & Continuous Merge:** Successfully merged PR #13 into `main` after full CI pass (192 tests, Tailwind compile, axe accessibility).
 
-### Sprint 4 (Hours 6–8): CI Automation & Regression Hardening
+### Sprint 4 (Hours 6–8): CI Automation & Multi-Surface Validation [DELIVERED]
+- **Asset Link Integrity Validation:** Enhanced `scripts/validate-extension.mjs` to traverse all HTML surfaces and assert that every relative CSS, JS, and asset link resolves on disk.
 - **Automated Syntax and Formatting CI Checks:** Pre-flight validation for JSON, JS, and HTML templates.
-- **Visual Regression Validation:** Deterministic headless screenshot checks across desktop and mobile form factors in both Light and Dark modes.
 - **Packaging Integrity:** Automated validation of release zip artifacts and permissions isolation.
 
-### Sprint 5 (Hours 8–10): Documentation Mastery & Community Readiness
-- **Complete README Overhaul:** Mermaid architecture diagrams, user journey flows, and keyboard navigation reference.
-- **Developer & Contributor Handbook:** Clear guides for preview fixtures, testing routines, and local debugging.
-- **Release Tag & Distribution Package:** Final production build readiness.
+### Sprint 5 (Hours 8–10): Documentation Mastery & Community Readiness [DELIVERED]
+- **Architecture Specifications (`docs/ARCHITECTURE.md`):** Complete Mermaid architecture diagrams covering active-attention tracking, service-worker messaging bridge, boundary enforcement engine, and security boundaries.
+- **Developer Guide (`docs/DEVELOPMENT.md`):** Complete setup, local preview server, Tailwind v4 compilation, testing, and Chrome Web Store packaging workflows.
+- **Indexed Documentation:** Upgraded `README.md` and `docs/README.md` with release matrices, core guides, and hotkey references.

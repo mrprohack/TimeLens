@@ -76,6 +76,15 @@ for (const file of htmlFiles) {
   const ids = [...source.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1]);
   const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
   if (duplicates.length) throw new Error(`${file} contains duplicate ids: ${[...new Set(duplicates)].join(', ')}`);
+
+  const assets = [...source.matchAll(/(?:href|src)=["']([^"':#]+)["']/g)].map((match) => match[1]);
+  for (const asset of assets) {
+    if (asset.startsWith('http') || asset.startsWith('data:') || asset.startsWith('chrome:')) continue;
+    const resolved = path.resolve(path.dirname(file), asset);
+    await access(resolved, constants.R_OK).catch(() => {
+      throw new Error(`${file} references missing asset: ${asset} (resolved to ${resolved})`);
+    });
+  }
 }
 
 console.log(`Validated TimeLens ${manifest.version}: ${required.length} required files, ${jsFiles.length} JS files syntax-checked, ${htmlFiles.length} pages checked, approved permissions only, no remote or dynamic runtime code.`);
