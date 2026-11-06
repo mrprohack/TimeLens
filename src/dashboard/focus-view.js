@@ -73,6 +73,17 @@ export function wireFocusView(getSnapshot, actions = {}) {
     finally { setBusy(button, false); }
   });
 
+  document.getElementById('extend-focus')?.addEventListener('click', async () => {
+    const button = document.getElementById('extend-focus');
+    setBusy(button);
+    try {
+      await send('EXTEND_FOCUS', { minutes: 15 });
+      actions.showToast?.('Added 15 minutes to Focus.');
+      await actions.refresh?.();
+    } catch (error) { actions.showToast?.(error.message, true); }
+    finally { setBusy(button, false); }
+  });
+
   document.getElementById('stop-focus')?.addEventListener('click', async () => {
     try {
       await send('STOP_FOCUS');

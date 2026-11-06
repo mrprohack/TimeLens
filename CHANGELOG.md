@@ -4,8 +4,8 @@ All notable changes to TimeLens are documented here.
 
 ## Unreleased
 
-### Focus & Performance
-- Next-generation focus workflows and interval garbage-collection safety.
+### Added
+- **Quick Focus Extension:** Active Focus sessions now include a 1-click `+15 min` extension affordance with dedicated `EXTEND_FOCUS` service-worker support, allowing users to extend their focus flow seamlessly.
 
 ## 1.7.0 — 2026-11-06
 
