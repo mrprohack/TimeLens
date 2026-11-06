@@ -19,11 +19,32 @@ function badges(rule) {
   return values;
 }
 
+let limitFilterQuery = '';
+
 function renderSiteLimits(snapshot, actions) {
   const node = document.getElementById('limit-list');
-  const limits = snapshot.limits || [];
-  if (!limits.length) {
+  const allLimits = snapshot.limits || [];
+
+  const searchInput = document.getElementById('limit-search');
+  if (searchInput && !searchInput.dataset.wired) {
+    searchInput.dataset.wired = 'true';
+    searchInput.addEventListener('input', (event) => {
+      limitFilterQuery = event.target.value.trim().toLowerCase();
+      renderSiteLimits(snapshot, actions);
+    });
+  }
+
+  const limits = limitFilterQuery
+    ? allLimits.filter((limit) => (limit.domain || '').toLowerCase().includes(limitFilterQuery))
+    : allLimits;
+
+  if (!allLimits.length) {
     node.innerHTML = '<p class="muted">No site limits yet. Add one when a website starts taking too much time.</p>';
+    return;
+  }
+
+  if (!limits.length && limitFilterQuery) {
+    node.innerHTML = `<p class="muted">No site limits match "${escapeHtml(limitFilterQuery)}".</p>`;
     return;
   }
 

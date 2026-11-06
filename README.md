@@ -14,12 +14,26 @@ Most browser-time counters overcount tabs that are merely open. TimeLens counts 
 
 That makes the history closer to real attention time instead of tab-open time.
 
-## TimeLens 1.4 Simple Home
+## TimeLens 1.7 Workflow Speed & Precision UX
 
-TimeLens 1.4 keeps the full 1.3 focus-assistant feature set but makes everyday use much simpler.
+TimeLens 1.7 introduces instant keyboard navigation, live limit filtering, and precision-instrument UI polish:
 
-- **Simple Home** shows today's total, current website, Top 5 sites, limits needing attention, and recent activity without advanced configuration forms.
-- **Four primary destinations only:** Home, Limits, Focus, and Settings.
+- **Instant Keyboard Navigation:** Power users can navigate the entire dashboard without leaving the keyboard:
+  | Shortcut | Action |
+  | --- | --- |
+  | `1` | Jump to **Home** dashboard |
+  | `2` | Jump to **Limits** workspace |
+  | `3` | Jump to **Focus** mode |
+  | `4` | Jump to **Settings** |
+  | `/` | Instant search & filter site limits |
+  | `l` | Open **Add Limit** modal |
+  | `f` | Quick jump to Focus Mode |
+  | `?` | Toggle Keyboard Shortcuts cheat sheet |
+  | `Esc` | Universal dismiss for all dialogs and drawers |
+
+- **Real-Time Limits Search & Filter:** Instantly filter active site limits by domain name, making large limit collections effortless to inspect.
+- **Precision Instrument UX:** Single brand blue system (`#244ff3` / `#315cf6`), 44px+ tap targets, live tracking pulse, balanced heading typography, and Windows high-contrast (`forced-colors`) support.
+- **Simple Home & Four Destinations:** Home, Limits, Focus, and Settings.
 - **Fast Add Limit flow:** website + time is enough for a normal daily limit. Weekly/monthly reset, Strict mode, and schedules live under Advanced options.
 - **Clean Limits screen** with compact site rows, overflow actions, a summarized daily browsing budget, and category limits collapsed by default.
 - **Action-first Focus** with 25/45/60/90-minute choices and saved presets. Raw website lists and Block/Allow-only settings stay behind Change/Focus settings.

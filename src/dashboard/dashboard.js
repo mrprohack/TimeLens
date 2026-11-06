@@ -16,7 +16,8 @@ const dialogs = [
   'limit-dialog',
   'budget-dialog',
   'category-dialog',
-  'focus-settings-dialog'
+  'focus-settings-dialog',
+  'shortcuts-dialog'
 ].map((id) => document.getElementById(id));
 
 function showToast(message, isError = false) {
@@ -239,6 +240,46 @@ document.querySelectorAll('[data-dashboard-view]').forEach((button) => {
 // Dialogs and secondary surfaces.
 dialogs.forEach(wireDialog);
 wireEscapeToClose(dialogs);
+document.getElementById('sidebar-shortcuts')?.addEventListener('click', (event) => openDialog(document.getElementById('shortcuts-dialog'), event.currentTarget));
+
+document.addEventListener('keydown', (event) => {
+  const target = event.target;
+  const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
+  if (isInput) return;
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+  if (event.key === '1') {
+    event.preventDefault();
+    setDashboardView('home');
+  } else if (event.key === '2') {
+    event.preventDefault();
+    setDashboardView('limits');
+  } else if (event.key === '3') {
+    event.preventDefault();
+    setDashboardView('focus');
+  } else if (event.key === '4') {
+    event.preventDefault();
+    setDashboardView('settings');
+  } else if (event.key === '/') {
+    event.preventDefault();
+    setDashboardView('limits');
+    const search = document.getElementById('limit-search');
+    search?.focus();
+    search?.select();
+  } else if (event.key === 'l' || event.key === 'L') {
+    event.preventDefault();
+    openLimitDialog();
+  } else if (event.key === 'f' || event.key === 'F') {
+    event.preventDefault();
+    setDashboardView('focus');
+  } else if (event.key === '?') {
+    event.preventDefault();
+    const shortcuts = document.getElementById('shortcuts-dialog');
+    if (shortcuts && !shortcuts.hidden) closeDialog(shortcuts);
+    else if (shortcuts) openDialog(shortcuts);
+  }
+});
+
 document.getElementById('open-history').addEventListener('click', (event) => openDialog(document.getElementById('history-drawer'), event.currentTarget));
 document.getElementById('home-add-limit').addEventListener('click', (event) => openLimitDialog({ trigger: event.currentTarget }));
 document.getElementById('limits-add-limit').addEventListener('click', (event) => openLimitDialog({ trigger: event.currentTarget }));
