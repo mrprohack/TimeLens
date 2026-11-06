@@ -12,6 +12,11 @@ All notable changes to TimeLens are documented here.
 - **Category Usage Memoization:** Added classification Map caching during historical category usage aggregation to eliminate redundant evaluation across day series.
 - **Ticker Resource Hygiene:** Guarded popup interval ticker with `visibilitychange` and `pagehide` listeners, preventing background CPU overhead when hidden.
 
+### CI & Developer Experience
+- **Asset Link Integrity Validation:** Extended `scripts/validate-extension.mjs` to parse all runtime HTML surfaces and verify that every referenced stylesheet, script, and icon resolves on disk.
+- **Architecture Specifications:** Published comprehensive technical architecture specifications with Mermaid state diagrams in `docs/ARCHITECTURE.md`.
+- **Developer Guide:** Published end-to-end contribution and local testing handbook in `docs/DEVELOPMENT.md`.
+
 ## 1.7.0 — 2026-11-06
 
 ### Added

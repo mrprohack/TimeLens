@@ -228,12 +228,13 @@ Core policy logic is kept independent of Chrome APIs where practical so timing a
 
 ## Release pipeline
 
-## Release pipeline
-
-GitHub Actions runs the full checks on Ubuntu and Windows for every pull request and push to `main`. It then reads the version from `manifest.json`, creates `dist/timelens-<version>.zip`, and uploads it as a workflow artifact. The validator requires the exact approved permissions, checks required runtime pages/assets and JavaScript syntax, verifies unique HTML IDs, and rejects remote or dynamically evaluated runtime code.
+GitHub Actions runs the full checks on Ubuntu for every pull request and push to `main`. It then reads the version from `manifest.json`, creates `dist/timelens-<version>.zip`, and uploads it as a workflow artifact. The validator requires the exact approved permissions, checks required runtime pages/assets and JavaScript syntax, verifies unique HTML IDs, verifies asset links, and rejects remote or dynamically evaluated runtime code.
 
 ## Project docs
 
+- [System Architecture](docs/ARCHITECTURE.md)
+- [Developer Guide](docs/DEVELOPMENT.md)
+- [10-Hour Master Roadmap](docs/plans/2026-11-06-10-hour-master-roadmap.md)
 - [Docs index: design specs and implementation plans](docs/README.md)
 - [V1 design](docs/design/2026-08-15-timelens-v1-design.md)
 - [V1 implementation plan](docs/plans/2026-08-15-timelens-v1.md)
