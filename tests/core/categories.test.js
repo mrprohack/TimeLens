@@ -1,12 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { categoryStatus, categoryUsage, domainMatchesRule } from '../../src/core/categories.js';
+import { categoryStatus, categoryUsage, createDomainMatcher, domainMatchesRule } from '../../src/core/categories.js';
 
 test('domain rules match the root domain and its subdomains only', () => {
   assert.equal(domainMatchesRule('youtube.com', 'youtube.com'), true);
   assert.equal(domainMatchesRule('music.youtube.com', 'youtube.com'), true);
   assert.equal(domainMatchesRule('notyoutube.com', 'youtube.com'), false);
   assert.equal(domainMatchesRule('youtube.com.evil.example', 'youtube.com'), false);
+});
+
+test('createDomainMatcher accelerates domain matching with hash set and suffix resolution', () => {
+  const matcher = createDomainMatcher(['youtube.com', 'reddit.com', 'news.ycombinator.com']);
+  assert.equal(matcher('youtube.com'), true);
+  assert.equal(matcher('music.youtube.com'), true);
+  assert.equal(matcher('v2.mobile.youtube.com'), true);
+  assert.equal(matcher('reddit.com'), true);
+  assert.equal(matcher('old.reddit.com'), true);
+  assert.equal(matcher('news.ycombinator.com'), true);
+  assert.equal(matcher('ycombinator.com'), false);
+  assert.equal(matcher('notyoutube.com'), false);
+  assert.equal(matcher('youtube.com.attacker.com'), false);
+  assert.equal(matcher(''), false);
+  assert.equal(matcher(null), false);
 });
 
 test('category usage aggregates every matching domain in the configured period', () => {

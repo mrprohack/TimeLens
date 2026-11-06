@@ -153,5 +153,11 @@ document.getElementById('open-dashboard').addEventListener('click', () => {
   chrome.tabs.create({ url: chrome.runtime.getURL('src/dashboard/dashboard.html') });
 });
 
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) clearInterval(ticker);
+  else startTicker();
+});
+window.addEventListener('pagehide', () => clearInterval(ticker));
+
 refresh();
 startTicker();

@@ -7,6 +7,11 @@ All notable changes to TimeLens are documented here.
 ### Added
 - **Quick Focus Extension:** Active Focus sessions now include a 1-click `+15 min` extension affordance with dedicated `EXTEND_FOCUS` service-worker support, allowing users to extend their focus flow seamlessly.
 
+### Performance & Lifecycle
+- **High-Velocity Domain Matcher:** Introduced `createDomainMatcher` in `src/core/categories.js` using Set lookup and suffix trees, replacing linear $O(N)$ scans with $O(k)$ suffix evaluation.
+- **Category Usage Memoization:** Added classification Map caching during historical category usage aggregation to eliminate redundant evaluation across day series.
+- **Ticker Resource Hygiene:** Guarded popup interval ticker with `visibilitychange` and `pagehide` listeners, preventing background CPU overhead when hidden.
+
 ## 1.7.0 — 2026-11-06
 
 ### Added

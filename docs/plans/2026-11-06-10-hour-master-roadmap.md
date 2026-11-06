@@ -29,15 +29,16 @@ Over this 10-hour sprint roadmap, we elevate TimeLens from an already polished i
 - **Real-Time Limits Filter:** Instant domain filtering in the Limits dashboard view, enabling effortless management of large domain sets.
 - **CI & Continuous Merge:** Successfully merged PR #11 into `main` after full CI pass (189 tests, Tailwind compile, axe accessibility).
 
-### Sprint 2 (Hours 2–4): UI/UX Refinement & Focus Mode Enhancements [IN PROGRESS]
+### Sprint 2 (Hours 2–4): UI/UX Refinement & Focus Mode Enhancements [MERGED — PR #12]
 - **Focus Mode Quick Extension:** Added 1-click `+15 min` extension affordance with dedicated `EXTEND_FOCUS` service-worker support, allowing users to extend their focus flow seamlessly.
 - **Accessibility & Focus Trapping:** Guaranteed strict WCAG 2.2 AA accessibility, proper ARIA modal boundaries, and trapped keyboard focus in dialogs.
 - **Micro-Interactions & Transitions:** Polished active focus status transitions and error alert toasts.
+- **CI & Continuous Merge:** Successfully merged PR #12 into `main` after full CI pass (191 tests, Tailwind compile, axe accessibility).
 
-### Sprint 3 (Hours 4–6): Engine Performance & Storage Compaction
-- **Optimized Domain Matching:** Micro-benchmark and optimize domain evaluation using Sets and suffix lookup for near-instant classification.
-- **Diagnostic Hygiene & Leak Checks:** Guard interval loops and background alarms against dangling references.
-- **Storage Compaction:** Streamline serialization routines to keep local quota footprints lightweight.
+### Sprint 3 (Hours 4–6): Engine Performance & Storage Compaction [IN PROGRESS]
+- **Optimized Domain Matching:** Implemented `createDomainMatcher` in `src/core/categories.js` using Set lookup and suffix trees, eliminating $O(N)$ linear rule sweeps.
+- **Historical Classification Memoization:** Reusable Map caching during category usage computations across 7-day windows.
+- **Popup & Sidepanel Ticker Hygiene:** Explicit interval clearance on visibility changes and page unload to prevent timer drift and memory retention.
 
 ### Sprint 4 (Hours 6–8): CI Automation & Regression Hardening
 - **Automated Syntax and Formatting CI Checks:** Pre-flight validation for JSON, JS, and HTML templates.
