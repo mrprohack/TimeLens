@@ -4,6 +4,16 @@ All notable changes to TimeLens are documented here.
 
 ## Unreleased
 
+### Focus & Performance
+- Next-generation focus workflows and interval garbage-collection safety.
+
+## 1.7.0 — 2026-11-06
+
+### Added
+- **Keyboard navigation & shortcuts:** Press `1`–`4` to switch views instantly (Home, Limits, Focus, Settings), `/` to filter limits, `f` to toggle Focus, `l` to open Add Limit, `?` to toggle the Keyboard Shortcuts modal, and `Esc` to close any modal.
+- **Instant Limits Filter:** Live search field in Site Limits that filters domains in real time, making large limit collections effortless to navigate.
+- **10-Hour Continuous Development Plan:** Established engineering master plan for continuous speed, UI/UX, and CI quality improvements.
+
 ### UX polish
 - Pulsing live-tracking dot, 44px popup footer tap targets, balanced heading wraps, and card hover lift.
 - Removed purple/indigo accents (dashboard icons, focus card glow, blocked-page button) in favour of the single brand blue, with a softer tinted shadow.

@@ -21,6 +21,7 @@
       </nav>
       <div class="sidebar-secondary">
         <button id="sidebar-history" class="nav-link secondary-link" type="button">Usage History</button>
+        <button id="sidebar-shortcuts" class="nav-link secondary-link shortcuts-link" type="button">Shortcuts (?)</button>
       </div>
       <div class="sidebar-status">
         <span class="status-pulse" aria-hidden="true"></span>
@@ -118,7 +119,7 @@
 
     <section class="dashboard-view" data-view="limits" hidden>
       <div class="page-heading"><div><div class="eyeline">Limits</div><h1>Keep the boundaries simple.</h1><p class="muted">Start with site limits. Open extra controls only when you need them.</p></div><button id="limits-add-limit" class="btn btn-primary" type="button">+ Add limit</button></div>
-      <div class="panel workspace-card"><div class="workspace-heading"><div><h2>Site limits</h2><p class="muted small">Daily by default. Weekly, monthly, Strict and schedules stay optional.</p></div></div><div id="limit-list" class="limit-list"></div></div>
+      <div class="panel workspace-card"><div class="workspace-heading"><div><h2>Site limits</h2><p class="muted small">Daily by default. Weekly, monthly, Strict and schedules stay optional.</p></div><div class="limit-filter-wrap"><input id="limit-search" class="input limit-search-input" type="search" placeholder="Filter limits (/)" aria-label="Filter site limits" autocomplete="off"></div></div><div id="limit-list" class="limit-list"></div></div>
       <div class="panel workspace-card budget-summary-card"><div class="workspace-heading"><div><h2>Daily browsing budget</h2><p class="muted small">One optional boundary across all active browsing.</p></div><strong id="total-budget-progress">Not enabled</strong></div><div id="budget-summary" class="summary-action-row"><span class="muted">No overall budget set.</span><button id="open-budget-dialog" class="btn" type="button">Set budget</button></div></div>
       <div class="panel workspace-card"><button id="category-disclosure" class="disclosure-row" type="button" aria-expanded="false" aria-controls="category-section"><span><strong>Category limits</strong><small id="category-count" class="muted">Optional shared limits</small></span><span aria-hidden="true">›</span></button><div id="category-section" hidden><div class="subsection-actions"><button id="open-category-dialog" class="btn" type="button">Add category</button></div><div id="category-list" class="limit-list"></div></div></div>
     </section>
@@ -164,6 +165,29 @@ reddit.com
 instagram.com
 facebook.com
 x.com</textarea></label><button class="btn btn-primary" type="submit">Start focus session</button></form><div class="divider"></div><form id="preset-form" class="stack"><h3>Saved presets</h3><label class="label"><span>Name</span><input id="preset-name" class="input" maxlength="80" placeholder="Writing sprint" required></label><div class="simple-time-row"><label class="label"><span>Minutes</span><input id="preset-duration" class="input" type="number" min="1" max="480" value="45" required></label><label class="label"><span>Mode</span><select id="preset-mode" class="input"><option value="block">Block list</option><option value="allow">Allow only</option></select></label></div><label class="label"><span>Websites</span><textarea id="preset-domains" class="input textarea" rows="3"></textarea></label><button class="btn" type="submit">Save preset</button></form><div id="preset-list" class="preset-list"></div></div></div>
+
+  <div id="shortcuts-dialog" class="dialog-backdrop" hidden aria-hidden="true">
+    <div class="dialog-panel panel" role="dialog" aria-modal="true" aria-labelledby="shortcuts-dialog-title">
+      <div class="dialog-heading">
+        <div>
+          <div class="eyeline">Navigation & Speed</div>
+          <h2 id="shortcuts-dialog-title">Keyboard Shortcuts</h2>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog aria-label="Close shortcuts dialog">×</button>
+      </div>
+      <div class="shortcuts-list">
+        <div class="shortcut-item"><span>Switch to Home view</span><kbd>1</kbd></div>
+        <div class="shortcut-item"><span>Switch to Limits view</span><kbd>2</kbd></div>
+        <div class="shortcut-item"><span>Switch to Focus view</span><kbd>3</kbd></div>
+        <div class="shortcut-item"><span>Switch to Settings view</span><kbd>4</kbd></div>
+        <div class="shortcut-item"><span>Focus limit search filter</span><kbd>/</kbd></div>
+        <div class="shortcut-item"><span>Open Add Limit dialog</span><kbd>l</kbd></div>
+        <div class="shortcut-item"><span>Open Focus view</span><kbd>f</kbd></div>
+        <div class="shortcut-item"><span>Toggle keyboard shortcuts</span><kbd>?</kbd></div>
+        <div class="shortcut-item"><span>Close any open modal or drawer</span><kbd>Esc</kbd></div>
+      </div>
+    </div>
+  </div>
 
   <div id="load-failed" class="load-failed" hidden>
     <div class="load-failed-card panel" role="alert">
