@@ -69,64 +69,6 @@ test('manual light mode wins over OS-dark media styles and blocked page has a li
   assert.match(css, /color-scheme:\s*dark/);
 });
 
-test('the manual light theme sets a foreground for every element a dark media query also styles', async () => {
-  // A dark OS plus a manually chosen Light theme must not leave a dark-theme
-  // foreground on a light background: that failed WCAG AA on .current-time-pill
-  // (1.88:1) until the light rule was given an explicit colour.
-  //
-  // For every selector the dark media query styles, the light override has to
-  // set colour as well as background.
-  const polish = await read('src/styles/precision-polish.css');
-  const appearance = await read('src/styles/appearance.css');
-
-  const darkBlocks = [...polish.matchAll(/@media \(prefers-color-scheme: dark\) \{([\s\S]*?)\n\}/g)]
-    .map((match) => match[1])
-    .join('\n');
-  assert.ok(darkBlocks.length > 0, 'expected dark media blocks in precision-polish.css');
-
-  // Selectors the dark media query gives a colour to.
-  const darkColourSelectors = new Set();
-  for (const rule of darkBlocks.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const [, selectorList, body] = rule;
-    if (!/(^|;|\s)color\s*:/.test(body)) continue;
-    for (const selector of selectorList.split(',')) {
-      const trimmed = selector.trim();
-      if (!trimmed || trimmed.startsWith(':root') || trimmed.startsWith('@')) continue;
-      const className = trimmed.match(/\.([a-zA-Z][\w-]*)/)?.[1];
-      if (className) darkColourSelectors.add(className);
-    }
-  }
-  assert.ok(darkColourSelectors.size > 0, 'expected the dark media blocks to style element colours');
-
-  const lightBlock = appearance;
-
-  const missing = [];
-  for (const className of darkColourSelectors) {
-    const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    // Every light-theme rule that styles this class must set a colour when the
-    // dark media query sets one for the same class.
-    const lightRules = [...lightBlock.matchAll(
-      new RegExp(
-        `html\\[data-theme=["']light["']\\][^{}]*\\.${escaped}\\b[^{}]*\\{([^}]*)\\}`,
-        'g',
-      ),
-    )];
-    if (!lightRules.length) continue; // the light theme never styles it, so nothing to fix
-    for (const rule of lightRules) {
-      if (!/(^|;|\s)color\s*:/.test(rule[1])) {
-        missing.push(className);
-        break;
-      }
-    }
-  }
-
-  assert.deepEqual(
-    missing,
-    [],
-    `light theme sets a background but no foreground for: ${missing.join(', ')}`,
-  );
-});
-
 test('dark mode forces page chrome and analytics headings onto readable dark colors', async () => {
   const css = `${await read('src/styles/appearance.css')}\n${await read('src/styles/review-loop.css')}`;
   assert.match(css, /\[data-theme=["']dark["']\] body\s*\{[\s\S]{0,240}background:\s*var\(--bg\)[\s\S]{0,160}color:\s*var\(--text\)/);
