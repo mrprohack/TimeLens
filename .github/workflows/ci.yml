@@ -56,11 +56,12 @@ jobs:
 
           axe_page() {
             local page_path="$1"
-            echo "axe: $page_path"
+            local chrome_options="${2:-no-sandbox,disable-dev-shm-usage}"
+            echo "axe: $page_path [$chrome_options]"
             npx --yes @axe-core/cli@4.13.0 \
               "http://127.0.0.1:4173/$page_path" \
               --chromedriver-path="$CHROMEDRIVER" \
-              --chrome-options="no-sandbox,disable-dev-shm-usage" \
+              --chrome-options="$chrome_options" \
               --tags=wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa \
               --load-delay=300 \
               --exit
@@ -74,6 +75,20 @@ jobs:
           done
           for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
             axe_page "preview/axe-dark-$page"
+          done
+
+          # A user whose OS prefers dark but who picks Light in settings still
+          # gets the manual light theme, so the light theme has to hold up against
+          # a dark background. This pass runs the same pages with the browser
+          # forced to prefer dark. Without it, a light rule that sets only a
+          # background left the dark foreground in place and failed WCAG AA on the
+          # current-time pill.
+          DARK_SCHEME="no-sandbox,disable-dev-shm-usage,blink-settings=preferredColorScheme=0"
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            axe_page "preview/axe-light-$page" "$DARK_SCHEME"
+          done
+          for page in home.html limits.html focus.html settings.html history.html popup.html sidepanel.html blocked.html dialog.html; do
+            axe_page "preview/axe-dark-$page" "$DARK_SCHEME"
           done
       - name: Capture Master Plan UI screenshots
         shell: bash
