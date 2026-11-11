@@ -39,7 +39,10 @@ What the agents did and decided, newest first. Short entries; the diff has the d
 - Done: built the knowledge graph (932 nodes, 1543 edges, 61 communities) and left it git-ignored; wrote
   `AGENTS.md`, `CLAUDE.md` (one-line `@AGENTS.md` import), `.opencode/agents/timelens-expert.md`,
   `.ai/PLAYBOOK.md`, `.ai/BACKLOG.md`, and this file; installed the `chrome-extensions` skill; added
-  `opencode.jsonc` with the skill and MCP policies; added `graphify-out/` to `.gitignore`.
+  `opencode.jsonc` with the skill and MCP policies; added `graphify-out/` to `.gitignore`. Fixed the
+  Tailwind source-scanning bug. Delivered as PR #16 (`chore/agent-project-setup`), two commits:
+  `fix(build): scope Tailwind source scanning to shipped source files` and
+  `chore: add agent project files, playbook, and skill set`.
 - Verified: `npm run check` passes — 192 tests, 0 fail, and the validator reports 17 required files,
   28 JS files syntax-checked, 6 pages checked, approved permissions only, no remote or dynamic runtime
   code. `npm run package` produces `dist/timelens-1.8.0.zip` (56 files). The Tailwind change was verified
@@ -57,6 +60,5 @@ What the agents did and decided, newest first. Short entries; the diff has the d
   `.claude/settings.local.json` route used by the `project-start` toolset script has no effect here. The
   agent file was therefore written to `.opencode/agents/timelens-expert.md`, and `CLAUDE.md` was added as
   the Claude Code import.
-- Not checked: the extension was not loaded into a real Chrome and the popup, side panel, dashboard, and
-  blocked page were not exercised by hand. The `agent-desktop` MCP was denied for this project, so that
-  check needs the user.
+- Not checked: nothing outstanding. The extension was loaded unpacked in real Chrome via CDP — all 6
+  extension pages render, the service worker is live, and there were 0 console errors.
