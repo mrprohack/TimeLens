@@ -79,3 +79,7 @@ What the agents did and decided, newest first. Short entries; the diff has the d
 - Learned: branching from `origin/main` rather than from PR #16's branch reproduced the original bug
   exactly — `graphify-out/` is not git-ignored on `main`, so `npm run build:css` there rewrites the
   committed CSS. That is the bug PR #16 fixes, and it is why the two PRs are independent.
+- Verified: the two PRs share no files, so they merge in either order. Cross-platform safety was also
+  confirmed: rebuilding the CSS on Windows reproduces the file the Linux CI bot committed, byte for
+  byte, so PR #17's new Linux bundle check cannot false-fail against PR #16's Windows-generated CSS.
+  The check itself ran and passed in real CI on PR #17.
