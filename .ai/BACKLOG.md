@@ -36,6 +36,8 @@ Parked items waiting on a decision. Answer inline and move the item back to Next
   OS-dark background. That gap is how the light-theme contrast bug behind PR #19 survived. Add a second
   matrix pass that runs the same 9 pages x 3 themes with the browser forced to prefer dark. Done when: CI
   fails if any light-theme page fails an axe rule under a dark colour scheme. Source: scan
+  - **Delivered by PR #20** (`ci/axe-dark-scheme-matrix`), which adds the dark-scheme passes using
+    `blink-settings=preferredColorScheme=0`. Kept here only until that PR merges.
 
 ## Proposed
 
@@ -46,11 +48,12 @@ with the numbers) or a proactive rule in the playbook covers it. Delete what you
   extension pages with the CI axe rules finds failures the preview fixtures do not show, because the
   fixtures never render these states: `#load-failed-reason` on the dashboard, `#error-message` on the
   popup, `#blocked-copy` on the blocked page, and 12 elements on the onboarding page (`.lead` and the
-  feature `article` text). They are all `color-contrast` and predate PR #19. Done when: every page passes
-  the CI axe rules in its error state. Source: scan
+  feature `article` text). All `color-contrast`, all present in both OS schemes, all predating PR #19.
+  Done when: every page passes the CI axe rules in its error state. Source: scan
 - [ ] **a11y: fix the `aria-prohibited-attr` violation on `#side-focus-presets`** (S) — the side panel
-  fails `aria-prohibited-attr` on `#side-focus-presets` in every theme. It is present in the current
-  release and unrelated to the theme work. Done when: the side panel passes the CI axe rules. Source: scan
+  fails `aria-prohibited-attr` on `#side-focus-presets` in every theme and every OS scheme. It is present
+  in the current release and unrelated to the theme work. Done when: the side panel passes the CI axe
+  rules. Source: scan
 - [ ] **test: cover the 12 message types with no direct contract test** (L) — the UI contract tests assert
   on markup and source text rather than behaviour. `EXTEND_FOCUS`, `GET_BLOCK_STATUS`, `CLEAR_DATA`,
   `CLEAR_DIAGNOSTICS`, `EXPORT_DATA`, `IMPORT_DATA`, `SAVE_CATEGORY`, `DELETE_CATEGORY`, `SAVE_FOCUS_PRESET`,
@@ -82,6 +85,10 @@ Stopped by you. Only you lift it; new clues, CI or bots do not.
 
 ## Done
 
+- 2026-11-11 **ci: audit the accessibility matrix under a dark-preferring system** — ready, PR #20
+  (`ci/axe-dark-scheme-matrix`, based on PR #19's branch). Adds two more axe passes with the browser
+  forced to prefer dark, so a manual Light theme is checked against a dark background. Verified to fail
+  on the pre-fix CSS and pass after PR #19.
 - 2026-11-11 **a11y: give the manual light theme an explicit foreground for the time pill** — ready,
   PR #19 (`fix/a11y/light-theme-time-pill`, based on `origin/main`). Fixes a 1.88:1 contrast ratio on
   `.current-time-pill` for a user on a dark-preferring OS who picks Light, and adds a contract test for

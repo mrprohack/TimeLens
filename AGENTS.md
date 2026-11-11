@@ -109,6 +109,12 @@ Run only the rows the change touches, locally and when deciding what CI must pas
   picks Light, a dark media query still applies, so a light rule that sets only `background` leaves the
   dark foreground in place. Set `color` as well as `background` in any light-theme override. A contract
   test in `tests/ui/appearance-theme.test.js` enforces this.
+- **The CI axe step must cover a dark-preferring system.** GitHub's runners report
+  `prefers-color-scheme: light`, so a manual Light theme was never checked against a dark background —
+  that is how a WCAG AA failure survived three releases. The workflow now runs the matrix twice, and the
+  dark pass uses `blink-settings=preferredColorScheme=0` (`force-dark-mode` does *not* change the
+  reported scheme). The `preview/` fixtures never set `data-theme`, so only the themed fixtures
+  (`axe-light-`, `axe-dark-`) are meaningful under a forced scheme.
 - **`CONTRIBUTING.md` claims CI runs on Ubuntu and Windows; the workflow only runs `ubuntu-latest`.**
   The docs are wrong, not the workflow. Fix the docs if you touch that area.
 - **Version must be bumped in both `manifest.json` and `package.json`,** and the expected version is

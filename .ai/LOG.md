@@ -138,3 +138,19 @@ What the agents did and decided, newest first. Short entries; the diff has the d
   dashboard's violation count drops from two to one for a dark-OS user who picks Light.
 - Learned: the fix went to its own branch off `origin/main` rather than onto the setup branch, so it can be
   reviewed and merged on its own. The setup branch was updated to point at it.
+
+### 2026-11-11 — /project-lead (ci: audit the matrix under a dark-preferring system)
+
+- Done: PR #20 (`ci/axe-dark-scheme-matrix`, based on PR #19's branch). Adds two more axe passes over the
+  same nine pages and both themed fixtures with the browser forced to prefer dark, and a contract test
+  asserting the pass exists.
+- Parked: unchanged — the Windows-CI decision and the `service-worker.js` split still need the user.
+- Failed: nothing.
+- Learned: the setting that actually changes `prefers-color-scheme` is
+  `blink-settings=preferredColorScheme=0` — `force-dark-mode` does not, it leaves the reported scheme
+  unchanged, so it is not usable here. Verified by running all five passes in both schemes.
+- Learned: the new pass fails on the pre-fix CSS and passes once PR #19's fix is in place, so it is a real
+  regression guard rather than a no-op. The contract test was verified in both directions as well.
+- Learned: the `preview/` fixtures are static HTML that never sets `data-theme`, so under a dark scheme
+  they render half-themed and fail even though the real pages are fine. The dark pass therefore audits the
+  two themed fixtures, which are the ones that model a manual theme choice.
