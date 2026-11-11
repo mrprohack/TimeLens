@@ -116,3 +116,25 @@ What the agents did and decided, newest first. Short entries; the diff has the d
   Splitting the two would leave `AGENTS.md` pointing at a test file that does not exist yet on `main`.
   A separate branch was prepared, verified to pass standalone, and then withdrawn in favour of one
   coherent change.
+
+### 2026-11-11 — /project-lead (a11y: manual light theme on a dark system)
+
+- Done: PR #19 (`fix/a11y/light-theme-time-pill`, branch off `origin/main`). A user whose OS prefers dark
+  but who picks Light in TimeLens settings got the dark-theme foreground on the light-theme background on
+  `.current-time-pill` (the "current time" pill on the dashboard, popup and side panel) — a contrast ratio
+  of 1.88:1 where WCAG AA needs 4.5:1. The light rule set only `background`, so the dark media query's
+  `color` survived. The fix sets the colour explicitly, and a new contract test fails when the light theme
+  sets a background but no foreground for an element a dark media query also styles.
+- Parked: unchanged — the Windows-CI decision and the `service-worker.js` split still need the user. The
+  Windows-CI question is now answerable: the technical side was rehearsed and works.
+- Failed: nothing.
+- Learned: the CI axe step only ever runs on Linux with a light colour scheme, so the interaction between
+  a manual theme and an OS-dark background was never checked. That gap is what let this bug through
+  three release cycles. A second matrix pass under a dark colour scheme is now a backlog item.
+- Learned: rehearsing the CI matrix on a dark-preferring host also surfaced 16 pre-existing violations
+  the preview fixtures never show, because the fixtures are static HTML that never sets `data-theme` and
+  never renders the error states. Those are recorded in the backlog as two separate items.
+- Learned: the fix was verified by removing it and confirming the new test fails, and by confirming the
+  dashboard's violation count drops from two to one for a dark-OS user who picks Light.
+- Learned: the fix went to its own branch off `origin/main` rather than onto the setup branch, so it can be
+  reviewed and merged on its own. The setup branch was updated to point at it.

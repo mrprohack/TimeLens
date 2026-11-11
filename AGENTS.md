@@ -103,6 +103,12 @@ Run only the rows the change touches, locally and when deciding what CI must pas
   `handleMessage` in `src/background/service-worker.js`. `docs/ARCHITECTURE.md` lists all 19, and a
   contract test in `tests/release/release.test.js` fails if the two disagree — so adding a message type
   without documenting it breaks the build.
+- **A manual theme must set a foreground, not just a background.** `src/styles/appearance.css` has
+  `html[data-theme="light"]` and `html[data-theme="dark"]` overrides, but `precision-polish.css` also
+  styles elements inside `@media (prefers-color-scheme: dark)`. When the OS prefers dark and the user
+  picks Light, a dark media query still applies, so a light rule that sets only `background` leaves the
+  dark foreground in place. Set `color` as well as `background` in any light-theme override. A contract
+  test in `tests/ui/appearance-theme.test.js` enforces this.
 - **`CONTRIBUTING.md` claims CI runs on Ubuntu and Windows; the workflow only runs `ubuntu-latest`.**
   The docs are wrong, not the workflow. Fix the docs if you touch that area.
 - **Version must be bumped in both `manifest.json` and `package.json`,** and the expected version is

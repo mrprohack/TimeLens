@@ -12,6 +12,13 @@ Parked items waiting on a decision. Answer inline and move the item back to Next
   `.github/workflows/ci.yml` only has `runs-on: ubuntu-latest`. Either add a Windows job (the packaging
   script and Tailwind build are the parts most likely to differ) or correct the docs. Which is right is a
   product call, not a technical one. Done when: the docs and the workflow agree. Source: scan
+  - **Now answerable.** The technical side was rehearsed on a dark-preferring Windows host: `npm run check`
+    and `npm run package` both pass on Windows, the axe step runs unchanged (the runner image ships Chrome,
+    ChromeDriver and `CHROMEWEBDRIVER`), and the screenshot step works too. The only wrinkle is `python3`
+    versus `python`, which the runner image resolves. So a Windows job is feasible; the cost is roughly
+    double the CI minutes. The rehearsal also proved the more important point: the current Linux-only job
+    never exercises a dark-preferring system, which is how the light-theme contrast bug behind PR #19 went
+    unnoticed. See "test: exercise the accessibility matrix under a dark-preferring system" in Next.
 - [ ] **decide: split `src/background/service-worker.js`** (L) — 682 lines, the largest file in the repo
   and the lowest-cohesion module in the knowledge graph. It holds the message switch, the Chrome event
   listeners, and the enforcement loop. Splitting it touches every UI surface. Worth doing only as its own
@@ -24,12 +31,26 @@ Parked items waiting on a decision. Answer inline and move the item back to Next
   the answer is to add a Windows job, this item is covered by it; if the answer is to correct the docs,
   update both the prose and the mermaid diagram. Done when: no line in `CONTRIBUTING.md` promises a CI
   environment that does not exist. Source: scan
+- [ ] **test: exercise the accessibility matrix under a dark-preferring system** (M) — the CI axe step runs
+  only on Linux with a light colour scheme, so a manual Light theme was never checked against an
+  OS-dark background. That gap is how the light-theme contrast bug behind PR #19 survived. Add a second
+  matrix pass that runs the same 9 pages x 3 themes with the browser forced to prefer dark. Done when: CI
+  fails if any light-theme page fails an axe rule under a dark colour scheme. Source: scan
 
 ## Proposed
 
 Work the agent found that nobody asked for. Not worked on until you approve it (move it to Next, or reply
 with the numbers) or a proactive rule in the playbook covers it. Delete what you do not want.
 
+- [ ] **a11y: fix the contrast failures on the error and onboarding states** (M) — auditing the real
+  extension pages with the CI axe rules finds failures the preview fixtures do not show, because the
+  fixtures never render these states: `#load-failed-reason` on the dashboard, `#error-message` on the
+  popup, `#blocked-copy` on the blocked page, and 12 elements on the onboarding page (`.lead` and the
+  feature `article` text). They are all `color-contrast` and predate PR #19. Done when: every page passes
+  the CI axe rules in its error state. Source: scan
+- [ ] **a11y: fix the `aria-prohibited-attr` violation on `#side-focus-presets`** (S) — the side panel
+  fails `aria-prohibited-attr` on `#side-focus-presets` in every theme. It is present in the current
+  release and unrelated to the theme work. Done when: the side panel passes the CI axe rules. Source: scan
 - [ ] **test: cover the 12 message types with no direct contract test** (L) — the UI contract tests assert
   on markup and source text rather than behaviour. `EXTEND_FOCUS`, `GET_BLOCK_STATUS`, `CLEAR_DATA`,
   `CLEAR_DIAGNOSTICS`, `EXPORT_DATA`, `IMPORT_DATA`, `SAVE_CATEGORY`, `DELETE_CATEGORY`, `SAVE_FOCUS_PRESET`,
@@ -61,6 +82,10 @@ Stopped by you. Only you lift it; new clues, CI or bots do not.
 
 ## Done
 
+- 2026-11-11 **a11y: give the manual light theme an explicit foreground for the time pill** — ready,
+  PR #19 (`fix/a11y/light-theme-time-pill`, based on `origin/main`). Fixes a 1.88:1 contrast ratio on
+  `.current-time-pill` for a user on a dark-preferring OS who picks Light, and adds a contract test for
+  the whole class of bug.
 - 2026-11-11 **test: give `src/core/track-state.js` its own test file** — ready, PR #16
   (`chore/agent-project-setup`). Moves the four `trackState` behaviour tests out of the UI suite and into
   `tests/core/track-state.test.js`, so the module sits under the matching row of the "Checks by path"
