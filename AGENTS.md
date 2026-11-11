@@ -57,7 +57,7 @@ Run only the rows the change touches, locally and when deciding what CI must pas
 | `src/dashboard/**`, `src/popup/**`, `src/sidepanel/**`, `src/blocked/**`, `src/onboarding/**`, `src/options/**` | `node --test tests/ui/<area>.test.js` |
 | `src/styles/tailwind.css` | `npm run build:css` then `npm run check` |
 | `manifest.json`, `scripts/**`, `.github/**`, `package.json` | `npm run check` and `npm run package` |
-| `src/core/track-state.js` | `node --test tests/ui/ux-polish-v16.test.js` |
+| `src/core/track-state.js` | `node --test tests/core/track-state.test.js` |
 | `docs/**`, `**/*.md` | nothing |
 
 ## Map
