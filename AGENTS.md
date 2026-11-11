@@ -99,8 +99,10 @@ Run only the rows the change touches, locally and when deciding what CI must pas
   and `src/options` feed the build. Keep it that way: without `source(none)`, Tailwind scans the whole
   working tree and any new file containing a class-like token (a plan document, a skill README, this
   file) silently changes the committed CSS.
-- **`docs/ARCHITECTURE.md` lists 7 message types; the service worker implements 19.** The table is a
-  summary, not the contract. The source of truth is `case '...'` in `src/background/service-worker.js`.
+- **The message protocol has 19 types; the worker is the contract.** Every type is a `case` label in
+  `handleMessage` in `src/background/service-worker.js`. `docs/ARCHITECTURE.md` lists all 19, and a
+  contract test in `tests/release/release.test.js` fails if the two disagree — so adding a message type
+  without documenting it breaks the build.
 - **`CONTRIBUTING.md` claims CI runs on Ubuntu and Windows; the workflow only runs `ubuntu-latest`.**
   The docs are wrong, not the workflow. Fix the docs if you touch that area.
 - **Version must be bumped in both `manifest.json` and `package.json`,** and the expected version is

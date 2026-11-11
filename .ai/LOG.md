@@ -83,3 +83,22 @@ What the agents did and decided, newest first. Short entries; the diff has the d
   confirmed: rebuilding the CSS on Windows reproduces the file the Linux CI bot committed, byte for
   byte, so PR #17's new Linux bundle check cannot false-fail against PR #16's Windows-generated CSS.
   The check itself ran and passed in real CI on PR #17.
+
+### 2026-11-11 — /project-lead auto 3 (message-protocol documentation)
+
+- Done: PR #18 (`docs/message-protocol-table`). `docs/ARCHITECTURE.md` documented 7 of the 19 message
+  types the worker handles; it now documents all 19 with the payload each reads, plus the behaviours that
+  are easy to misread. Added a contract test that reads every `case` label from the worker's message
+  switch and fails if the document omits one.
+- Parked: unchanged — the Windows-CI decision and the `service-worker.js` split still need the user.
+- Failed: nothing.
+- Learned: the new contract test caught a real defect on its first run — `ADD_ALLOWANCE` had a missing
+  space before its pipe in the table, so the row was not being parsed as a table row at all. The test was
+  then verified in both directions: removing a documented row fails it, and adding a case to the worker
+  without documenting it fails it too.
+- Learned: PR #18 and PR #17 both touch `tests/release/release.test.js`. The merge was tested rather than
+  assumed: git auto-merges the two appends with no conflict, and the merged tree passes all 11 release
+  tests. Either merge order works.
+- Learned: working on a branch based on `origin/main` rather than on PR #16's branch means the
+  `graphify-out/` ignore rule is absent, so `npm run build:css` rewrites the committed CSS locally. This
+  is the bug PR #16 fixes; it is a local annoyance on `main`-based branches, not a defect in the branches.
