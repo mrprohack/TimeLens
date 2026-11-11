@@ -102,3 +102,17 @@ What the agents did and decided, newest first. Short entries; the diff has the d
 - Learned: working on a branch based on `origin/main` rather than on PR #16's branch means the
   `graphify-out/` ignore rule is absent, so `npm run build:css` rewrites the committed CSS locally. This
   is the bug PR #16 fixes; it is a local annoyance on `main`-based branches, not a defect in the branches.
+
+### 2026-11-11 — /project-lead auto 3 (track-state test file)
+
+- Done: moved the four `trackState` behaviour tests from `tests/ui/ux-polish-v16.test.js` into
+  `tests/core/track-state.test.js`, and updated the "Checks by path" row in `AGENTS.md`. The suite still
+  reports 192 tests, so nothing was lost or duplicated. The one remaining `trackState` reference in the
+  UI suite is intentional: it asserts the popup calls `trackState`, which is a UI contract.
+- Parked: unchanged — the Windows-CI decision and the `service-worker.js` split still need the user.
+- Failed: nothing.
+- Learned: this change belongs on PR #16 rather than on a branch of its own. `AGENTS.md` does not exist
+  on `origin/main` — PR #16 introduces it — so the "Checks by path" row can only be corrected there.
+  Splitting the two would leave `AGENTS.md` pointing at a test file that does not exist yet on `main`.
+  A separate branch was prepared, verified to pass standalone, and then withdrawn in favour of one
+  coherent change.
