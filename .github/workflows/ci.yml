@@ -16,6 +16,10 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # The axe and screenshot steps dominate the run (about 2m15s observed).
+    # Ten minutes leaves room for a loaded runner while still stopping a hung
+    # job long before the 6-hour GitHub default.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -28,6 +32,14 @@ jobs:
         run: npm run check
       - name: Build Chrome Web Store package
         run: npm run package
+      - name: Verify the committed Tailwind bundle is current
+        run: |
+          # src/styles/timelens.css is generated but tracked. Rebuild it and fail
+          # if the result differs from what is committed, so a stale bundle can
+          # never reach the Chrome Web Store. Cheap, so it runs before the slow
+          # accessibility and screenshot steps.
+          npm run build:css
+          git diff --exit-code -- src/styles/timelens.css
       - name: Run axe accessibility checks
         shell: bash
         run: |

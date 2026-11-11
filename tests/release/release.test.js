@@ -91,6 +91,23 @@ test('CI installs locked Tailwind dependencies before running checks', async () 
   await access(new URL('package-lock.json', root), constants.R_OK);
 });
 
+test('CI bounds the job and verifies the committed Tailwind bundle is current', async () => {
+  const workflow = await text('.github/workflows/ci.yml');
+  assert.match(workflow, /timeout-minutes:\s*\d+/, 'CI must bound the job so a hung step cannot burn runner hours');
+  assert.match(
+    workflow,
+    /npm run build:css[\s\S]*git diff --exit-code -- src\/styles\/timelens\.css/,
+    'CI must fail when the committed Tailwind bundle is stale',
+  );
+});
+
+test('Dependabot watches the npm and GitHub Actions ecosystems', async () => {
+  const config = await text('.github/dependabot.yml');
+  assert.match(config, /package-ecosystem:\s*npm/);
+  assert.match(config, /package-ecosystem:\s*github-actions/);
+  assert.match(config, /tailwindcss/);
+});
+
 test('runtime pages consume the local Tailwind bundle through the shared compatibility bridge', async () => {
   const bridge = await text('src/shared/theme.css');
   assert.match(bridge, /@import\s+["']\.\.\/styles\/timelens\.css["']/);
