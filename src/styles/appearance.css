@@ -193,7 +193,7 @@ html[data-theme="light"] body .attention-copy strong,
 html[data-theme="light"] body .recent-copy strong,
 html[data-theme="light"] body .current-strip-copy strong { color: #273047; }
 html[data-theme="light"] body .current-time-pill,
-html[data-theme="light"] body .usage-rank { background: #f1f4fa; }
+html[data-theme="light"] body .usage-rank { color: #3157ff; background: #f1f4fa; }
 html[data-theme="light"] body .mobile-nav { background: rgba(255,255,255,.95); border-color: #e3e8f2; }
 
 /* Popup and Side Panel. */
