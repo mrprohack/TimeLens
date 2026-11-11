@@ -20,14 +20,6 @@ Parked items waiting on a decision. Answer inline and move the item back to Next
 
 ## Next
 
-- [ ] **ci: add `timeout-minutes` to the CI job** (S) — `.github/workflows/ci.yml` has no timeout, so a
-  hung axe or screenshot step can burn up to 6 hours of runner time before GitHub kills it. The repo scan
-  flagged it. Done when: the `check` job declares a `timeout-minutes` and the workflow still passes.
-  Source: scan
-- [ ] **ci: add `.github/dependabot.yml`** (S) — the repo has no Dependabot or Renovate config, so the two
-  pinned dev dependencies (`tailwindcss` and `@tailwindcss/cli`, both 4.3.3) go stale silently. The
-  `dependabot` skill covers this. Done when: Dependabot is configured for the npm ecosystem and a first
-  update PR can open. Source: scan
 - [ ] **docs: correct the CI matrix claim in `CONTRIBUTING.md`** (S) — depends on the decision above. If
   the answer is to add a Windows job, this item is covered by it; if the answer is to correct the docs,
   update both the prose and the mermaid diagram. Done when: no line in `CONTRIBUTING.md` promises a CI
@@ -85,4 +77,11 @@ Stopped by you. Only you lift it; new clues, CI or bots do not.
 
 ## Done
 
-- (none)
+- 2026-11-11 **ci: bound the job, guard the generated bundle, and add Dependabot** — ready, PR #17
+  (`ci/hardening-workflow`). Adds `timeout-minutes: 10` to the check job, a CI step that rebuilds
+  `src/styles/timelens.css` and fails on any difference, and `.github/dependabot.yml` watching npm and
+  GitHub Actions. Three contract tests added. Based on `origin/main`, so it merges independently of PR #16.
+- 2026-11-11 **setup: agent project files, playbook, backlog, log, project agent, and the
+  `chrome-extensions` skill** — ready, PR #16 (`chore/agent-project-setup`). Also fixes the Tailwind
+  source-scanning bug that made `npm run build:css` rewrite the committed CSS.
+

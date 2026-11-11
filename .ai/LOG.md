@@ -62,3 +62,20 @@ What the agents did and decided, newest first. Short entries; the diff has the d
   the Claude Code import.
 - Not checked: nothing outstanding. The extension was loaded unpacked in real Chrome via CDP — all 6
   extension pages render, the service worker is live, and there were 0 console errors.
+
+### 2026-11-11 — /project-lead auto 3 (CI hardening)
+
+- Done: three backlog items in one PR (#17, `ci/hardening-workflow`, based on `origin/main`): added
+  `timeout-minutes: 10` to the check job, added a CI step that rebuilds `src/styles/timelens.css` and fails
+  on any difference, and added `.github/dependabot.yml` for npm and GitHub Actions. Three contract tests
+  added to `tests/release/release.test.js`.
+- Parked: unchanged — the Windows-CI decision and the `service-worker.js` split still need the user.
+- Failed: nothing.
+- Learned: the three items all touch `.github/`, so per the `git-ci` rule that two writers must not share a
+  file they went into one branch rather than three parallel ones. The bundle check was verified in both
+  directions: exit 0 on a current bundle, exit 1 on a deliberately stale one, and exit 0 again from a clean
+  clone of the branch after `npm ci` — exactly what CI will run. The `ci_workflows` scanner now reports no
+  findings on that branch.
+- Learned: branching from `origin/main` rather than from PR #16's branch reproduced the original bug
+  exactly — `graphify-out/` is not git-ignored on `main`, so `npm run build:css` there rewrites the
+  committed CSS. That is the bug PR #16 fixes, and it is why the two PRs are independent.
