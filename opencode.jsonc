@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "policies": [
+    { "action": "skill.use", "resource": "hyperframes", "effect": "deny" },
+    { "action": "skill.use", "resource": "hyperframes-animation", "effect": "deny" },
+    { "action": "skill.use", "resource": "hyperframes-audio", "effect": "deny" },
+    { "action": "skill.use", "resource": "hyperframes-cli", "effect": "deny" },
+    { "action": "skill.use", "resource": "hyperframes-core", "effect": "deny" },
+    { "action": "skill.use", "resource": "hyperframes-creative", "effect": "deny" },
+    { "action": "skill.use", "resource": "hyperframes-keyframes", "effect": "deny" },
+    { "action": "skill.use", "resource": "hyperframes-registry", "effect": "deny" },
+    { "action": "skill.use", "resource": "hyperframes-studio", "effect": "deny" },
+    { "action": "skill.use", "resource": "media-use", "effect": "deny" },
+    { "action": "skill.use", "resource": "cut-video", "effect": "deny" },
+    { "action": "skill.use", "resource": "product-launch-video", "effect": "deny" },
+    { "action": "skill.use", "resource": "mobile-app-ui-design", "effect": "deny" },
+    { "action": "mcp.use", "resource": "agent-desktop", "effect": "deny" }
+  ]
+}
