@@ -126,8 +126,9 @@ Run only the rows the change touches, locally and when deciding what CI must pas
   dark pass uses `blink-settings=preferredColorScheme=0` (`force-dark-mode` does *not* change the
   reported scheme). The `preview/` fixtures never set `data-theme`, so only the themed fixtures
   (`axe-light-`, `axe-dark-`) are meaningful under a forced scheme.
-- **`CONTRIBUTING.md` claims CI runs on Ubuntu and Windows; the workflow only runs `ubuntu-latest`.**
-  The docs are wrong, not the workflow. Fix the docs if you touch that area.
+- **`CONTRIBUTING.md` used to claim CI runs on Ubuntu and Windows; the workflow only runs `ubuntu-latest`.**
+  The guide was corrected in PR #21: the workflow is Linux-only on purpose, and the guide now says so. If a
+  Windows runner is ever added, change the guide in the same pull request.
 - **Version must be bumped in both `manifest.json` and `package.json`,** and the expected version is
   asserted in `tests/release/release.test.js` (currently `1.8.0`). The validator fails on a mismatch.
 - **Enforcement outranks UI feedback.** A failed notification must never cancel a timeout block.
