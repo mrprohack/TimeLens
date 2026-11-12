@@ -160,9 +160,48 @@ kbd { display:inline-block; padding:3px 7px; font-family:ui-monospace,SFMono-Reg
 @media (max-width: 960px) { body { padding-left:0; }.app-header { position:sticky; inset:auto; top:0; width:100%; border-right:0; border-bottom:1px solid #e5eaf5; box-shadow:0 8px 30px rgba(54,62,107,.045); }.header-inner { width:min(100% - 32px,1180px); min-height:66px; margin:0 auto; padding:0; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:18px; }.brand-button { width:auto; padding:0; }.header-nav { display:flex; align-items:center; gap:4px; }.sidebar-secondary,.sidebar-status { display:none; }.nav-link { min-height:40px; padding:8px 12px; text-align:center; }.nav-link::before { display:none; }.dashboard-shell { width:min(100% - 32px,1120px); }.toast { left:50%; } }
 @media (max-width: 760px) { .dashboard-topbar { align-items:flex-start; flex-direction:column; }.dashboard-topbar-actions { width:100%; justify-content:space-between; }.kpi-grid,.analytics-grid { grid-template-columns:1fr; }.trend-card,.recent-card { grid-column:auto; }.breakdown-layout { grid-template-columns:120px minmax(0,1fr); }.breakdown-donut { width:116px; }.current-strip { grid-template-columns:1fr; }.current-time-pill { justify-self:start; }.quick-actions { grid-column:auto; justify-content:flex-start; }.limit-item { grid-template-columns:minmax(0,1fr) 42px; }.limit-progress { grid-column:1 / -1; text-align:left; }.row-menu { grid-column:2; grid-row:1; }.limit-actions { grid-column:auto; justify-content:flex-start; flex-wrap:wrap; } }
 @media (max-width: 600px) { body { padding:0 0 78px; overflow-x:hidden; }.app-header { position:static; background:#fff; }.header-inner { width:min(100% - 26px,1080px); min-height:60px; }.brand-button { font-size:16px; }.brand-mark { width:30px; height:30px; }.header-nav { display:none; }.dashboard-shell { width:min(100% - 22px,1080px); max-width:100%; min-width:0; padding:18px 0 34px; }.dashboard-topbar { margin-bottom:14px; }.dashboard-topbar h1 { font-size:29px; }.dashboard-topbar-actions { align-items:stretch; flex-direction:column; }.period-pills { width:100%; display:grid; grid-template-columns:repeat(3,1fr); text-align:center; }.focus-mode-button { width:100%; justify-content:center; }.kpi-grid { gap:10px; }.kpi-card { min-height:124px; padding:15px; }.kpi-value { font-size:25px; }.current-strip { gap:10px; padding:12px; }.quick-actions { display:grid; grid-template-columns:1fr 1fr; width:100%; }.quick-actions .btn { min-height:var(--touch-target); }.analytics-grid { gap:10px; }.analytics-card,.workspace-card,.settings-card,.focus-simple { padding:15px; }.breakdown-layout { grid-template-columns:104px minmax(0,1fr); gap:12px; }.breakdown-donut { width:100px; }.breakdown-donut::after { inset:18px; }.trend-bars { min-height:150px; gap:7px; }.trend-track { height:120px; }.section-heading-row { align-items:flex-start; }.page-heading { align-items:stretch; flex-direction:column; }.page-heading > .btn { width:100%; min-height:var(--touch-target); }.settings-grid,.health-grid,.simple-time-row,.time-grid { grid-template-columns:1fr; }.weekday-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.focus-simple { min-height:360px; }.focus-simple::after { right:16px; top:30px; font-size:96px; }.focus-primary { width:100%; min-height:50px; }.focus-active { align-items:stretch; flex-direction:column; }.mobile-nav { position:fixed; left:10px; right:10px; bottom:10px; z-index:30; display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:6px; border:1px solid #e3e8f2; border-radius:16px; background:rgba(255,255,255,.95); box-shadow:0 12px 34px rgba(31,45,86,.14); backdrop-filter:blur(18px); }.mobile-nav-item { min-height:var(--touch-target); border:0; border-radius:11px; background:transparent; color:#7a8497; font-weight:760; }.mobile-nav-item.is-active { background:#eef3ff; color:#244ff3; }.dialog-backdrop { align-items:end; padding:0; }.dialog-panel { width:100%; max-width:100%; max-height:92vh; border-radius:22px 22px 0 0; padding:20px 16px calc(20px + env(safe-area-inset-bottom)); }.drawer-backdrop { align-items:stretch; }.history-drawer { width:100%; max-width:100%; height:100%; border-radius:0; padding:18px 14px; }.history-head { display:none; }.history-row { grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; }.history-time { grid-column:1 / -1; }.toast { bottom:86px; } }
-@media (prefers-color-scheme: dark) { html,body { background:#0d1320; color:#f8fafc; }.app-header,.kpi-card,.analytics-card,.current-strip,.period-pills,.workspace-card,.settings-card,.dialog-panel,.history-drawer { background:#151c2a; border-color:#283247; }.brand-button,.kpi-value,.breakdown-donut strong,.history-summary strong { color:#f8fafc; }.sidebar-status,.history-summary > div { background:#111827; border-color:#283247; }.period-pills .is-active,.nav-link.is-active { background:#1d2a4d; }.budget-ring::after,.breakdown-donut::after { background:#151c2a; }.usage-domain,.attention-copy strong,.recent-copy strong,.current-strip-copy strong { color:#e8edf8; }.analytics-card,.kpi-card { box-shadow:none; }.current-time-pill,.usage-rank { background:#202838; }.mobile-nav { background:rgba(21,28,42,.96); border-color:#283247; }
-kbd { color:#e5e7eb; background:#1f2937; border-color:#374151; box-shadow:0 1px 0 rgba(0,0,0,.4); }
-.shortcut-item { background:#111827; border-color:#1f2937; }
-.shortcut-item span { color:#9ca3af; }
+/* Scoped to "the theme is not manually Light" so a manually chosen Light
+   theme is never overridden by the operating system's colour scheme. Without
+   this guard the dark rules below still applied under a manual Light theme on
+   a dark operating system.
+
+   The guard sits in :where() so it adds no specificity. A bare
+   html:not([data-theme="light"]) would make these rules beat the explicit
+   appearance layer in appearance.css, and the manual Dark theme would change
+   with it. */
+@media (prefers-color-scheme: dark) {
+  html:where(:not([data-theme="light"])),
+  :where(html:not([data-theme="light"])) body { background:#0d1320; color:#f8fafc; }
+  :where(html:not([data-theme="light"])) .app-header,
+  :where(html:not([data-theme="light"])) .kpi-card,
+  :where(html:not([data-theme="light"])) .analytics-card,
+  :where(html:not([data-theme="light"])) .current-strip,
+  :where(html:not([data-theme="light"])) .period-pills,
+  :where(html:not([data-theme="light"])) .workspace-card,
+  :where(html:not([data-theme="light"])) .settings-card,
+  :where(html:not([data-theme="light"])) .dialog-panel,
+  :where(html:not([data-theme="light"])) .history-drawer { background:#151c2a; border-color:#283247; }
+  :where(html:not([data-theme="light"])) .brand-button,
+  :where(html:not([data-theme="light"])) .kpi-value,
+  :where(html:not([data-theme="light"])) .breakdown-donut strong,
+  :where(html:not([data-theme="light"])) .history-summary strong { color:#f8fafc; }
+  :where(html:not([data-theme="light"])) .sidebar-status,
+  :where(html:not([data-theme="light"])) .history-summary > div { background:#111827; border-color:#283247; }
+  :where(html:not([data-theme="light"])) .period-pills .is-active,
+  :where(html:not([data-theme="light"])) .nav-link.is-active { background:#1d2a4d; }
+  :where(html:not([data-theme="light"])) .budget-ring::after,
+  :where(html:not([data-theme="light"])) .breakdown-donut::after { background:#151c2a; }
+  :where(html:not([data-theme="light"])) .usage-domain,
+  :where(html:not([data-theme="light"])) .attention-copy strong,
+  :where(html:not([data-theme="light"])) .recent-copy strong,
+  :where(html:not([data-theme="light"])) .current-strip-copy strong { color:#e8edf8; }
+  :where(html:not([data-theme="light"])) .analytics-card,
+  :where(html:not([data-theme="light"])) .kpi-card { box-shadow:none; }
+  :where(html:not([data-theme="light"])) .current-time-pill,
+  :where(html:not([data-theme="light"])) .usage-rank { background:#202838; }
+  :where(html:not([data-theme="light"])) .mobile-nav { background:rgba(21,28,42,.96); border-color:#283247; }
+  :where(html:not([data-theme="light"])) kbd { color:#e5e7eb; background:#1f2937; border-color:#374151; box-shadow:0 1px 0 rgba(0,0,0,.4); }
+  :where(html:not([data-theme="light"])) .shortcut-item { background:#111827; border-color:#1f2937; }
+  :where(html:not([data-theme="light"])) .shortcut-item span { color:#9ca3af; }
 }
 @media (prefers-reduced-motion: reduce) { .dashboard-view { animation:none; } }
