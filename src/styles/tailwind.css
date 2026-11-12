@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 
 @source "../dashboard/**/*.{html,js}";
 @source "../popup/**/*.{html,js}";
@@ -75,7 +75,11 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  /* Scoped so a manually chosen Light theme is never overridden by the
+     operating system's colour scheme. Without this guard the dark values
+     below stayed in place under a manual Light theme on a dark operating
+     system, which put dark foregrounds on light backgrounds. */
+  html:not([data-theme="light"]) {
     --bg: #0e1422;
     --bg-elevated: #141d30;
     --surface: #151e2f;
@@ -437,13 +441,13 @@ html body .blocked-shell .btn-primary { background: var(--time-blue); border-col
 }
 
 @media (prefers-color-scheme: dark) {
-  html body:has(.dashboard-shell) { background: var(--bg); color: var(--text); }
-  html body .kpi-primary { background: linear-gradient(145deg, #192337 0%, #161f31 100%); }
-  html body .popup-shell { background: var(--surface); }
-  html body .popup-shell .today-summary,
-  html body .popup-shell .current-card,
-  html body .side-shell .current-panel { background: var(--surface-raised); }
-  html body .side-shell { background: var(--bg); }
+  html:not([data-theme="light"]) body:has(.dashboard-shell) { background: var(--bg); color: var(--text); }
+  html:not([data-theme="light"]) body .kpi-primary { background: linear-gradient(145deg, #192337 0%, #161f31 100%); }
+  html:not([data-theme="light"]) body .popup-shell { background: var(--surface); }
+  html:not([data-theme="light"]) body .popup-shell .today-summary,
+  html:not([data-theme="light"]) body .popup-shell .current-card,
+  html:not([data-theme="light"]) body .side-shell .current-panel { background: var(--surface-raised); }
+  html:not([data-theme="light"]) body .side-shell { background: var(--bg); }
 }
 
 @media (prefers-reduced-motion: reduce) {

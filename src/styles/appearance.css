@@ -193,9 +193,9 @@ html[data-theme="light"] body .attention-copy strong,
 html[data-theme="light"] body .recent-copy strong,
 html[data-theme="light"] body .current-strip-copy strong { color: #273047; }
 /* The manual light theme must set a foreground as well as a background for
-   anything a prefers-color-scheme: dark block also styles: with the OS in dark
-   mode that block still applies, and without a colour here the dark foreground
-   lands on the light background. */
+   anything a prefers-color-scheme: dark block also styles. The dark blocks
+   are now scoped so they cannot apply under a manual Light theme, and these
+   foregrounds make the light theme independent of that scoping. */
 html[data-theme="light"] body .current-time-pill { color: #3157ff; }
 html[data-theme="light"] body .usage-rank { color: #5d6a82; }
 html[data-theme="light"] body .current-time-pill,
