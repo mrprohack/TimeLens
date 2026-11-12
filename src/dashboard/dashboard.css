@@ -163,40 +163,45 @@ kbd { display:inline-block; padding:3px 7px; font-family:ui-monospace,SFMono-Reg
 /* Scoped to "the theme is not manually Light" so a manually chosen Light
    theme is never overridden by the operating system's colour scheme. Without
    this guard the dark rules below still applied under a manual Light theme on
-   a dark operating system. */
+   a dark operating system.
+
+   The guard sits in :where() so it adds no specificity. A bare
+   html:not([data-theme="light"]) would make these rules beat the explicit
+   appearance layer in appearance.css, and the manual Dark theme would change
+   with it. */
 @media (prefers-color-scheme: dark) {
-  html:not([data-theme="light"]),
-  html:not([data-theme="light"]) body { background:#0d1320; color:#f8fafc; }
-  html:not([data-theme="light"]) .app-header,
-  html:not([data-theme="light"]) .kpi-card,
-  html:not([data-theme="light"]) .analytics-card,
-  html:not([data-theme="light"]) .current-strip,
-  html:not([data-theme="light"]) .period-pills,
-  html:not([data-theme="light"]) .workspace-card,
-  html:not([data-theme="light"]) .settings-card,
-  html:not([data-theme="light"]) .dialog-panel,
-  html:not([data-theme="light"]) .history-drawer { background:#151c2a; border-color:#283247; }
-  html:not([data-theme="light"]) .brand-button,
-  html:not([data-theme="light"]) .kpi-value,
-  html:not([data-theme="light"]) .breakdown-donut strong,
-  html:not([data-theme="light"]) .history-summary strong { color:#f8fafc; }
-  html:not([data-theme="light"]) .sidebar-status,
-  html:not([data-theme="light"]) .history-summary > div { background:#111827; border-color:#283247; }
-  html:not([data-theme="light"]) .period-pills .is-active,
-  html:not([data-theme="light"]) .nav-link.is-active { background:#1d2a4d; }
-  html:not([data-theme="light"]) .budget-ring::after,
-  html:not([data-theme="light"]) .breakdown-donut::after { background:#151c2a; }
-  html:not([data-theme="light"]) .usage-domain,
-  html:not([data-theme="light"]) .attention-copy strong,
-  html:not([data-theme="light"]) .recent-copy strong,
-  html:not([data-theme="light"]) .current-strip-copy strong { color:#e8edf8; }
-  html:not([data-theme="light"]) .analytics-card,
-  html:not([data-theme="light"]) .kpi-card { box-shadow:none; }
-  html:not([data-theme="light"]) .current-time-pill,
-  html:not([data-theme="light"]) .usage-rank { background:#202838; }
-  html:not([data-theme="light"]) .mobile-nav { background:rgba(21,28,42,.96); border-color:#283247; }
-  html:not([data-theme="light"]) kbd { color:#e5e7eb; background:#1f2937; border-color:#374151; box-shadow:0 1px 0 rgba(0,0,0,.4); }
-  html:not([data-theme="light"]) .shortcut-item { background:#111827; border-color:#1f2937; }
-  html:not([data-theme="light"]) .shortcut-item span { color:#9ca3af; }
+  html:where(:not([data-theme="light"])),
+  :where(html:not([data-theme="light"])) body { background:#0d1320; color:#f8fafc; }
+  :where(html:not([data-theme="light"])) .app-header,
+  :where(html:not([data-theme="light"])) .kpi-card,
+  :where(html:not([data-theme="light"])) .analytics-card,
+  :where(html:not([data-theme="light"])) .current-strip,
+  :where(html:not([data-theme="light"])) .period-pills,
+  :where(html:not([data-theme="light"])) .workspace-card,
+  :where(html:not([data-theme="light"])) .settings-card,
+  :where(html:not([data-theme="light"])) .dialog-panel,
+  :where(html:not([data-theme="light"])) .history-drawer { background:#151c2a; border-color:#283247; }
+  :where(html:not([data-theme="light"])) .brand-button,
+  :where(html:not([data-theme="light"])) .kpi-value,
+  :where(html:not([data-theme="light"])) .breakdown-donut strong,
+  :where(html:not([data-theme="light"])) .history-summary strong { color:#f8fafc; }
+  :where(html:not([data-theme="light"])) .sidebar-status,
+  :where(html:not([data-theme="light"])) .history-summary > div { background:#111827; border-color:#283247; }
+  :where(html:not([data-theme="light"])) .period-pills .is-active,
+  :where(html:not([data-theme="light"])) .nav-link.is-active { background:#1d2a4d; }
+  :where(html:not([data-theme="light"])) .budget-ring::after,
+  :where(html:not([data-theme="light"])) .breakdown-donut::after { background:#151c2a; }
+  :where(html:not([data-theme="light"])) .usage-domain,
+  :where(html:not([data-theme="light"])) .attention-copy strong,
+  :where(html:not([data-theme="light"])) .recent-copy strong,
+  :where(html:not([data-theme="light"])) .current-strip-copy strong { color:#e8edf8; }
+  :where(html:not([data-theme="light"])) .analytics-card,
+  :where(html:not([data-theme="light"])) .kpi-card { box-shadow:none; }
+  :where(html:not([data-theme="light"])) .current-time-pill,
+  :where(html:not([data-theme="light"])) .usage-rank { background:#202838; }
+  :where(html:not([data-theme="light"])) .mobile-nav { background:rgba(21,28,42,.96); border-color:#283247; }
+  :where(html:not([data-theme="light"])) kbd { color:#e5e7eb; background:#1f2937; border-color:#374151; box-shadow:0 1px 0 rgba(0,0,0,.4); }
+  :where(html:not([data-theme="light"])) .shortcut-item { background:#111827; border-color:#1f2937; }
+  :where(html:not([data-theme="light"])) .shortcut-item span { color:#9ca3af; }
 }
 @media (prefers-reduced-motion: reduce) { .dashboard-view { animation:none; } }

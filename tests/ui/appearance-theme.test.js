@@ -158,6 +158,35 @@ test('final appearance layers explicitly fix v2 dark surfaces after legacy page 
   assert.match(css, /--line:/);
 });
 
+test('the guard on an operating-system dark rule does not change its specificity', async () => {
+  // The guard has to keep the specificity the rule already had. A guard like
+  // `html:not([data-theme="light"])` adds an attribute to it, so the
+  // operating-system dark rules started to beat the explicit appearance layer
+  // in `src/styles/appearance.css`, and the manual Dark theme changed as well:
+  // the popup shell lost its transparent background on a dark-preferring
+  // system. `:where()` contributes no specificity, so the rule still cannot
+  // match a manual Light theme but the cascade is left exactly as it was.
+  const raised = [];
+
+  for (const path of SHIPPED_STYLESHEETS) {
+    const css = await read(path);
+    for (const block of darkBlocks(css)) {
+      for (const rule of ruleSelectors(block)) {
+        for (const selector of splitSelectorList(rule)) {
+          if (!/\[data-theme\s*=\s*["']?light["']?\s*\]/.test(selector)) continue;
+          if (!/:where\(/.test(selector)) raised.push(`${path}: ${selector}`);
+        }
+      }
+    }
+  }
+
+  assert.deepEqual(
+    raised,
+    [],
+    'these guards raise the specificity of the rule they guard: ' + raised.join(', '),
+  );
+});
+
 test('manual light mode wins over OS-dark media styles and blocked page has a light treatment', async () => {
   const css = await read('src/styles/appearance.css');
   assert.match(css, /html\[data-theme=["']light["']\]/);
