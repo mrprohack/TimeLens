@@ -112,11 +112,12 @@ test('the manual light theme sets a foreground for every element a dark media qu
       ),
     )];
     if (!lightRules.length) continue; // the light theme never styles it, so nothing to fix
-    for (const rule of lightRules) {
-      if (!/(^|;|\s)color\s*:/.test(rule[1])) {
-        missing.push(className);
-        break;
-      }
+    // The class needs a foreground somewhere in the light theme. It may be set by
+    // the same rule that sets the background or by a separate one, so collect the
+    // declarations across every rule that matches the class.
+    const declarations = lightRules.map((rule) => rule[1]).join(';');
+    if (!/(^|;|\s)color\s*:/.test(declarations)) {
+      missing.push(className);
     }
   }
 
