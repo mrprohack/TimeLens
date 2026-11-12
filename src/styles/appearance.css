@@ -192,8 +192,14 @@ html[data-theme="light"] body .usage-domain,
 html[data-theme="light"] body .attention-copy strong,
 html[data-theme="light"] body .recent-copy strong,
 html[data-theme="light"] body .current-strip-copy strong { color: #273047; }
+/* The manual light theme must set a foreground as well as a background for
+   anything a prefers-color-scheme: dark block also styles: with the OS in dark
+   mode that block still applies, and without a colour here the dark foreground
+   lands on the light background. */
+html[data-theme="light"] body .current-time-pill { color: #3157ff; }
+html[data-theme="light"] body .usage-rank { color: #5d6a82; }
 html[data-theme="light"] body .current-time-pill,
-html[data-theme="light"] body .usage-rank { color: #3157ff; background: #f1f4fa; }
+html[data-theme="light"] body .usage-rank { background: #f1f4fa; }
 html[data-theme="light"] body .mobile-nav { background: rgba(255,255,255,.95); border-color: #e3e8f2; }
 
 /* Popup and Side Panel. */
