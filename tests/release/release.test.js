@@ -74,8 +74,8 @@ test('package script builds from production runtime paths only and excludes prev
 
 test('Tailwind v4 is compiled locally before checks and packaging', async () => {
   const pkg = JSON.parse(await text('package.json'));
-  assert.equal(pkg.devDependencies?.tailwindcss, '4.3.3');
-  assert.equal(pkg.devDependencies?.['@tailwindcss/cli'], '4.3.3');
+  assert.equal(pkg.devDependencies?.tailwindcss, '4.3.5');
+  assert.equal(pkg.devDependencies?.['@tailwindcss/cli'], '4.3.5');
   assert.match(pkg.scripts?.['build:css'] || '', /@tailwindcss\/cli/);
   assert.match(pkg.scripts?.['build:css'] || '', /src\/styles\/tailwind\.css/);
   assert.match(pkg.scripts?.['build:css'] || '', /src\/styles\/timelens\.css/);
