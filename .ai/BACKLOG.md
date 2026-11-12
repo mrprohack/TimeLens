@@ -38,13 +38,21 @@ Parked items waiting on a decision. Answer inline and move the item back to Next
 Work the agent found that nobody asked for. Not worked on until you approve it (move it to Next, or reply
 with the numbers) or a proactive rule in the playbook covers it. Delete what you do not want.
 
-- [ ] **a11y: fix the 27 contrast failures the theme already had** (M) — `scripts/check-theme-contrast.py`
+- [ ] **a11y: fix the 27 contrast failures the theme already had** (M) - `scripts/check-theme-contrast.py`
   reports 27 elements that fail WCAG AA in the manual Light theme under a light operating system too, so
-  they are not caused by the OS colour scheme and PR #19 does not fix them. The worst are `.btn-primary`
-  (white on white until the gradient is read), `.kpi-icon-green` at 2.55:1, `.privacy-note` at 2.39:1, the
-  blocked page's warning text at 1.41:1, and `.muted` at 3.97:1 in the dashboard, popup, blocked page and
-  onboarding. They are the palette, not the theme machinery: the muted grey and the mint green are used for
-  body text. Done when: the script reports no pre-existing failure either. Source: scan
+  they are not caused by the OS colour scheme and PR #19 does not fix them. They fall into five groups:
+  - 15x the muted grey `#748099` on white at 3.97:1 (ten on the onboarding page, the dashboard's `.muted
+    small` and the blocked page's `.muted`) and the nav-link grey `#6d7890` at 4.43:1 (five on the
+    dashboard). Darkening `--muted` and the nav-link colour clears the whole group.
+  - 4x text on the brand gradient: the popup's `#667085` on `#3157ff` at 1.07:1 and the side panel's
+    `#3157ff` on `#7455ff` at 1.14:1 (`.eyeline`, `.current-time`) and `#748099` on `#7455ff` at 1.18:1
+    (`.muted`).
+  - 1x the blocked page's warning text `#fecdd3` on `#f2d1df` at 1.00:1, which is invisible.
+  - 1x the dashboard's `.kpi-icon-green` `#12b886` on white at 2.55:1.
+  - 2x the dashboard's `.privacy-note` `#9aa3b4` on `#f6f8fe` at 2.39:1 and the popup's `.error-message`
+    `#d9485a` on `#fff0f3` at 3.78:1.
+  The first group is a palette change and the rest are one rule each. Done when: the script reports no
+  pre-existing failure either. Source: scan
 - [ ] **a11y: fix the contrast failures on the error and onboarding states** (M) — auditing the real
   extension pages with the CI axe rules finds failures the preview fixtures do not show, because the
   fixtures never render these states: `#load-failed-reason` on the dashboard, `#error-message` on the
