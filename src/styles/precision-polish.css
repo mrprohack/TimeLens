@@ -410,7 +410,10 @@ html body .blocked-shell .btn:not(.btn-primary) {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  /* Every rule in this block is scoped to "the theme is not manually Light",
+     so a manually chosen Light theme is never overridden by the operating
+     system's colour scheme. */
+  html:not([data-theme="light"]) {
     --surface-canvas: #0e1422;
     --surface-card: #151e2f;
     --surface-subtle: #1a2436;
@@ -420,26 +423,26 @@ html body .blocked-shell .btn:not(.btn-primary) {
     --shadow-hero: 0 18px 44px rgba(0, 0, 0, .22);
   }
 
-  html body .kpi-primary {
+  html:not([data-theme="light"]) body .kpi-primary {
     border-color: rgba(125, 148, 255, .18);
     background:
       radial-gradient(circle at 86% 44%, rgba(116, 85, 255, .11), transparent 25%),
       linear-gradient(145deg, #192337 0%, #151e30 100%);
   }
 
-  html body .current-time-pill {
+  html:not([data-theme="light"]) body .current-time-pill {
     border-color: rgba(125, 148, 255, .15);
     background: #1c2b50;
     color: #9fb0ff;
   }
 
-  html body .usage-rank {
+  html:not([data-theme="light"]) body .usage-rank {
     color: #b7c2d8;
     background: #202b3e;
   }
 
-  html body .today-summary,
-  html body .history-drawer {
+  html:not([data-theme="light"]) body .today-summary,
+  html:not([data-theme="light"]) body .history-drawer {
     background: var(--surface-card);
   }
 }
@@ -834,19 +837,19 @@ html body .blocked-shell .allowance-actions {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  html:not([data-theme="light"]) {
     --surface-hero: #182235;
     --surface-panel: #151e2f;
     --surface-inset: #1a2436;
     --line-strong: rgba(183, 196, 221, .17);
   }
 
-  html body .focus-simple,
-  html body .side-shell .current-panel {
+  html:not([data-theme="light"]) body .focus-simple,
+  html:not([data-theme="light"]) body .side-shell .current-panel {
     background: linear-gradient(160deg, #192438 0%, #141d2d 100%);
   }
 
-  html body .popup-shell .summary-facts > div {
+  html:not([data-theme="light"]) body .popup-shell .summary-facts > div {
     background: var(--surface-inset);
   }
 }

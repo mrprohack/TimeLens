@@ -5,6 +5,104 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../../', import.meta.url);
 const read = async (path) => readFile(new URL(path, root), 'utf8').catch(() => '');
 
+// Every stylesheet that ships with the extension. The generated one is
+// included: it is tracked and it is what the browser loads.
+const SHIPPED_STYLESHEETS = [
+  'src/shared/theme.css',
+  'src/styles/timelens.css',
+  'src/styles/tailwind.css',
+  'src/styles/precision-polish.css',
+  'src/styles/appearance.css',
+  'src/styles/appearance-contrast.css',
+  'src/styles/master-plan.css',
+  'src/styles/review-loop.css',
+  'src/styles/ux-polish-v16.css',
+  'src/styles/ux-polish-v17.css',
+  'src/dashboard/dashboard.css',
+  'src/popup/popup.css',
+  'src/sidepanel/sidepanel.css',
+  'src/blocked/blocked.css',
+  'src/onboarding/onboarding.css',
+];
+
+// Strip comments so braces inside them cannot confuse the parser.
+const withoutComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+// The body of every `@media (prefers-color-scheme: dark)` block in a file.
+function darkBlocks(css) {
+  const source = withoutComments(css);
+  const blocks = [];
+  const pattern = /@media\s*\(prefers-color-scheme\s*:\s*dark\)/g;
+  let match;
+  while ((match = pattern.exec(source)) !== null) {
+    let index = match.index + match[0].length;
+    while (index < source.length && /\s/.test(source[index])) index += 1;
+    if (source[index] !== '{') continue;
+    let depth = 0;
+    for (let i = index; i < source.length; i += 1) {
+      if (source[i] === '{') depth += 1;
+      else if (source[i] === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          blocks.push(source.slice(index + 1, i));
+          break;
+        }
+      }
+    }
+  }
+  return blocks;
+}
+
+// The selector of every rule in a block.
+function ruleSelectors(block) {
+  const selectors = [];
+  let index = 0;
+  while (index < block.length) {
+    const brace = block.indexOf('{', index);
+    if (brace === -1) break;
+    const selector = block.slice(index, brace).trim();
+    let depth = 0;
+    let end = brace;
+    for (; end < block.length; end += 1) {
+      if (block[end] === '{') depth += 1;
+      else if (block[end] === '}') {
+        depth -= 1;
+        if (depth === 0) break;
+      }
+    }
+    if (selector && !selector.startsWith('@')) selectors.push(selector);
+    index = end + 1;
+  }
+  return selectors;
+}
+
+// Split a selector list on the commas that separate rules, not the ones
+// inside :is() or :not().
+function splitSelectorList(selector) {
+  const parts = [];
+  let depth = 0;
+  let current = '';
+  for (const character of selector) {
+    if (character === '(') depth += 1;
+    else if (character === ')') depth -= 1;
+    if (character === ',' && depth === 0) {
+      parts.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += character;
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+}
+
+// A rule that must not run when the user has chosen the Light theme.
+const LIGHT_GUARD = /:not\(\s*\[data-theme\s*=\s*["']?light["']?\s*\]\s*\)/;
+// A rule that must not run at all once a theme has been resolved.
+const ANY_THEME_GUARD = /:not\(\s*\[data-theme\]\s*\)/;
+
+const isScopedFromLight = (selector) => LIGHT_GUARD.test(selector) || ANY_THEME_GUARD.test(selector);
+
 test('appearance controller supports persisted light dark and system preferences', async () => {
   const source = await read('src/shared/appearance.js');
   assert.match(source, /timelensAppearance/);
@@ -67,6 +165,36 @@ test('manual light mode wins over OS-dark media styles and blocked page has a li
   assert.match(css, /html\[data-theme=["']light["']\] body \.blocked-shell/);
   assert.match(css, /color-scheme:\s*light/);
   assert.match(css, /color-scheme:\s*dark/);
+});
+
+test('no operating-system dark rule can override a manually chosen Light theme', async () => {
+  // A user whose OS prefers dark but who picks Light in the settings still
+  // gets the light theme. The prefers-color-scheme: dark blocks used to apply
+  // anyway, which put a dark foreground on a light background and failed WCAG
+  // AA. Every rule inside such a block has to be scoped so it cannot run when
+  // the theme is Light.
+  const unguarded = [];
+  let blocksSeen = 0;
+
+  for (const path of SHIPPED_STYLESHEETS) {
+    const css = await read(path);
+    for (const block of darkBlocks(css)) {
+      blocksSeen += 1;
+      for (const rule of ruleSelectors(block)) {
+        for (const selector of splitSelectorList(rule)) {
+          if (!isScopedFromLight(selector)) unguarded.push(`${path}: ${selector}`);
+        }
+      }
+    }
+  }
+
+  assert.ok(blocksSeen > 0, 'expected dark media blocks in the shipped stylesheets');
+  assert.deepEqual(
+    unguarded,
+    [],
+    'these operating-system dark rules can still apply under a manual Light theme: '
+      + unguarded.join(', '),
+  );
 });
 
 test('the manual light theme sets a foreground for every element a dark media query also styles', async () => {
