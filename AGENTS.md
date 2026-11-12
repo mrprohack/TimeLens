@@ -61,6 +61,7 @@ Run only the rows the change touches, locally and when deciding what CI must pas
 | `src/background/**` | `node --test tests/background/<module>.test.js` |
 | `src/dashboard/**`, `src/popup/**`, `src/sidepanel/**`, `src/blocked/**`, `src/onboarding/**`, `src/options/**` | `node --test tests/ui/<area>.test.js` |
 | `src/styles/tailwind.css` | `npm run build:css` then `npm run check` |
+| `src/styles/**`, `src/dashboard/dashboard.css`, `src/popup/popup.css`, `src/sidepanel/sidepanel.css` | `npm run build:css` then `npm run check`, and `python scripts/check-theme-contrast.py` when the change touches a `prefers-color-scheme` block |
 | `manifest.json`, `scripts/**`, `.github/**`, `package.json` | `npm run check` and `npm run package` |
 | `src/core/track-state.js` | `node --test tests/core/track-state.test.js` |
 | `docs/**`, `**/*.md` | nothing |

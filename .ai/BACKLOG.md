@@ -95,14 +95,17 @@ Stopped by you. Only you lift it; new clues, CI or bots do not.
   (`ci/axe-dark-scheme-matrix`, based on PR #19's branch). Adds two more axe passes with the browser
   forced to prefer dark, so a manual Light theme is checked against a dark background. Verified to fail
   on the pre-fix CSS and pass after PR #19.
-- 2026-11-11 **a11y: keep the operating system's dark rules out of a manually chosen Light theme** — ready,
+- 2026-11-12 **a11y: keep the operating system's dark rules out of a manually chosen Light theme** — ready,
   PR #19 (`fix/a11y/light-theme-time-pill`, based on `origin/main`). Root cause: three stylesheets
   (`tailwind.css`, `precision-polish.css`, `dashboard.css`) had `prefers-color-scheme: dark` blocks that
   were not scoped, so on a dark-preferring OS they still applied when the user picked Light. Every rule in
-  those blocks is now scoped with `html:not([data-theme="light"])`, a contract test enforces that across
-  every shipped stylesheet, and `scripts/check-theme-contrast.py` renders the real pages under both colour
-  schemes and reports any failure the OS scheme caused. Fixes `.current-time-pill` at 1.88:1 and
-  `.usage-rank` at 1.63:1.
+  those blocks is now scoped with `:where(html:not([data-theme="light"]))`, so the guard adds no
+  specificity and the explicit appearance layer still wins. Two contract tests enforce this across every
+  shipped stylesheet, and `scripts/check-theme-contrast.py` renders the real pages under both colour
+  schemes and reports any failure the OS scheme caused. Fixes `.shortcut-item` at 1.02:1,
+  `.current-time-pill` at 1.88:1 and `.usage-rank` at 1.63:1, and changes nothing else: rendering all five
+  real surfaces in all four combinations of operating system and manual theme shows 0, 0, 0 and 25
+  elements differing from `origin/main`.
 - 2026-11-11 **test: give `src/core/track-state.js` its own test file** — ready, PR #16
   (`chore/agent-project-setup`). Moves the four `trackState` behaviour tests out of the UI suite and into
   `tests/core/track-state.test.js`, so the module sits under the matching row of the "Checks by path"
