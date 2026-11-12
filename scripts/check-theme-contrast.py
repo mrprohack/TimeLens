@@ -120,6 +120,11 @@ SNAPSHOT = r"""
 PREPARE = """
 () => {
   document.querySelectorAll('[data-view]').forEach((view) => { view.hidden = false; });
+  // Dialogs are closed until the user opens them, and a closed dialog renders
+  // nothing. Open them so the text inside them is measured too: the shortcut
+  // hints in the dashboard were unreadable under a manual Light theme on a
+  // dark operating system, and they live in a dialog.
+  document.querySelectorAll('dialog').forEach((dialog) => { dialog.open = true; });
 }
 """
 
