@@ -39,7 +39,7 @@ flowchart LR
   C --> D["Implement"]
   D --> E["npm run check"]
   E --> F["Open PR"]
-  F --> G["CI: Linux + Windows checks, package"]
+  F --> G["CI: Ubuntu checks, package"]
   G --> H["Squash or merge into main"]
 ```
 
@@ -87,7 +87,7 @@ Packaging uses a built-in zip writer, so it works on Windows, macOS, and Linux w
 
 ### 4. Open a pull request
 
-Fill in the PR template. CI must pass on both Ubuntu and Windows before merging.
+Fill in the PR template. CI must pass before merging. The workflow runs on an Ubuntu runner. The build and the packaging script also run on Windows, macOS and Linux, but there is no Windows runner configured.
 
 ## Releasing
 
