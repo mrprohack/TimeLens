@@ -1,0 +1,131 @@
+# Backlog
+
+Work for the agents, most important first. One line per item: what, why, and how to tell it is done.
+Sizes: S (under an hour of agent work), M (one PR), L (split before starting).
+
+## Needs you
+
+Parked items waiting on a decision. Answer inline and move the item back to Next.
+
+- [ ] **decide: add a Windows runner to CI** (S) - the docs no longer promise a Windows job, so the
+  question is now only whether to add one. It is feasible: `npm run check` and `npm run package` both
+  pass on Windows, the axe step runs unchanged (the runner image ships Chrome, ChromeDriver and
+  `CHROMEWEBDRIVER`), and the screenshot step works too. The only wrinkle is `python3` versus `python`,
+  which the runner image resolves. The cost is roughly double the CI minutes. Done when: the workflow
+  either has a Windows job or the decision is recorded as "no". Source: scan
+  - The technical side was rehearsed on a dark-preferring Windows host. The rehearsal also proved the
+    more important point: a Linux-only job never exercises a dark-preferring system, which is how the
+    light-theme contrast bug behind PR #19 went unnoticed. See "test: exercise the accessibility matrix
+    under a dark-preferring system" in Next, delivered by PR #20.
+- [ ] **decide: split `src/background/service-worker.js`** (L) - 682 lines, the largest file in the repo
+  and the lowest-cohesion module in the knowledge graph. It holds the message switch, the Chrome event
+  listeners, and the enforcement loop. Splitting it touches every UI surface. Worth doing only as its own
+  piece of work. Done when: the switch, the listeners, and the enforcement loop live in separate modules
+  and all 193 tests still pass. Source: scan
+
+## Next
+
+- [ ] **test: exercise the accessibility matrix under a dark-preferring system** (M) - the CI axe step runs
+  only on Linux with a light colour scheme, so a manual Light theme was never checked against an
+  OS-dark background. That gap is how the light-theme contrast bug behind PR #19 survived. Add a second
+  matrix pass that runs the same 9 pages x 3 themes with the browser forced to prefer dark. Done when: CI
+  fails if any light-theme page fails an axe rule under a dark colour scheme. Source: scan
+  - **Delivered by PR #20** (`ci/axe-dark-scheme-matrix`), which adds the dark-scheme passes using
+    `blink-settings=preferredColorScheme=0`. Kept here only until that PR merges.
+
+## Proposed
+
+Work the agent found that nobody asked for. Not worked on until you approve it (move it to Next, or reply
+with the numbers) or a proactive rule in the playbook covers it. Delete what you do not want.
+
+- [ ] **a11y: fix the 27 contrast failures the theme already had** (M) - `scripts/check-theme-contrast.py`
+  reports 27 elements that fail WCAG AA in the manual Light theme under a light operating system too, so
+  they are not caused by the OS colour scheme and PR #19 does not fix them. They fall into five groups:
+  - 15x the muted grey `#748099` on white at 3.97:1 (ten on the onboarding page, the dashboard's `.muted
+    small` and the blocked page's `.muted`) and the nav-link grey `#6d7890` at 4.43:1 (five on the
+    dashboard). Darkening `--muted` and the nav-link colour clears the whole group.
+  - 4x text on the brand gradient: the popup's `#667085` on `#3157ff` at 1.07:1 and the side panel's
+    `#3157ff` on `#7455ff` at 1.14:1 (`.eyeline`, `.current-time`) and `#748099` on `#7455ff` at 1.18:1
+    (`.muted`).
+  - 1x the blocked page's warning text `#fecdd3` on `#f2d1df` at 1.00:1, which is invisible.
+  - 1x the dashboard's `.kpi-icon-green` `#12b886` on white at 2.55:1.
+  - 2x the dashboard's `.privacy-note` `#9aa3b4` on `#f6f8fe` at 2.39:1 and the popup's `.error-message`
+    `#d9485a` on `#fff0f3` at 3.78:1.
+  The first group is a palette change and the rest are one rule each. Done when: the script reports no
+  pre-existing failure either. Source: scan
+- [ ] **a11y: fix the contrast failures on the error and onboarding states** (M) — auditing the real
+  extension pages with the CI axe rules finds failures the preview fixtures do not show, because the
+  fixtures never render these states: `#load-failed-reason` on the dashboard, `#error-message` on the
+  popup, `#blocked-copy` on the blocked page, and 12 elements on the onboarding page (`.lead` and the
+  feature `article` text). All `color-contrast`, all present in both OS schemes, all predating PR #19.
+  Done when: every page passes the CI axe rules in its error state. Source: scan
+- [ ] **a11y: fix the `aria-prohibited-attr` violation on `#side-focus-presets`** (S) — the side panel
+  fails `aria-prohibited-attr` on `#side-focus-presets` in every theme and every OS scheme. It is present
+  in the current release and unrelated to the theme work. Done when: the side panel passes the CI axe
+  rules. Source: scan
+- [ ] **test: cover the 12 message types with no direct contract test** (L) — the UI contract tests assert
+  on markup and source text rather than behaviour. `EXTEND_FOCUS`, `GET_BLOCK_STATUS`, `CLEAR_DATA`,
+  `CLEAR_DIAGNOSTICS`, `EXPORT_DATA`, `IMPORT_DATA`, `SAVE_CATEGORY`, `DELETE_CATEGORY`, `SAVE_FOCUS_PRESET`,
+  `DELETE_FOCUS_PRESET`, `SAVE_TOTAL_BUDGET`, and `TOGGLE_LIMIT` have no behavioural assertion. Worth a
+  service-worker test per family. Done when: each message type has at least one behavioural assertion.
+  Source: scan
+- [ ] **perf: give `createDomainMatcher` a benchmark** (S) — the 1.8 release replaced a linear scan with a
+  Set and suffix tree. Nothing measures it, so a later change can silently restore the old cost. A micro
+  benchmark in `tests/core/categories.test.js` would catch that. Done when: a benchmark asserts the
+  matcher stays sub-linear on a large rule set. Source: scan
+- [ ] **docs: add a `CHROMEWEBSTORE.md` listing document** (M) — the store listing copy, permission
+  justifications, and screenshot plan live only in `PRIVACY.md` and the release commit. A single
+  version-controlled document would make the next submission mechanical instead of archaeological. The
+  `chrome-extensions` skill has a template. Done when: the document covers description, per-permission
+  justification, privacy disclosure, and the asset list. Source: scan
+- [ ] **chore: prune the 22 merged remote branches** (S) — `origin` carries 12 merged branches from the
+  1.5 to 1.8 cycles that no longer have a use. Housekeeping only. Done when: the merged branches are gone
+  from the remote. Source: scan
+
+## On hold
+
+Stopped by you. Only you lift it; new clues, CI or bots do not.
+
+- (none)
+
+## In progress
+
+- (none)
+
+## Done
+
+- 2026-11-12 **docs: correct the CI runner claim in `CONTRIBUTING.md`** — ready, PR #21
+  (`docs/ci-runner-claim`, based on `origin/main`). The guide told contributors CI must pass on both
+  Ubuntu and Windows and the diagram promised "Linux + Windows checks"; the workflow has one job and it
+  runs on `ubuntu-latest`. Both lines now say what the workflow does. Whether to add a Windows runner
+  stays an open question under Needs you.
+- 2026-11-11 **ci: audit the accessibility matrix under a dark-preferring system** — ready, PR #20
+  (`ci/axe-dark-scheme-matrix`, based on PR #19's branch). Adds two more axe passes with the browser
+  forced to prefer dark, so a manual Light theme is checked against a dark background. Verified to fail
+  on the pre-fix CSS and pass after PR #19.
+- 2026-11-12 **a11y: keep the operating system's dark rules out of a manually chosen Light theme** — ready,
+  PR #19 (`fix/a11y/light-theme-time-pill`, based on `origin/main`). Root cause: three stylesheets
+  (`tailwind.css`, `precision-polish.css`, `dashboard.css`) had `prefers-color-scheme: dark` blocks that
+  were not scoped, so on a dark-preferring OS they still applied when the user picked Light. Every rule in
+  those blocks is now scoped with `:where(html:not([data-theme="light"]))`, so the guard adds no
+  specificity and the explicit appearance layer still wins. Two contract tests enforce this across every
+  shipped stylesheet, and `scripts/check-theme-contrast.py` renders the real pages under both colour
+  schemes and reports any failure the OS scheme caused. Fixes `.shortcut-item` at 1.02:1,
+  `.current-time-pill` at 1.88:1 and `.usage-rank` at 1.63:1, and changes nothing else: rendering all five
+  real surfaces in all four combinations of operating system and manual theme shows 0, 0, 0 and 25
+  elements differing from `origin/main`.
+- 2026-11-11 **test: give `src/core/track-state.js` its own test file** — ready, PR #16
+  (`chore/agent-project-setup`). Moves the four `trackState` behaviour tests out of the UI suite and into
+  `tests/core/track-state.test.js`, so the module sits under the matching row of the "Checks by path"
+  table. The suite still reports 192 tests.
+- 2026-11-11 **docs: complete the message-protocol table and lock it with a test** — ready, PR #18
+  (`docs/message-protocol-table`). Documents all 19 message types with the payload each reads, and adds a
+  contract test that fails if the document and the worker disagree. Verified in both directions.
+- 2026-11-11 **ci: bound the job, guard the generated bundle, and add Dependabot** — ready, PR #17
+  (`ci/hardening-workflow`). Adds `timeout-minutes: 10` to the check job, a CI step that rebuilds
+  `src/styles/timelens.css` and fails on any difference, and `.github/dependabot.yml` watching npm and
+  GitHub Actions. Three contract tests added. Based on `origin/main`, so it merges independently of PR #16.
+- 2026-11-11 **setup: agent project files, playbook, backlog, log, project agent, and the
+  `chrome-extensions` skill** — ready, PR #16 (`chore/agent-project-setup`). Also fixes the Tailwind
+  source-scanning bug that made `npm run build:css` rewrite the committed CSS.
+
