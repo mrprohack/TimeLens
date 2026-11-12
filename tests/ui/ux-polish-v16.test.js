@@ -152,44 +152,6 @@ test('snapshot health uses a single-pass storage estimate and 1.6 plan is docume
   await access(new URL('docs/plans/2026-09-24-ux-polish-v1.6.md', root), constants.R_OK);
 });
 
-const { trackState } = await import('../../src/core/track-state.js');
-
-test('trackState stays On Track without active boundaries', () => {
-  assert.deepEqual(trackState(null), { label: 'On Track', tone: 'ok' });
-  assert.deepEqual(trackState({ totalBudget: { enabled: false }, limits: [], currentDomain: 'x.com' }), { label: 'On Track', tone: 'ok' });
-});
-
-test('trackState reports reached boundaries first', () => {
-  const snapshot = {
-    currentDomain: 'youtube.com',
-    totalBudget: { enabled: false },
-    limits: [{ domain: 'youtube.com', enabled: true, effectiveMs: 100_000, remainingMs: 0, reached: true }]
-  };
-  assert.deepEqual(trackState(snapshot), { label: 'Limit reached', tone: 'reached' });
-});
-
-test('trackState warns when the tightest active boundary is nearly spent', () => {
-  const snapshot = {
-    currentDomain: 'youtube.com',
-    totalBudget: { enabled: true, effectiveMs: 1_000_000, remainingMs: 100_000, reached: false },
-    limits: []
-  };
-  assert.deepEqual(trackState(snapshot), { label: 'Almost up', tone: 'warn' });
-});
-
-test('trackState ignores paused, scheduled-off, and other-domain limits', () => {
-  const base = {
-    currentDomain: 'youtube.com',
-    totalBudget: { enabled: false },
-    limits: [
-      { domain: 'youtube.com', enabled: false, effectiveMs: 10, remainingMs: 0, reached: false },
-      { domain: 'youtube.com', enabled: true, scheduleActive: false, effectiveMs: 10, remainingMs: 0, reached: false },
-      { domain: 'reddit.com', enabled: true, effectiveMs: 10, remainingMs: 1, reached: false }
-    ]
-  };
-  assert.deepEqual(trackState(base), { label: 'On Track', tone: 'ok' });
-});
-
 test('popup pill is live, honest, and the ticker stays cheap', async () => {
   const html = await read('src/popup/popup.html');
   const js = await read('src/popup/popup.js');

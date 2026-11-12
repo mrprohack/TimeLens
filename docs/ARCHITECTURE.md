@@ -100,11 +100,39 @@ Every message passed between UI surfaces and the service worker follows an async
 | --- | --- | --- | --- |
 | `GET_SNAPSHOT` | UI $\rightarrow$ SW | `{ rangeDays: number }` | Fetches active limits, usage stats, and diagnostics. |
 | `SAVE_LIMIT` | UI $\rightarrow$ SW | `{ limit: LimitObject }` | Upserts site limit. |
+| `TOGGLE_LIMIT` | UI $\rightarrow$ SW | `{ domain, enabled }` | Enables or disables a site limit without deleting it. |
 | `DELETE_LIMIT` | UI $\rightarrow$ SW | `{ domain: string }` | Deletes site limit. |
+| `SAVE_TOTAL_BUDGET` | UI $\rightarrow$ SW | `{ budget: { minutes, enabled, mode } }` | Upserts the daily browsing budget; `mode` is `warn` or `block`. |
+| `SAVE_CATEGORY` | UI $\rightarrow$ SW | `{ category: CategoryObject }` | Upserts a category limit shared by several domains. |
+| `DELETE_CATEGORY` | UI $\rightarrow$ SW | `{ id: string }` | Deletes a category and its limit. |
+| `SAVE_FOCUS_PRESET` | UI $\rightarrow$ SW | `{ preset: PresetObject }` | Upserts a saved Focus preset. |
+| `DELETE_FOCUS_PRESET` | UI $\rightarrow$ SW | `{ id: string }` | Deletes a saved Focus preset. |
 | `START_FOCUS` | UI $\rightarrow$ SW | `{ minutes, domains, mode, name }` | Initiates Focus session. |
 | `EXTEND_FOCUS` | UI $\rightarrow$ SW | `{ minutes: number }` | Adds minutes to ongoing Focus session. |
 | `STOP_FOCUS` | UI $\rightarrow$ SW | none | Terminates Focus session. |
-| `ADD_ALLOWANCE`| UI $\rightarrow$ SW | `{ domain, minutes }` | Grants temporary 5m extension for non-strict limits. |
+| `ADD_ALLOWANCE` | UI $\rightarrow$ SW | `{ domain, minutes }` | Grants temporary 5m extension for non-strict limits. |
+| `GET_BLOCK_STATUS` | UI $\rightarrow$ SW | `{ domain: string }` | Returns why a domain is blocked: Focus, budget, categories, or its site limit. |
+| `SAVE_SETTINGS` | UI $\rightarrow$ SW | `{ settings: { idleSeconds?, retentionDays?, alerts? } }` | Updates idle detection, data retention, and boundary-alert preferences. |
+| `EXPORT_DATA` | UI $\rightarrow$ SW | none | Returns the full stored dataset for export. |
+| `IMPORT_DATA` | UI $\rightarrow$ SW | `{ data: object }` | Backs up the current data, then replaces it with a validated import. |
+| `CLEAR_DIAGNOSTICS` | UI $\rightarrow$ SW | none | Empties the local diagnostic journal. |
+| `CLEAR_DATA` | UI $\rightarrow$ SW | none | Clears usage, sessions, allowances, alerts, and the active Focus session. |
+
+The service worker is the source of truth for this contract. Every message type is a `case` label in
+`handleMessage` in `src/background/service-worker.js`; an unrecognised type is rejected with
+`Unknown TimeLens request.` The table above lists all of them.
+
+Notes on the messages that are easy to misread:
+
+- `SAVE_LIMIT`, `SAVE_CATEGORY`, `SAVE_TOTAL_BUDGET`, `SAVE_FOCUS_PRESET`, and `TOGGLE_LIMIT` re-run
+  enforcement immediately after saving, so a change takes effect on the open tab without a restart.
+- `GET_SNAPSHOT` and `GET_BLOCK_STATUS` flush pending activity first, so they report the current
+  second rather than the last recorded one.
+- `IMPORT_DATA` backs up the current dataset before replacing it, so a bad import is recoverable.
+- `ADD_ALLOWANCE` is rejected for a limit marked strict; there is no extension for those.
+- `START_FOCUS` and `SAVE_FOCUS_PRESET` reject an `allow` session with no domains, so an allow-only
+  Focus can never end up empty.
+
 
 ---
 
