@@ -78,8 +78,13 @@
   /* Scoped so a manually chosen Light theme is never overridden by the
      operating system's colour scheme. Without this guard the dark values
      below stayed in place under a manual Light theme on a dark operating
-     system, which put dark foregrounds on light backgrounds. */
-  html:not([data-theme="light"]) {
+     system, which put dark foregrounds on light backgrounds.
+
+     The guard sits in :where() so it adds no specificity. A bare
+     html:not([data-theme="light"]) would make these rules beat the explicit
+     appearance layer in appearance.css, and the manual Dark theme would
+     change with it. */
+  :root:where(:not([data-theme="light"])) {
     --bg: #0e1422;
     --bg-elevated: #141d30;
     --surface: #151e2f;
@@ -441,13 +446,13 @@ html body .blocked-shell .btn-primary { background: var(--time-blue); border-col
 }
 
 @media (prefers-color-scheme: dark) {
-  html:not([data-theme="light"]) body:has(.dashboard-shell) { background: var(--bg); color: var(--text); }
-  html:not([data-theme="light"]) body .kpi-primary { background: linear-gradient(145deg, #192337 0%, #161f31 100%); }
-  html:not([data-theme="light"]) body .popup-shell { background: var(--surface); }
-  html:not([data-theme="light"]) body .popup-shell .today-summary,
-  html:not([data-theme="light"]) body .popup-shell .current-card,
-  html:not([data-theme="light"]) body .side-shell .current-panel { background: var(--surface-raised); }
-  html:not([data-theme="light"]) body .side-shell { background: var(--bg); }
+  :where(html:not([data-theme="light"])) body:has(.dashboard-shell) { background: var(--bg); color: var(--text); }
+  :where(html:not([data-theme="light"])) body .kpi-primary { background: linear-gradient(145deg, #192337 0%, #161f31 100%); }
+  :where(html:not([data-theme="light"])) body .popup-shell { background: var(--surface); }
+  :where(html:not([data-theme="light"])) body .popup-shell .today-summary,
+  :where(html:not([data-theme="light"])) body .popup-shell .current-card,
+  :where(html:not([data-theme="light"])) body .side-shell .current-panel { background: var(--surface-raised); }
+  :where(html:not([data-theme="light"])) body .side-shell { background: var(--bg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
