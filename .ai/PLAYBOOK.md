@@ -85,7 +85,7 @@ make unattended work safe; if one is missing, building it is the first backlog i
 
 | Gate | Command | Must |
 |---|---|---|
-| Tests | `npm test` | pass (192 tests, 0 fail) |
+| Tests | `npm test` | pass, 0 fail (192 on this branch, 198 with the open accessibility branches merged) |
 | Extension validator | `npm run validate` | pass (exact permission allowlist, no remote/dynamic code, unique HTML IDs) |
 | CSS build | `npm run build:css` | succeed, and `src/styles/timelens.css` shows no unexpected diff |
 | Full gate | `npm run check` | pass — this is what CI runs |

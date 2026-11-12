@@ -7,19 +7,17 @@ Sizes: S (under an hour of agent work), M (one PR), L (split before starting).
 
 Parked items waiting on a decision. Answer inline and move the item back to Next.
 
-- [ ] **decide: docs claim CI runs on Windows, it does not** (S) — `CONTRIBUTING.md` says "CI must pass on
-  both Ubuntu and Windows before merging" and the workflow diagram says "Linux + Windows checks", but
-  `.github/workflows/ci.yml` only has `runs-on: ubuntu-latest`. Either add a Windows job (the packaging
-  script and Tailwind build are the parts most likely to differ) or correct the docs. Which is right is a
-  product call, not a technical one. Done when: the docs and the workflow agree. Source: scan
-  - **Now answerable.** The technical side was rehearsed on a dark-preferring Windows host: `npm run check`
-    and `npm run package` both pass on Windows, the axe step runs unchanged (the runner image ships Chrome,
-    ChromeDriver and `CHROMEWEBDRIVER`), and the screenshot step works too. The only wrinkle is `python3`
-    versus `python`, which the runner image resolves. So a Windows job is feasible; the cost is roughly
-    double the CI minutes. The rehearsal also proved the more important point: the current Linux-only job
-    never exercises a dark-preferring system, which is how the light-theme contrast bug behind PR #19 went
-    unnoticed. See "test: exercise the accessibility matrix under a dark-preferring system" in Next.
-- [ ] **decide: split `src/background/service-worker.js`** (L) — 682 lines, the largest file in the repo
+- [ ] **decide: add a Windows runner to CI** (S) - the docs no longer promise a Windows job, so the
+  question is now only whether to add one. It is feasible: `npm run check` and `npm run package` both
+  pass on Windows, the axe step runs unchanged (the runner image ships Chrome, ChromeDriver and
+  `CHROMEWEBDRIVER`), and the screenshot step works too. The only wrinkle is `python3` versus `python`,
+  which the runner image resolves. The cost is roughly double the CI minutes. Done when: the workflow
+  either has a Windows job or the decision is recorded as "no". Source: scan
+  - The technical side was rehearsed on a dark-preferring Windows host. The rehearsal also proved the
+    more important point: a Linux-only job never exercises a dark-preferring system, which is how the
+    light-theme contrast bug behind PR #19 went unnoticed. See "test: exercise the accessibility matrix
+    under a dark-preferring system" in Next, delivered by PR #20.
+- [ ] **decide: split `src/background/service-worker.js`** (L) - 682 lines, the largest file in the repo
   and the lowest-cohesion module in the knowledge graph. It holds the message switch, the Chrome event
   listeners, and the enforcement loop. Splitting it touches every UI surface. Worth doing only as its own
   piece of work. Done when: the switch, the listeners, and the enforcement loop live in separate modules
@@ -27,11 +25,7 @@ Parked items waiting on a decision. Answer inline and move the item back to Next
 
 ## Next
 
-- [ ] **docs: correct the CI matrix claim in `CONTRIBUTING.md`** (S) — depends on the decision above. If
-  the answer is to add a Windows job, this item is covered by it; if the answer is to correct the docs,
-  update both the prose and the mermaid diagram. Done when: no line in `CONTRIBUTING.md` promises a CI
-  environment that does not exist. Source: scan
-- [ ] **test: exercise the accessibility matrix under a dark-preferring system** (M) — the CI axe step runs
+- [ ] **test: exercise the accessibility matrix under a dark-preferring system** (M) - the CI axe step runs
   only on Linux with a light colour scheme, so a manual Light theme was never checked against an
   OS-dark background. That gap is how the light-theme contrast bug behind PR #19 survived. Add a second
   matrix pass that runs the same 9 pages x 3 themes with the browser forced to prefer dark. Done when: CI
@@ -92,6 +86,11 @@ Stopped by you. Only you lift it; new clues, CI or bots do not.
 
 ## Done
 
+- 2026-11-12 **docs: correct the CI runner claim in `CONTRIBUTING.md`** — ready, PR #21
+  (`docs/ci-runner-claim`, based on `origin/main`). The guide told contributors CI must pass on both
+  Ubuntu and Windows and the diagram promised "Linux + Windows checks"; the workflow has one job and it
+  runs on `ubuntu-latest`. Both lines now say what the workflow does. Whether to add a Windows runner
+  stays an open question under Needs you.
 - 2026-11-11 **ci: audit the accessibility matrix under a dark-preferring system** — ready, PR #20
   (`ci/axe-dark-scheme-matrix`, based on PR #19's branch). Adds two more axe passes with the browser
   forced to prefer dark, so a manual Light theme is checked against a dark background. Verified to fail

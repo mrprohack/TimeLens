@@ -4,6 +4,11 @@ What the agents did and decided, newest first. Short entries; the diff has the d
 
 ## Decisions
 
+- 2026-11-12 **The docs were wrong about CI, so the docs were fixed; whether to add a Windows runner is
+  still the user's call.** — `CONTRIBUTING.md` promised a Windows job that does not exist. Making the guide
+  honest is the safe default and does not pre-empt the open question: adding a Windows runner is still
+  recorded under Needs you, with the rehearsal and the cost (roughly double the CI minutes). To undo:
+  revert PR #21 and put the question back as it was.
 - 2026-11-11 **Autonomy set to level 3 (commit and open PRs), no merge.** — The user chose level 3 over
   level 4. The agent delivers a PR and waits for green CI; merging stays with the user. To undo: change the
   level in `.ai/PLAYBOOK.md` and in the "Project brief" section of `AGENTS.md`.
@@ -48,6 +53,9 @@ What the agents did and decided, newest first. Short entries; the diff has the d
   light operating system, with the manual Light theme applied, and reports the contrast of every piece of
   text against the background it actually sits on. It separates the failures the OS scheme caused from the
   27 the theme already had, and those 27 are now a backlog item.
+- Done: PR #21 (`docs/ci-runner-claim`) corrects the CI runner claim in `CONTRIBUTING.md`. The guide
+  promised a Windows job that the workflow does not have; both the prose and the flow diagram now say
+  what the workflow does. Whether to add a Windows runner stays parked as a cost question.
 - Parked: unchanged — the Windows-CI decision and the `service-worker.js` split still need the user.
 - Failed: the first version of the browser check reported a green result while comparing a light render
   against a light render. The `--blink-settings=preferredColorScheme=0` launch flag that works for the
