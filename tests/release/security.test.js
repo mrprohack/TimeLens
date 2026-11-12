@@ -7,8 +7,8 @@ const text = (path) => readFile(new URL(path, root), 'utf8');
 
 const ACTION_PINS = Object.freeze({
   checkout: '3d3c42e5aac5ba805825da76410c181273ba90b1',
-  setupNode: '820762786026740c76f36085b0efc47a31fe5020',
-  uploadArtifact: '043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+  setupNode: '949feb2413d6458794dcd2491c4babbbce0c15c1',
+  uploadArtifact: 'cf430e030ddbb5b0abf93d22962f4752f3646cd9'
 });
 
 test('CI third-party actions are pinned to immutable commit SHAs', async () => {
