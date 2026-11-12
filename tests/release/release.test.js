@@ -123,3 +123,23 @@ test('runtime pages consume the local Tailwind bundle through the shared compati
     assert.doesNotMatch(html, /cdn\.tailwindcss\.com|https?:\/\/[^"']+\.css/i);
   }
 });
+
+test('the documented message protocol lists every message type the worker handles', async () => {
+  const worker = await text('src/background/service-worker.js');
+  const architecture = await text('docs/ARCHITECTURE.md');
+
+  // Every `case '...'` label in the worker's message switch is part of the contract.
+  const handled = [...worker.matchAll(/case '([A-Z_]+)':/g)].map((match) => match[1]);
+  const unique = [...new Set(handled)];
+  assert.ok(unique.length >= 19, `expected the worker to handle at least 19 message types, found ${unique.length}`);
+
+  const documented = new Set(
+    [...architecture.matchAll(/^\| `([A-Z_]+)` \|/gm)].map((match) => match[1]),
+  );
+  const missing = unique.filter((type) => !documented.has(type));
+  assert.deepEqual(
+    missing,
+    [],
+    `docs/ARCHITECTURE.md does not document: ${missing.join(', ')}. The worker is the source of truth.`,
+  );
+});
