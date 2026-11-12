@@ -34,7 +34,37 @@ What the agents did and decided, newest first. Short entries; the diff has the d
 
 ## Runs
 
-### 2026-11-11 — /project-start (full setup)
+### 2026-11-12 - /project-lead (a11y: the root cause behind the manual Light theme)
+
+- Done: PR #19 (`fix/a11y/light-theme-time-pill`) now fixes the bug at its source instead of patching the
+  symptom. Every rule inside a `prefers-color-scheme: dark` block in `tailwind.css`,
+  `precision-polish.css` and `dashboard.css` is scoped with `html:not([data-theme="light"])`, so a
+  manually chosen Light theme can never be overridden by the operating system's colour scheme. The
+  light theme's own foregrounds for `.current-time-pill` and `.usage-rank` stay as defence in depth.
+- Done: a contract test in `tests/ui/appearance-theme.test.js` fails if any rule in any shipped
+  stylesheet's dark media block is left unscoped. It was verified by reverting each of the three files
+  in turn and watching the test fail.
+- Done: `scripts/check-theme-contrast.py` renders the five real extension surfaces under a dark and a
+  light operating system, with the manual Light theme applied, and reports the contrast of every piece of
+  text against the background it actually sits on. It separates the failures the OS scheme caused from the
+  27 the theme already had, and those 27 are now a backlog item.
+- Parked: unchanged — the Windows-CI decision and the `service-worker.js` split still need the user.
+- Failed: the first version of the browser check reported a green result while comparing a light render
+  against a light render. The `--blink-settings=preferredColorScheme=0` launch flag that works for the
+  CI axe step does not change what the page reports under Playwright; only the context's own
+  `color_scheme` does. The check now uses that, and it fails loudly rather than silently sampling a page
+  that did not load.
+- Learned: the check was flaky for a reason that had nothing to do with the theme. The local server was
+  single-threaded, so the browser's parallel connections were refused, the page lost its stylesheet, and
+  the theme was never applied. A threaded server removed every false result.
+- Learned: the source fix alone is enough. Reverting the `tailwind.css` and `dashboard.css` changes while
+  keeping the others still passes, so those two are defence in depth rather than load-bearing. The
+  `precision-polish.css` change is the one the check catches.
+- Learned: `git show HEAD:file | Set-Content -NoNewline` strips every newline from the file, which
+  silently corrupted four stylesheets mid-session. `git restore --source=HEAD --worktree -- <file>` is
+  the safe way to test a revert.
+
+### 2026-11-11 - /project-start (full setup)
 
 - Done: built the knowledge graph (932 nodes, 1543 edges, 61 communities) and left it git-ignored; wrote
   `AGENTS.md`, `CLAUDE.md` (one-line `@AGENTS.md` import), `.opencode/agents/timelens-expert.md`,
@@ -138,6 +168,11 @@ What the agents did and decided, newest first. Short entries; the diff has the d
   dashboard's violation count drops from two to one for a dark-OS user who picks Light.
 - Learned: the fix went to its own branch off `origin/main` rather than onto the setup branch, so it can be
   reviewed and merged on its own. The setup branch was updated to point at it.
+- Correction: the first version of that fix added a colour to a rule covering both `.current-time-pill`
+  and `.usage-rank`, which turned `.usage-rank` from slate to brand blue in the light theme, and left the
+  same 1.63:1 failure in place for it. It was corrected to set a foreground per element, and a scan of
+  every text element in all nine preview surfaces under both colour schemes now reports no remaining
+  element whose foreground changes with the operating system.
 
 ### 2026-11-11 — /project-lead (ci: audit the matrix under a dark-preferring system)
 

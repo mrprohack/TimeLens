@@ -42,9 +42,14 @@ Use these for the job named. If a job is not listed, check the installed catalog
 | Full gate (CSS + tests + validator) | `npm run check` |
 | Build Chrome Web Store zip | `npm run package` |
 | Rebuild CSS only | `npm run build:css` |
+| Check a theme under a dark OS | `python scripts/check-theme-contrast.py --port 4176` |
 
 Node 22+ required (`package.json` `engines`). There are no runtime npm dependencies; the only dev
 dependencies are `tailwindcss` and `@tailwindcss/cli`, both pinned to 4.3.3.
+`scripts/check-theme-contrast.py` is a local tool, not part of the gate: it needs Python Playwright and a
+local Chrome, neither of which CI installs. It renders the real extension surfaces under a dark and a
+light operating system and reports the contrast failures the OS colour scheme caused, separately from the
+ones the theme already had.
 
 ## Checks by path
 
@@ -103,12 +108,18 @@ Run only the rows the change touches, locally and when deciding what CI must pas
   `handleMessage` in `src/background/service-worker.js`. `docs/ARCHITECTURE.md` lists all 19, and a
   contract test in `tests/release/release.test.js` fails if the two disagree — so adding a message type
   without documenting it breaks the build.
-- **A manual theme must set a foreground, not just a background.** `src/styles/appearance.css` has
-  `html[data-theme="light"]` and `html[data-theme="dark"]` overrides, but `precision-polish.css` also
-  styles elements inside `@media (prefers-color-scheme: dark)`. When the OS prefers dark and the user
-  picks Light, a dark media query still applies, so a light rule that sets only `background` leaves the
-  dark foreground in place. Set `color` as well as `background` in any light-theme override. A contract
-  test in `tests/ui/appearance-theme.test.js` enforces this.
+- **An operating-system dark rule must never reach a manually chosen Light theme.** Three stylesheets
+  (`src/styles/tailwind.css`, `src/styles/precision-polish.css`, `src/dashboard/dashboard.css`) had
+  `@media (prefers-color-scheme: dark)` blocks that were not scoped, so on a dark-preferring OS they
+  applied even when the user picked Light. Every rule inside such a block is now scoped with
+  `html:not([data-theme="light"])`; `src/popup/popup.css` and `src/sidepanel/sidepanel.css` use the
+  stricter `html:not([data-theme])`. A contract test in `tests/ui/appearance-theme.test.js` enforces this
+  across every shipped stylesheet. Two more traps sit behind it: a manual theme must set a foreground as
+  well as a background (`src/styles/appearance.css` has `html[data-theme="light"]` and
+  `html[data-theme="dark"]` overrides, but `precision-polish.css` also styles elements inside
+  `@media (prefers-color-scheme: dark)`, and a light rule that sets only `background` leaves the dark
+  foreground in place), and each element needs its own colour rather than sharing one rule, because a
+  shared rule changes the other element too.
 - **The CI axe step must cover a dark-preferring system.** GitHub's runners report
   `prefers-color-scheme: light`, so a manual Light theme was never checked against a dark background —
   that is how a WCAG AA failure survived three releases. The workflow now runs the matrix twice, and the
