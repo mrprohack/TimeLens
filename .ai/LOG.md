@@ -71,6 +71,15 @@ What the agents did and decided, newest first. Short entries; the diff has the d
 - Learned: `git show HEAD:file | Set-Content -NoNewline` strips every newline from the file, which
   silently corrupted four stylesheets mid-session. `git restore --source=HEAD --worktree -- <file>` is
   the safe way to test a revert.
+- Learned: the browser check was blind to dialogs. A closed dialog renders nothing, so the text inside
+  it was never measured. The dashboard's shortcut hint was dark text on a dark chip at 1.02:1 for a
+  dark-OS user who picks Light — unreadable, and invisible to the check and to the axe fixtures. The
+  check now opens the dialogs before reading the styles, and it also reports a side-panel failure on the
+  pre-fix CSS.
+- Learned: measuring the real pages under a dark operating system turned the symptom fix into a root
+  cause fix. Three stylesheets had unscoped `prefers-color-scheme: dark` blocks; scoping them with
+  `html:not([data-theme="light"])` means an operating-system dark rule can never reach a manually chosen
+  Light theme again, and a contract test enforces that across every shipped stylesheet.
 
 ### 2026-11-11 - /project-start (full setup)
 
