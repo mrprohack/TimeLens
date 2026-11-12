@@ -112,14 +112,16 @@ Run only the rows the change touches, locally and when deciding what CI must pas
   (`src/styles/tailwind.css`, `src/styles/precision-polish.css`, `src/dashboard/dashboard.css`) had
   `@media (prefers-color-scheme: dark)` blocks that were not scoped, so on a dark-preferring OS they
   applied even when the user picked Light. Every rule inside such a block is now scoped with
-  `html:not([data-theme="light"])`; `src/popup/popup.css` and `src/sidepanel/sidepanel.css` use the
-  stricter `html:not([data-theme])`. A contract test in `tests/ui/appearance-theme.test.js` enforces this
-  across every shipped stylesheet. Two more traps sit behind it: a manual theme must set a foreground as
-  well as a background (`src/styles/appearance.css` has `html[data-theme="light"]` and
-  `html[data-theme="dark"]` overrides, but `precision-polish.css` also styles elements inside
-  `@media (prefers-color-scheme: dark)`, and a light rule that sets only `background` leaves the dark
-  foreground in place), and each element needs its own colour rather than sharing one rule, because a
-  shared rule changes the other element too.
+  `:where(html:not([data-theme="light"]))`; `src/popup/popup.css` and `src/sidepanel/sidepanel.css` use the
+  stricter `html:not([data-theme])`. Two contract tests in `tests/ui/appearance-theme.test.js` enforce
+  this across every shipped stylesheet: one fails if a rule is left unscoped, the other if a guard
+  raises the specificity of the rule it guards — the guard has to sit in `:where()` so the explicit
+  appearance layer in `src/styles/appearance.css` still wins and the manual Dark theme does not move.
+  Two more traps sit behind it: a manual theme must set a foreground as well as a background
+  (`src/styles/appearance.css` has `html[data-theme="light"]` and `html[data-theme="dark"]` overrides,
+  but `precision-polish.css` also styles elements inside `@media (prefers-color-scheme: dark)`, and a
+  light rule that sets only `background` leaves the dark foreground in place), and each element needs
+  its own colour rather than sharing one rule, because a shared rule changes the other element too.
 - **The CI axe step must cover a dark-preferring system.** GitHub's runners report
   `prefers-color-scheme: light`, so a manual Light theme was never checked against a dark background —
   that is how a WCAG AA failure survived three releases. The workflow now runs the matrix twice, and the

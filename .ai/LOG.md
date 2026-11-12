@@ -80,6 +80,13 @@ What the agents did and decided, newest first. Short entries; the diff has the d
   cause fix. Three stylesheets had unscoped `prefers-color-scheme: dark` blocks; scoping them with
   `html:not([data-theme="light"])` means an operating-system dark rule can never reach a manually chosen
   Light theme again, and a contract test enforces that across every shipped stylesheet.
+- Learned: that guard was one attribute too heavy. `html:not([data-theme="light"])` raises the
+  specificity of every rule it guards, so the operating-system dark rules started to beat the explicit
+  appearance layer, and the manual Dark theme changed with them: on a dark-preferring system the popup
+  shell lost its transparent background. `:where()` adds no specificity, so the guard does its job and
+  the cascade is untouched. Rendering all five real surfaces in all four combinations of operating system
+  and manual theme now shows that only the broken combination changed: 0, 0, 0 and 25 elements. A second
+  contract test fails if a guard ever raises the specificity of the rule it guards.
 
 ### 2026-11-11 - /project-start (full setup)
 
